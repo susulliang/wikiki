@@ -502,7 +502,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex min-h-screen bg-background">
       <AppSidebar
         products={products}
         selectedProductId={selectedProductId}
@@ -527,7 +527,7 @@ export default function HomePage() {
         onTriggerImportDBHandled={() => setTriggerImportDB(false)}
         onProductsChanged={handleReloadSQLite}
       />
-      <main className="flex-1 min-w-0 overflow-hidden bg-background">
+      <main className="flex-1 min-w-0 bg-background">
         {renderMainContent()}
       </main>
     </div>

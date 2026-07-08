@@ -368,7 +368,7 @@ export default function AppSidebar({
   return (
     <>
       <aside
-        className={`flex h-full flex-col border-r bg-card transition-all duration-300 ${
+        className={`flex flex-col border-r bg-card transition-all duration-300 sticky top-0 h-screen self-start shrink-0 ${
           collapsed ? 'w-[56px]' : 'w-[260px]'
         }`}
         onDragOver={handleDragOver}
