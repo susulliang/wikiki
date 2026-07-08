@@ -1,109 +1,159 @@
-# 项目技术规范
+# Wikiki
 
-## 技术栈
+**Wikiki** is a personal wiki knowledge base that helps you organize, document, and manage information across multiple topics or projects. Think of it as your own private Wikipedia for storing notes, documentation, research, and ideas.
 
-- 前端: React 19 + TypeScript
-- 样式: Tailwind CSS v4
-- UI 组件: shadcn/ui `import { Button } from "@/components/ui/button";`
-- 图标: lucide-react `import { SearchIcon } from "lucide-react";`
-- 图表: echarts-for-react `import ReactECharts from "echarts-for-react";`
-- 动画: framer-motion `import { motion } from "framer-motion";`
-- 路由: react-router-dom `import { Link, useNavigate } from "react-router-dom";`
+## What is Wikiki?
 
----
+Wikiki lets you create **products** (topics or projects), each containing multiple **pages** (documents or notes). Each page supports rich text formatting, images, code blocks, and more — making it perfect for:
 
-## 目录结构
-
-```
-src/
-├── index.tsx            # 入口（勿修改）
-├── app.tsx              # 路由配置（仅在 <Routes> 内增删 <Route>）
-├── index.css            # 全局样式 + 主题变量
-├── components/          # 基础 UI 组件（禁止存放业务组件）
-│   ├── layout.tsx       # 全局布局容器（含 <Outlet />）
-│   └── ui/              # shadcn/ui 内置组件（勿修改）
-├── pages/               # 页面模块（每个页面一个目录）
-│   ├── <PageName>/      # 页面目录示例
-│   │   ├── PageName.tsx        # 页面入口文件与目录同名
-│   │   └── components/         # 页面专属组件
-│   └── NotFoundPage/
-│       └── NotFoundPage.tsx
-├── hooks/               # 自定义 Hooks
-└── lib/                 # 工具函数（cn() 等）
-
-shared/
-└── static/              # 静态资源
-    ├── data/            # 数据文件（JSON）
-    └── images/          # 图片资源
-```
+- 📝 Personal knowledge bases
+- 📚 Project documentation
+- 🧑‍💼 Work notes and wikis
+- 📖 Research and study notes
+- 🗂️ Reference collections
 
 ---
 
-## 模板初始状态
+## Features
 
-- `app.tsx` 首页路由指向平台内置的 `<Welcome />` 组件
-- 开发时需将 `index` 路由替换为业务首页，并在 `pages/` 下创建对应页面目录
-- `layout.tsx` 为空壳容器（仅 `<Outlet />`），需根据需求实现导航和布局
+### ✨ Rich Text Editing
+- **Formatting tools**: Bold, italic, underline, strikethrough
+- **Headings**: Body text, H1, H2, H3
+- **Lists**: Bullet points and numbered lists
+- **Code blocks** and inline code
+- **Links and images**: Embed images or add links
+- **Blockquotes** and horizontal rules
 
----
+### 🗂️ Multi-Product Organization
+- Create separate **products** for different topics (e.g., "Work", "Personal", "Learning")
+- Each product can have **multiple pages**
+- Organize pages with **drag-and-drop reordering**
+- Tag products for easy filtering
 
-## 禁止修改的文件
+### 🎨 5 Beautiful Themes
+Choose from:
+- **Warm Light** – Soft, paper-like feel
+- **Clean Light** – Crisp, modern white
+- **Soft Light** – Gentle, muted tones
+- **Dark** – Comfortable dark mode
+- **Midnight** – Deep, elegant blue-black
 
-| 文件 | 原因 |
-|------|------|
-| `src/index.tsx` | Provider 层级 + 样式引入，由模板管理 |
-| `src/components/ui/*` | shadcn/ui 内置组件，版本锁定 |
+### 🔍 Full-Text Search
+- Search across all products and pages
+- Find content by product name, tags, or page content
+- Instant results with highlighted snippets
 
----
+### 💾 Two Storage Modes
+1. **JSON Mode** (localStorage)
+   - Fast, lightweight
+   - Stores data in your browser
+   - Easy JSON export/import
+2. **SQLite Mode** (IndexedDB)
+   - Powerful database storage
+   - Better for large data sets
+   - Export/import `.db` files
 
-## 文件放置规则
-
-| 内容类型 | 放置位置 |
-|---------|---------|
-| 新页面 | `src/pages/<PageName>/PageName.tsx` |
-| 页面专属组件 | `src/pages/<PageName>/components/` |
-| 自定义 Hooks | `src/hooks/` |
-| 工具函数 | `src/lib/` |
-| 静态数据文件 | `shared/static/data/` |
-| 静态图片 | `shared/static/images/` |
-
----
-
-## 导入路径
-
-```typescript
-// @/ 别名 → src/
-import { cn } from "@/lib/utils";
-import { useIsMobile } from "@/hooks/use-mobile";
-
-// @shared/ 别名 → shared/
-import heroImage from "@shared/static/images/hero.png";
-import configData from "@shared/static/config.json";
-```
-
----
-
-## 路由配置
-
-- 新增页面需在 `src/app.tsx` 的 `<Routes>` 内注册 `<Route>`
-- `BrowserRouter` 已在 `index.tsx` 中配置，`app.tsx` 中**禁止**再包裹 Router
+### 📤 Import & Export
+- **Export**: Download your entire knowledge base as JSON or SQLite database
+- **Import**: Load data from JSON or `.db` files
+- Switch seamlessly between storage modes
 
 ---
 
-## 主题变量
+## How to Use
 
-主题色定义在 `src/index.css`，通过 `:root` CSS 变量 + `@theme inline` 注册到 Tailwind。
+### Getting Started
 
-| 用途 | Tailwind 类 | CSS 变量 |
-|------|------------|----------|
-| 页面背景 | `bg-background` | `--background` |
-| 主文本 | `text-foreground` | `--foreground` |
-| 卡片背景 | `bg-card` | `--card` |
-| 次要文本 | `text-muted-foreground` | `--muted-foreground` |
-| 主色 | `bg-primary` / `text-primary` | `--primary` |
-| 强调色 | `bg-accent` | `--accent` |
-| 边框 | `border-border` | `--border` |
-| 危险色 | `text-destructive` | `--destructive` |
-| 图表色 | `bg-chart-1` ~ `bg-chart-5` | `--chart-1` ~ `--chart-5` |
+1. **Create Your First Product**
+   - Click the **+ Create New Product** button
+   - Give it a name (e.g., "My Notes")
+   - Optionally add tags (e.g., "work", "personal")
 
-HSL 格式使用**空格分隔**：`--primary: hsl(150 60% 40%);`
+2. **Add Pages**
+   - Inside a product, click the **+** button in the page tabs area
+   - Give your page a name
+   - Start writing!
+
+3. **Edit and Format**
+   - Use the **toolbar** at the top of the editor to format text
+   - Click the **toolbar toggle button** (left of Edit/Delete) to show/hide the toolbar
+   - Insert images by clicking the image icon or pasting from clipboard
+
+### Navigation
+
+- **Sidebar**: Browse all your products
+  - Search products with the search bar
+  - Filter by tags
+  - Click a product to view its pages
+  - Collapse/expand the sidebar with the toggle button
+- **Page tabs**: Switch between pages within a product
+  - Drag and drop to reorder pages
+  - Click the **×** icon to delete a page
+- **Theme selector**: Found in the sidebar (when expanded), choose your preferred theme
+
+### Managing Data
+
+#### Export Your Data
+1. Expand the sidebar
+2. Click the **Export** button (download icon)
+3. Choose **JSON** or **SQLite Database**
+4. Your data will download to your device
+
+#### Import Data
+1. Expand the sidebar
+2. Click the **Import** button (upload icon)
+3. Choose **JSON** or **SQLite Database**
+4. Select your file
+5. Data will be merged with existing content (no duplicates)
+
+#### Switch Storage Modes
+- In the sidebar, click the **storage mode indicator** (JSON/SQLite)
+- Choose your preferred mode
+- Data will be migrated automatically
+
+---
+
+## Tips & Tricks
+
+- **Keyboard shortcuts**: Ctrl+B (bold), Ctrl+I (italic), Ctrl+U (underline)
+- **Paste images**: Copy an image and paste directly into the editor
+- **Sticky toolbar**: The toolbar stays visible while scrolling for easy access
+- **Frosted panels**: Top panel and toolbar have a translucent effect — content scrolls beautifully underneath
+- **Auto-save**: Changes are saved automatically after 500ms
+- **Optimized performance**: Lazy loading ensures smooth performance even with many pages
+
+---
+
+## Use Cases
+
+### 📚 Personal Knowledge Base
+Keep all your notes, ideas, and references in one place. Create products for different areas of your life: learning, hobbies, travel, recipes, etc.
+
+### 🧑‍💼 Work Documentation
+Organize meeting notes, project specs, onboarding guides, and reference materials. Tag by team or project for easy filtering.
+
+### 📖 Study Notes
+Create products for each course or subject. Add pages for lectures, readings, and summaries. Use code blocks for programming notes.
+
+### 🗂️ Reference Library
+Store templates, checklists, how-tos, and quick references. Search instantly when you need them.
+
+---
+
+## Technical Details
+
+- **Framework**: React + TypeScript + Vite
+- **Storage**: localStorage (JSON) or IndexedDB (SQLite via sql.js)
+- **Styling**: Tailwind CSS with custom theme system
+- **Deployment**: Optimized for Vercel and other static hosts
+- **Browser support**: Modern browsers (Chrome, Firefox, Safari, Edge)
+
+---
+
+## License
+
+This project is open source and available under the MIT License.
+
+---
+
+**Enjoy building your knowledge base with Wikiki! 🎉**
