@@ -280,7 +280,9 @@ export default function HomePage() {
     }
 
     document.body.style.setProperty('overflow', 'hidden');
-    return () => document.body.style.removeProperty('overflow');
+    return () => {
+      document.body.style.removeProperty('overflow');
+    };
   }, [superSearchOpen]);
 
   const handleCreateProduct = useCallback(() => {
