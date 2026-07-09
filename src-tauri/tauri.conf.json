@@ -36,12 +36,11 @@
       "icons/icon.ico"
     ],
     "publisher": "Wikiki Contributors",
-    "macos": {
+    "macOS": {
     },
     "windows": {
       "certificateThumbprint": null,
-      "digestAlgorithm": "sha256",
-      "timestampUrl": ""
+      "digestAlgorithm": "sha256"
     }
   }
 }
