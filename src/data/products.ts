@@ -29,9 +29,11 @@ export interface SearchResult {
   productId: string;
   productName: string;
   pageId: string | null;
+  pageIndex: number | null;
   pageName: string | null;
   snippet: string;
   matchType: 'name' | 'tag' | 'content';
+  score: number;
 }
 
 const TAG_COLORS = [

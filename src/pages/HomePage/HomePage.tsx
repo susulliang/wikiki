@@ -1,79 +1,20 @@
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { Loader2, BookOpen } from 'lucide-react';
 import { useProducts } from '@/hooks/useProducts';
 import { useTheme } from '@/hooks/useTheme';
 import { scopedStorage, logger } from '@lark-apaas/client-toolkit-lite';
 import AppSidebar from '@/components/AppSidebar';
 import EmptyState from '@/components/EmptyState';
-import SearchResults from '@/components/SearchResults';
 import ProductDetail from '@/components/ProductDetail';
+import SuperSearchOverlay from '@/components/SuperSearchOverlay';
 import { useStorageMode } from '@/lib/storage-context';
 import { getSQLiteStorage } from '@/lib/sqlite-storage';
 import type { IProduct, IPage, SearchResult } from '@/data/products';
+import { searchProducts } from '@/lib/search';
 
 const SIDEBAR_KEY = '__wikiki_sidebar_collapsed';
 const SELECTED_KEY = '__wikiki_selected_product_id';
 const PAGE_INDEX_KEY = '__wikiki_selected_page_index';
-
-function stripHtml(html: string): string {
-  const div = document.createElement('div');
-  div.innerHTML = html;
-  return div.textContent || '';
-}
-
-function searchProducts(products: IProduct[], query: string): SearchResult[] {
-  const q = query.toLowerCase();
-  const results: SearchResult[] = [];
-
-  for (const product of products) {
-    if (product.name.toLowerCase().includes(q)) {
-      results.push({
-        productId: product.id,
-        productName: product.name,
-        pageId: null,
-        pageName: null,
-        snippet: product.name,
-        matchType: 'name',
-      });
-    }
-
-    for (const tag of product.tags) {
-      if (tag.toLowerCase().includes(q)) {
-        results.push({
-          productId: product.id,
-          productName: product.name,
-          pageId: null,
-          pageName: null,
-          snippet: `标签: ${tag}`,
-          matchType: 'tag',
-        });
-      }
-    }
-
-    for (const page of product.pages) {
-      const text = stripHtml(page.content);
-      const lower = text.toLowerCase();
-      if (lower.includes(q)) {
-        const idx = lower.indexOf(q);
-        const start = Math.max(0, idx - 30);
-        const end = Math.min(text.length, idx + q.length + 30);
-        const snippet =
-          (start > 0 ? '...' : '') + text.slice(start, end) + (end < text.length ? '...' : '');
-
-        results.push({
-          productId: product.id,
-          productName: product.name,
-          pageId: page.id,
-          pageName: page.name,
-          snippet,
-          matchType: 'content',
-        });
-      }
-    }
-  }
-
-  return results;
-}
 
 export default function HomePage() {
   const { mode: storageMode, sqliteReady, reloadSQLiteProducts } = useStorageMode();
@@ -90,7 +31,6 @@ export default function HomePage() {
     reorderPages: jsonReorderPages,
     importProducts: jsonImportProducts,
     exportProducts: jsonExportProducts,
-    getProduct: jsonGetProduct,
   } = useProducts();
 
   useEffect(() => {
@@ -119,7 +59,8 @@ export default function HomePage() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTags, setFilterTags] = useState<string[]>([]);
-  const [globalSearchQuery, setGlobalSearchQuery] = useState('');
+  const [superSearchOpen, setSuperSearchOpen] = useState(false);
+  const [superSearchQuery, setSuperSearchQuery] = useState('');
 
   const { theme, toggleTheme, setTheme } = useTheme();
 
@@ -132,12 +73,11 @@ export default function HomePage() {
   });
 
   const [sqliteProducts, setSqliteProducts] = useState<IProduct[]>([]);
+  const [sqliteSearchProducts, setSqliteSearchProducts] = useState<IProduct[]>([]);
   const [loadedProductContent, setLoadedProductContent] = useState<Map<string, IProduct>>(new Map());
-  const sqliteLoaded = useRef(false);
 
   useEffect(() => {
     if (storageMode !== 'sqlite' || !sqliteReady) return;
-    sqliteLoaded.current = true;
     const storage = getSQLiteStorage();
     storage.getAllProductsShallow().then((prods) => {
       setSqliteProducts(prods);
@@ -162,7 +102,6 @@ export default function HomePage() {
 
   useEffect(() => {
     if (storageMode === 'json') {
-      sqliteLoaded.current = false;
       setLoadedProductContent(new Map());
     }
   }, [storageMode]);
@@ -189,17 +128,52 @@ export default function HomePage() {
     [products, selectedProductId],
   );
 
-  const searchResults = useMemo(
-    () => (globalSearchQuery.trim() ? searchProducts(products, globalSearchQuery.trim()) : []),
-    [products, globalSearchQuery],
-  );
+  useEffect(() => {
+    if (storageMode !== 'sqlite' || !sqliteReady || !superSearchOpen) {
+      setSqliteSearchProducts([]);
+      return;
+    }
 
-  const isSearching = globalSearchQuery.trim().length > 0;
+    let cancelled = false;
+    const storage = getSQLiteStorage();
+
+    storage
+      .getAllProducts()
+      .then((allProducts) => {
+        if (!cancelled) {
+          setSqliteSearchProducts(allProducts);
+        }
+      })
+      .catch((error) => {
+        logger.error('加载 SQLite 搜索索引失败:', String(error));
+        if (!cancelled) {
+          setSqliteSearchProducts([]);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [storageMode, sqliteReady, superSearchOpen, products]);
+
+  const searchableProducts = useMemo(() => {
+    if (storageMode !== 'sqlite') {
+      return products;
+    }
+
+    return sqliteSearchProducts.length > 0 ? sqliteSearchProducts : products;
+  }, [storageMode, sqliteSearchProducts, products]);
+
+  const searchResults = useMemo(
+    () => (superSearchQuery.trim() ? searchProducts(searchableProducts, superSearchQuery.trim()) : []),
+    [searchableProducts, superSearchQuery],
+  );
 
   const handleSelectProduct = useCallback(
     (id: string) => {
       setSelectedProductId(id);
-      setGlobalSearchQuery('');
+      setSuperSearchOpen(false);
+      setSuperSearchQuery('');
       setSelectedPageIndex(0);
       try {
         scopedStorage.setItem(SELECTED_KEY, id);
@@ -260,26 +234,54 @@ export default function HomePage() {
 
   const handleSearchChange = useCallback((query: string) => {
     setSearchQuery(query);
-    if (query.trim()) {
-      setGlobalSearchQuery(query.trim());
-    } else {
-      setGlobalSearchQuery('');
-    }
   }, []);
 
   const handleSearchResultSelect = useCallback(
-    (productId: string, pageIndex?: number) => {
-      setSelectedProductId(productId);
-      setSelectedPageIndex(pageIndex ?? 0);
-      setGlobalSearchQuery('');
+    (result: SearchResult) => {
+      setSelectedProductId(result.productId);
+      setSelectedPageIndex(result.pageIndex ?? 0);
+      setSuperSearchOpen(false);
+      setSuperSearchQuery('');
       try {
-        scopedStorage.setItem(SELECTED_KEY, productId);
+        scopedStorage.setItem(SELECTED_KEY, result.productId);
+        scopedStorage.setItem(PAGE_INDEX_KEY, String(result.pageIndex ?? 0));
       } catch {
         // 忽略
       }
     },
     [],
   );
+
+  const handleOpenSuperSearch = useCallback(() => {
+    setSuperSearchOpen(true);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setSuperSearchOpen(true);
+        return;
+      }
+
+      if (event.key === 'Escape') {
+        setSuperSearchOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    if (!superSearchOpen) {
+      document.body.style.removeProperty('overflow');
+      return;
+    }
+
+    document.body.style.setProperty('overflow', 'hidden');
+    return () => document.body.style.removeProperty('overflow');
+  }, [superSearchOpen]);
 
   const handleCreateProduct = useCallback(() => {
     setTriggerAddDialog(true);
@@ -475,16 +477,6 @@ export default function HomePage() {
   const isLoadingContent = storageMode === 'sqlite' && selectedProductId !== null && !loadedProductContent.has(selectedProductId);
 
   const renderMainContent = () => {
-    if (isSearching) {
-      return (
-        <SearchResults
-          results={searchResults}
-          query={globalSearchQuery}
-          onSelect={handleSearchResultSelect}
-        />
-      );
-    }
-
     if (!selectedProduct) {
       return (
         <EmptyState
@@ -540,6 +532,7 @@ export default function HomePage() {
           onToggleTheme={toggleTheme}
           onSetTheme={setTheme}
           onSearchChange={handleSearchChange}
+          onOpenSuperSearch={handleOpenSuperSearch}
           onTagToggle={handleTagToggle}
           onTriggerAddHandled={() => setTriggerAddDialog(false)}
           onTriggerImportJSONHandled={() => setTriggerImportJSON(false)}
@@ -564,6 +557,21 @@ export default function HomePage() {
           <span className="text-[9px] text-foreground/5 font-mono">Wikiki Pro 0.1.2</span>
         </div>
       </main>
+      <SuperSearchOverlay
+        open={superSearchOpen}
+        query={superSearchQuery}
+        results={searchResults}
+        loading={
+          storageMode === 'sqlite' &&
+          superSearchOpen &&
+          superSearchQuery.trim().length > 0 &&
+          sqliteProducts.length > 0 &&
+          sqliteSearchProducts.length === 0
+        }
+        onQueryChange={setSuperSearchQuery}
+        onClose={() => setSuperSearchOpen(false)}
+        onSelect={handleSearchResultSelect}
+      />
     </div>
   );
 }

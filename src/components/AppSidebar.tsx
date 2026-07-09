@@ -73,6 +73,7 @@ interface AppSidebarProps {
   onToggleTheme: () => void;
   onSetTheme: (theme: ThemeName) => void;
   onSearchChange: (query: string) => void;
+  onOpenSuperSearch: () => void;
   onTagToggle: (tag: string) => void;
   onTriggerAddHandled: () => void;
   onTriggerImportJSONHandled: () => void;
@@ -109,6 +110,7 @@ export default function AppSidebar({
   onToggleTheme,
   onSetTheme,
   onSearchChange,
+  onOpenSuperSearch,
   onTagToggle,
   onTriggerAddHandled,
   onTriggerImportJSONHandled,
@@ -552,6 +554,9 @@ export default function AppSidebar({
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setAddDialogOpen(true)} title="Add Product">
                 <Plus className="size-4" />
               </Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onOpenSuperSearch} title="Super Search">
+                <Search className="size-4" />
+              </Button>
             </>
           ) : (
             <Button
@@ -628,6 +633,14 @@ export default function AppSidebar({
                 </Button>
               )}
             </div>
+            <button
+              type="button"
+              onClick={onOpenSuperSearch}
+              className="mt-2 flex h-8 w-full items-center justify-between rounded-md border border-dashed border-border/80 px-2.5 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:bg-accent/50 hover:text-foreground"
+            >
+              <span>Open Super Search</span>
+              <span className="rounded-full border bg-background px-1.5 py-0.5 text-[10px]">Ctrl/Cmd K</span>
+            </button>
           </div>
         )}
 
