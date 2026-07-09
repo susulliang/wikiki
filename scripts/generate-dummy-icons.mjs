@@ -27,11 +27,14 @@ const icons = [
   'BadgeLogo.png'
 ];
 
+// A 1x1 transparent PNG as a fallback
+const dummyPng = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==', 'base64');
+
 for (const icon of icons) {
   const iconPath = path.join(ICONS_DIR, icon);
-  if (!fs.existsSync(iconPath)) {
-    // Create a dummy file if it doesn't exist
-    fs.writeFileSync(iconPath, '');
+  if (!fs.existsSync(iconPath) || fs.statSync(iconPath).size === 0) {
+    // Create a dummy file if it doesn't exist or is empty
+    fs.writeFileSync(iconPath, dummyPng);
     console.log(`Created dummy icon: ${icon}`);
   }
 }
