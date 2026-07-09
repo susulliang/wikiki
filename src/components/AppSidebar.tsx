@@ -389,10 +389,10 @@ export default function AppSidebar({
             <div className="flex items-center gap-2 min-w-0">
               <button
                 onClick={onHideSidebar}
-                className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary transition-transform hover:scale-110 active:scale-95"
+                className="flex size-7 shrink-0 items-center justify-center rounded-md transition-transform hover:scale-110 active:scale-95 overflow-hidden"
                 title="Hide Sidebar"
               >
-                <BookOpen className="size-4 text-primary-foreground" />
+                <img src="/app-icon.svg" alt="Wikiki Logo" className="size-full object-cover" />
               </button>
               <span className="truncate text-sm font-semibold">Wikiki</span>
             </div>
@@ -400,10 +400,10 @@ export default function AppSidebar({
           {collapsed && (
             <button
               onClick={onHideSidebar}
-              className="flex size-7 items-center justify-center rounded-md bg-primary transition-transform hover:scale-110 active:scale-95"
+              className="flex size-7 items-center justify-center rounded-md transition-transform hover:scale-110 active:scale-95 overflow-hidden"
               title="Hide Sidebar"
             >
-              <BookOpen className="size-4 text-primary-foreground" />
+              <img src="/app-icon.svg" alt="Wikiki Logo" className="size-full object-cover" />
             </button>
           )}
           {!collapsed && (
