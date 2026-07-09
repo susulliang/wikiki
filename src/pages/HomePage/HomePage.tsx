@@ -561,7 +561,7 @@ export default function HomePage() {
           {renderMainContent()}
         </div>
         <div className="py-1 px-4 text-center pointer-events-none select-none">
-          <span className="text-[9px] text-foreground/5 font-mono">Wikiki Pro 0.1.1</span>
+          <span className="text-[9px] text-foreground/5 font-mono">Wikiki Pro 0.1.2</span>
         </div>
       </main>
     </div>

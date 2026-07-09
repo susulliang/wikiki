@@ -49,6 +49,8 @@ const THEME_PALETTE: Record<ThemeName, string> = {
   'warm-light': 'linear-gradient(135deg, hsl(40 20% 97%) 0%, hsl(85 12% 48%) 100%)',
   'clean-light': 'linear-gradient(135deg, hsl(210 20% 98%) 0%, hsl(210 70% 48%) 100%)',
   'soft-light': 'linear-gradient(135deg, hsl(280 18% 97%) 0%, hsl(270 40% 58%) 100%)',
+  'sunset': 'linear-gradient(135deg, hsl(30 40% 96%) 0%, hsl(20 65% 55%) 100%)',
+  'forest': 'linear-gradient(135deg, hsl(80 15% 96%) 0%, hsl(140 25% 42%) 100%)',
   'dark': 'linear-gradient(135deg, hsl(220 15% 13%) 0%, hsl(38 75% 55%) 100%)',
   'midnight': 'linear-gradient(135deg, hsl(230 35% 9%) 0%, hsl(180 75% 45%) 100%)',
 };
@@ -568,7 +570,7 @@ export default function AppSidebar({
         {!collapsed && (
           <div className="border-b px-3 py-2.5">
             <p className="mb-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Theme</p>
-            <div className="flex items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-1.5">
               {THEME_OPTIONS.map((t) => (
                 <button
                   key={t.value}
@@ -583,7 +585,7 @@ export default function AppSidebar({
                 >
                   {theme === t.value && (
                     <span className="absolute inset-0 flex items-center justify-center">
-                      <span className="size-1.5 rounded-full bg-white/80 shadow" />
+                      <span className="size-2 rounded-full bg-white/80 shadow" />
                     </span>
                   )}
                 </button>
