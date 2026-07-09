@@ -40,6 +40,25 @@
   *::-webkit-scrollbar-thumb:hover {
     background-color: var(--scrollbar-thumb-hover);
   }
+
+  /* Force default text color in editor to ignore copied styles */
+  [contenteditable] *, 
+  [contenteditable] {
+    color: inherit !important;
+    background-color: transparent !important;
+  }
+  
+  [contenteditable] pre,
+  [contenteditable] pre * {
+    background-color: var(--accent) !important;
+    color: var(--accent-foreground) !important;
+  }
+
+  [contenteditable] code,
+  [contenteditable] code * {
+    background-color: var(--muted) !important;
+    color: var(--foreground) !important;
+  }
 }
 
 @layer utilities {

@@ -499,7 +499,7 @@ export default function HomePage() {
       return (
         <div className="flex h-[50vh] flex-col items-center justify-center gap-4 p-8 text-center">
           <Loader2 className="size-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground italic">正在加载内容...</p>
+          <p className="text-sm text-muted-foreground italic">Loading content...</p>
         </div>
       );
     }
@@ -556,8 +556,13 @@ export default function HomePage() {
           <BookOpen className="size-6 text-primary-foreground" />
         </button>
       )}
-      <main className="flex-1 min-w-0 bg-background">
-        {renderMainContent()}
+      <main className="flex-1 min-w-0 bg-background flex flex-col">
+        <div className="flex-1 overflow-auto">
+          {renderMainContent()}
+        </div>
+        <div className="py-1 px-4 text-center pointer-events-none select-none">
+          <span className="text-[9px] text-foreground/5 font-mono">Wikiki Pro 0.1.1</span>
+        </div>
       </main>
     </div>
   );

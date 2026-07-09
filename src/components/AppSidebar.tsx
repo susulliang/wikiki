@@ -183,7 +183,7 @@ export default function AppSidebar({
     (name: string, tags: string[]) => {
       const product = onAddProduct(name, tags);
       onSelectProduct(product.id);
-      toast.success(`产品 "${name}" 已创建`);
+      toast.success(`Product "${name}" created`);
     },
     [onAddProduct, onSelectProduct],
   );
@@ -191,42 +191,42 @@ export default function AppSidebar({
   const processJSONFile = useCallback(
     async (file: File) => {
       if (!file.name.endsWith('.json')) {
-        toast.error('请选择 JSON 格式的文件');
+        toast.error('Please select a JSON file');
         return;
       }
       const reader = new FileReader();
       reader.onload = async () => {
         const parsed = parseImportFile(reader.result as string);
         if (!parsed) {
-          toast.error('文件格式不正确：需要 JSON 数组格式');
+          toast.error('Invalid file format: JSON array expected');
           return;
         }
         if (parsed.length === 0) {
-          toast.error('文件中没有找到产品数据');
+          toast.error('No product data found in file');
           return;
         }
         try {
           if (storageMode === 'sqlite') {
             const { added, updated } = await importProductsSQLite(parsed);
             const parts: string[] = [];
-            if (added > 0) parts.push(`新增 ${added} 个`);
-            if (updated > 0) parts.push(`更新 ${updated} 个`);
-            toast.success(`导入完成：${parts.join('，')}`);
+            if (added > 0) parts.push(`${added} added`);
+            if (updated > 0) parts.push(`${updated} updated`);
+            toast.success(`Import completed: ${parts.join(', ')}`);
             await reloadSQLiteProducts();
             onProductsChanged?.();
           } else {
             const { added, updated } = onImportProductsJSON(parsed);
             const parts: string[] = [];
-            if (added > 0) parts.push(`新增 ${added} 个`);
-            if (updated > 0) parts.push(`更新 ${updated} 个`);
-            toast.success(`导入完成：${parts.join('，')}`);
+            if (added > 0) parts.push(`${added} added`);
+            if (updated > 0) parts.push(`${updated} updated`);
+            toast.success(`Import completed: ${parts.join(', ')}`);
           }
         } catch (e) {
-          logger.error('导入失败:', String(e));
-          toast.error('导入失败');
+          logger.error('Import failed:', String(e));
+          toast.error('Import failed');
         }
       };
-      reader.onerror = () => toast.error('文件读取失败');
+      reader.onerror = () => toast.error('Failed to read file');
       reader.readAsText(file);
     },
     [storageMode, importProductsSQLite, onImportProductsJSON, reloadSQLiteProducts, onProductsChanged],
@@ -235,7 +235,7 @@ export default function AppSidebar({
   const processDBFile = useCallback(
     async (file: File) => {
       if (!file.name.endsWith('.db') && !file.name.endsWith('.sqlite') && !file.name.endsWith('.sqlite3')) {
-        toast.error('请选择 .db / .sqlite / .sqlite3 格式的文件');
+        toast.error('Please select a .db / .sqlite / .sqlite3 file');
         return;
       }
       try {
@@ -244,13 +244,13 @@ export default function AppSidebar({
         await importSQLiteDB(data);
         const info = sqliteInfo;
         toast.success(
-          `SQLite 数据库导入完成：${info?.productCount ?? 0} 个产品，${info?.pageCount ?? 0} 个页面`,
+          `SQLite DB imported: ${info?.productCount ?? 0} products, ${info?.pageCount ?? 0} pages`,
         );
         await reloadSQLiteProducts();
         onProductsChanged?.();
       } catch (e) {
-        logger.error('DB 导入失败:', String(e));
-        toast.error('SQLite 数据库导入失败：文件格式不正确或已损坏');
+        logger.error('DB import failed:', String(e));
+        toast.error('Failed to import SQLite DB: Invalid or corrupted file');
       }
     },
     [importSQLiteDB, sqliteInfo, reloadSQLiteProducts, onProductsChanged],
@@ -310,7 +310,7 @@ export default function AppSidebar({
       } else if (name.endsWith('.db') || name.endsWith('.sqlite') || name.endsWith('.sqlite3')) {
         processDBFile(file);
       } else {
-        toast.error('不支持的文件格式，请使用 .json 或 .db 文件');
+        toast.error('Unsupported file format, please use .json or .db files');
       }
     },
     [processJSONFile, processDBFile],
@@ -322,19 +322,19 @@ export default function AppSidebar({
     } else {
       onExportProductsJSON();
     }
-    toast.success('已导出 JSON 文件');
+    toast.success('JSON file exported');
   }, [storageMode, exportJSONFromContext, onExportProductsJSON]);
 
   const handleExportDB = useCallback(async () => {
     try {
       if (storageMode !== 'sqlite') {
-        toast.info('正在转换为 SQLite 格式...');
+        toast.info('Converting to SQLite format...');
       }
       await exportSQLiteDB();
-      toast.success('已导出 SQLite 数据库文件');
+      toast.success('SQLite DB file exported');
     } catch (e) {
-      logger.error('导出 DB 失败:', String(e));
-      toast.error('导出失败');
+      logger.error('Export DB failed:', String(e));
+      toast.error('Export failed');
     }
   }, [storageMode, exportSQLiteDB]);
 
@@ -350,8 +350,8 @@ export default function AppSidebar({
         await switchMode(targetMode, migrate);
         toast.success(
           migrate
-            ? `已切换至 ${targetMode === 'sqlite' ? 'SQLite' : 'JSON'} 模式并迁移数据`
-            : `已切换至 ${targetMode === 'sqlite' ? 'SQLite' : 'JSON'} 模式`,
+            ? `Switched to ${targetMode === 'sqlite' ? 'SQLite' : 'JSON'} mode and migrated data`
+            : `Switched to ${targetMode === 'sqlite' ? 'SQLite' : 'JSON'} mode`,
         );
         // 不刷新页面，由 useEffect 重新初始化
         if (targetMode === 'sqlite') {
@@ -360,8 +360,8 @@ export default function AppSidebar({
         }
         setModeSwitchDialogOpen(false);
       } catch (e) {
-        logger.error('模式切换失败:', String(e));
-        toast.error(`模式切换失败：${String(e).slice(0, 60)}`);
+        logger.error('Mode switch failed:', String(e));
+        toast.error(`Mode switch failed: ${String(e).slice(0, 60)}`);
       } finally {
         setModeSwitching(false);
       }
@@ -390,7 +390,7 @@ export default function AppSidebar({
               <button
                 onClick={onHideSidebar}
                 className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary transition-transform hover:scale-110 active:scale-95"
-                title="隐藏侧边栏"
+                title="Hide Sidebar"
               >
                 <BookOpen className="size-4 text-primary-foreground" />
               </button>
@@ -401,7 +401,7 @@ export default function AppSidebar({
             <button
               onClick={onHideSidebar}
               className="flex size-7 items-center justify-center rounded-md bg-primary transition-transform hover:scale-110 active:scale-95"
-              title="隐藏侧边栏"
+              title="Hide Sidebar"
             >
               <BookOpen className="size-4 text-primary-foreground" />
             </button>
@@ -419,7 +419,7 @@ export default function AppSidebar({
               <CollapsibleTrigger asChild>
                 <button className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors hover:bg-accent">
                   <Database className="size-3.5 shrink-0 text-primary" />
-                  <span className="flex-1 text-left">数据库</span>
+                  <span className="flex-1 text-left">Database</span>
                   <ChevronDown
                     className={`size-3.5 shrink-0 text-muted-foreground transition-transform ${
                       dbMenuOpen ? 'rotate-180' : ''
@@ -432,19 +432,19 @@ export default function AppSidebar({
                 <button
                   onClick={() => handleModeSwitchClick(storageMode === 'json' ? 'sqlite' : 'json')}
                   className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors hover:bg-accent"
-                  title="点击切换存储模式"
+                  title="Click to switch storage mode"
                 >
                   {storageMode === 'sqlite' ? (
                     <>
                       <HardDrive className="size-3.5 shrink-0 text-primary" />
-                      <span className="flex-1 text-left">SQLite 模式</span>
+                      <span className="flex-1 text-left">SQLite Mode</span>
                       {sqliteInfo && <span className="text-muted-foreground">{sqliteInfo.dbSizeFormatted}</span>}
                       <ArrowLeftRight className="size-3 shrink-0 text-muted-foreground" />
                     </>
                   ) : (
                     <>
                       <FileJson className="size-3.5 shrink-0 text-primary" />
-                      <span className="flex-1 text-left">JSON 模式</span>
+                      <span className="flex-1 text-left">JSON Mode</span>
                       <ArrowLeftRight className="size-3 shrink-0 text-muted-foreground" />
                     </>
                   )}
@@ -453,7 +453,7 @@ export default function AppSidebar({
                 {sqliteLoading && (
                   <div className="flex items-center gap-1.5 px-2 py-1 text-xs text-muted-foreground">
                     <Loader2 className="size-3 animate-spin" />
-                    正在初始化 SQLite...
+                    Initializing SQLite...
                   </div>
                 )}
 
@@ -461,18 +461,18 @@ export default function AppSidebar({
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm" className="h-8 w-full gap-1.5 text-xs">
                       <Download className="size-3.5" />
-                      导入数据库
+                      Import DB
                       <ChevronDown className="ml-auto size-3.5" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-48">
                     <DropdownMenuItem onClick={handleJSONImportClick}>
                       <FileJson className="size-4" />
-                      导入 JSON 文件
+                      Import JSON File
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleDBImportClick}>
                       <Database className="size-4" />
-                      导入 SQLite DB
+                      Import SQLite DB
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -481,18 +481,18 @@ export default function AppSidebar({
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm" className="h-8 w-full gap-1.5 text-xs" disabled={products.length === 0}>
                       <Upload className="size-3.5" />
-                      导出数据库
+                      Export DB
                       <ChevronDown className="ml-auto size-3.5" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-48">
                     <DropdownMenuItem onClick={handleExportJSON}>
                       <FileJson className="size-4" />
-                      导出为 JSON
+                      Export as JSON
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleExportDB}>
                       <Database className="size-4" />
-                      导出为 SQLite DB
+                      Export as SQLite DB
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -505,49 +505,49 @@ export default function AppSidebar({
         <div className={`flex items-center gap-1 border-b px-2 py-2 ${collapsed ? 'flex-col' : ''}`}>
           {collapsed ? (
             <>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onToggleCollapse} title="展开侧边栏">
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onToggleCollapse} title="Expand Sidebar">
                 <PanelLeft className="size-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onToggleTheme} title="切换主题">
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onToggleTheme} title="Switch Theme">
                 {theme === 'light' ? <Moon className="size-4" /> : <Sun className="size-4" />}
               </Button>
               {/* 导入下拉菜单（折叠态） */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" title="导入">
+                  <Button variant="ghost" size="icon" className="h-8 w-8" title="Import">
                     <Download className="size-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side="right" align="start" className="w-48">
                   <DropdownMenuItem onClick={handleJSONImportClick}>
                     <FileJson className="size-4" />
-                    导入 JSON 文件
+                    Import JSON File
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleDBImportClick}>
                     <Database className="size-4" />
-                    导入 SQLite DB
+                    Import SQLite DB
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
               {/* 导出下拉菜单（折叠态） */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" title="导出" disabled={products.length === 0}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" title="Export" disabled={products.length === 0}>
                     <Upload className="size-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side="right" align="start" className="w-48">
                   <DropdownMenuItem onClick={handleExportJSON}>
                     <FileJson className="size-4" />
-                    导出为 JSON
+                    Export as JSON
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleExportDB}>
                     <Database className="size-4" />
-                    导出为 SQLite DB
+                    Export as SQLite DB
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setAddDialogOpen(true)} title="添加产品">
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setAddDialogOpen(true)} title="Add Product">
                 <Plus className="size-4" />
               </Button>
             </>
@@ -559,7 +559,7 @@ export default function AppSidebar({
               className="h-8 w-full gap-1.5 text-xs"
             >
               <Plus className="size-3.5" />
-              添加产品
+              Add Product
             </Button>
           )}
         </div>
@@ -567,7 +567,7 @@ export default function AppSidebar({
         {/* 主题选择器 */}
         {!collapsed && (
           <div className="border-b px-3 py-2.5">
-            <p className="mb-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">主题</p>
+            <p className="mb-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Theme</p>
             <div className="flex items-center gap-1.5">
               {THEME_OPTIONS.map((t) => (
                 <button
@@ -597,8 +597,8 @@ export default function AppSidebar({
           <div className="pointer-events-none absolute inset-0 z-50 flex items-center justify-center bg-primary/10 backdrop-blur-sm">
             <div className="rounded-xl border-2 border-dashed border-primary bg-card/80 px-6 py-4 text-center">
               <Upload className="mx-auto mb-1 size-6 text-primary" />
-              <p className="text-sm font-medium text-primary">释放文件以导入</p>
-              <p className="text-xs text-muted-foreground">支持 .json / .db 文件</p>
+              <p className="text-sm font-medium text-primary">Release to import</p>
+              <p className="text-xs text-muted-foreground">Supports .json / .db files</p>
             </div>
           </div>
         )}
@@ -612,7 +612,7 @@ export default function AppSidebar({
                 type="search"
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                placeholder="搜索产品..."
+                placeholder="Search products..."
                 className="h-8 pl-8 pr-7 text-xs"
               />
               {searchQuery && (
@@ -657,7 +657,7 @@ export default function AppSidebar({
                 onClick={() => filterTags.forEach((t) => onTagToggle(t))}
                 className="mt-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
-                清除筛选
+                Clear filters
               </button>
             )}
           </div>
@@ -702,7 +702,7 @@ export default function AppSidebar({
                 ))}
             {!collapsed && filteredProducts.length === 0 && (
               <p className="px-2.5 py-4 text-center text-xs text-muted-foreground">
-                {products.length === 0 ? '暂无产品，请导入或创建' : '无匹配结果'}
+                {products.length === 0 ? 'No products yet, please import or create' : 'No results found'}
               </p>
             )}
           </div>
@@ -730,23 +730,23 @@ export default function AppSidebar({
         open={addDialogOpen}
         onOpenChange={setAddDialogOpen}
         onSave={handleAddProduct}
-        title="创建新产品"
+        title="Create New Product"
       />
 
       {/* 模式切换对话框 */}
       <Dialog open={modeSwitchDialogOpen} onOpenChange={setModeSwitchDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>切换存储模式</DialogTitle>
+            <DialogTitle>Switch Storage Mode</DialogTitle>
             <DialogDescription>
-              切换到 {targetMode === 'sqlite' ? 'SQLite' : 'JSON'} 模式
+              Switching to {targetMode === 'sqlite' ? 'SQLite' : 'JSON'} mode
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-4">
             <p className="text-sm text-muted-foreground">
               {targetMode === 'sqlite'
-                ? 'SQLite 模式使用浏览器内置数据库存储，支持更大的数据量（数百 MB），适合包含大量图片的 Wiki。'
-                : 'JSON 模式使用浏览器本地存储，适合小型 Wiki，数据以 JSON 格式保存，便于手动编辑。'}
+                ? 'SQLite mode uses the built-in browser database, supporting larger data volumes (hundreds of MB), suitable for Wikis with many images.'
+                : 'JSON mode uses browser local storage, suitable for small Wikis, with data saved in JSON format for easy manual editing.'}
             </p>
             <div className="flex flex-col gap-2">
               <Button
@@ -756,7 +756,7 @@ export default function AppSidebar({
                 className="w-full"
               >
                 {modeSwitching ? <Loader2 className="size-4 animate-spin" /> : null}
-                迁移现有数据并切换
+                Migrate existing data and switch
               </Button>
               <Button
                 variant="outline"
@@ -764,13 +764,13 @@ export default function AppSidebar({
                 disabled={modeSwitching}
                 className="w-full"
               >
-                清空数据，重新开始
+                Clear data and start fresh
               </Button>
             </div>
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setModeSwitchDialogOpen(false)} disabled={modeSwitching}>
-              取消
+              Cancel
             </Button>
           </DialogFooter>
         </DialogContent>

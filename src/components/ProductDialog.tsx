@@ -76,27 +76,27 @@ export default function ProductDialog({
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
-            <DialogDescription>填写产品信息以继续。</DialogDescription>
+            <DialogDescription>Fill in product information to continue.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="product-name">产品名称</Label>
+              <Label htmlFor="product-name">Product Name</Label>
               <Input
                 id="product-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="输入产品名称"
+                placeholder="Enter product name"
                 autoFocus
               />
             </div>
             <div className="space-y-2">
-              <Label>标签</Label>
+              <Label>Tags</Label>
               <div className="flex gap-2">
                 <Input
                   value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyDown={handleTagKeyDown}
-                  placeholder="输入标签后按回车"
+                  placeholder="Press Enter to add tag"
                   className="flex-1"
                 />
                 <Button type="button" variant="outline" size="icon" onClick={addTag}>
@@ -123,10 +123,10 @@ export default function ProductDialog({
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              取消
+              Cancel
             </Button>
             <Button type="submit" disabled={!name.trim()}>
-              保存
+              Save
             </Button>
           </DialogFooter>
         </form>

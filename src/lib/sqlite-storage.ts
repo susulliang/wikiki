@@ -21,18 +21,18 @@ async function tryLoadFromCDN(urls: string[]): Promise<SqlJsStatic> {
   let lastError: unknown = null;
   for (const baseUrl of urls) {
     try {
-      logger.info(`尝试从 CDN ${baseUrl} 加载 sql.js WASM`);
+      logger.info(`Trying to load sql.js WASM from CDN ${baseUrl}`);
       const result = await initSqlJs({
         locateFile: (file: string) => `${baseUrl}${file}`,
       });
-      logger.info(`成功从 CDN ${baseUrl} 加载 sql.js WASM`);
+      logger.info(`Successfully loaded sql.js WASM from CDN ${baseUrl}`);
       return result;
     } catch (e) {
       lastError = e;
-      logger.warn(`从 CDN ${baseUrl} 加载 sql.js WASM 失败: ${String(e)}`);
+      logger.warn(`Failed to load sql.js WASM from CDN ${baseUrl}: ${String(e)}`);
     }
   }
-  throw lastError ?? new Error('所有 CDN 均无法加载 sql.js WASM');
+  throw lastError ?? new Error('Failed to load sql.js WASM from all CDNs');
 }
 
 async function getSQL(): Promise<SqlJsStatic> {
@@ -41,14 +41,14 @@ async function getSQL(): Promise<SqlJsStatic> {
     initPromise = (async () => {
       // 优先使用本地打包的 WASM
       try {
-        logger.info(`尝试从本地 WASM 加载: ${wasmUrl}`);
+        logger.info(`Trying to load from local WASM: ${wasmUrl}`);
         const result = await initSqlJs({
           locateFile: () => wasmUrl,
         });
-        logger.info('成功从本地 WASM 加载 sql.js');
+        logger.info('Successfully loaded sql.js from local WASM');
         return result;
       } catch (e) {
-        logger.warn(`本地 WASM 加载失败，回退到 CDN: ${String(e)}`);
+        logger.warn(`Local WASM load failed, falling back to CDN: ${String(e)}`);
         // 本地失败，回退到 CDN
         return await tryLoadFromCDN(CDN_FALLBACK_URLS);
       }
@@ -63,7 +63,7 @@ async function getOPFSHandle(): Promise<FileSystemFileHandle | null> {
     const root = await navigator.storage.getDirectory();
     return await root.getFileHandle(DB_FILENAME, { create: true });
   } catch {
-    logger.warn('OPFS 不可用，回退到 IndexedDB');
+    logger.warn('OPFS not available, falling back to IndexedDB');
     return null;
   }
 }

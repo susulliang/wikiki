@@ -20,21 +20,21 @@ export default function EmptyState({ onCreateProduct, onImportJSON, onImportDB }
       <div className="flex flex-col items-center gap-3 sm:flex-row">
         <Button onClick={onImportJSON} size="lg" className="gap-2 min-w-[220px]">
           <FileJson className="size-4" />
-          导入 JSON 文件
+          Import JSON File
         </Button>
         {onImportDB && (
           <Button onClick={onImportDB} variant="secondary" size="lg" className="gap-2 min-w-[220px]">
             <Database className="size-4" />
-            导入 SQLite 数据库
+            Import SQLite DB
           </Button>
         )}
         <Button onClick={onCreateProduct} variant="outline" size="lg" className="gap-2 min-w-[220px]">
           <Plus className="size-4" />
-          创建新产品
+          Create New Product
         </Button>
       </div>
       <p className="mt-6 max-w-sm text-xs text-muted-foreground">
-        导入已有的 Wikiki JSON 或 SQLite 数据库文件，或创建一个新产品来开始构建你的知识库。
+        Import an existing Wikiki JSON or SQLite database file, or create a new product to start building your knowledge base.
       </p>
     </div>
   );

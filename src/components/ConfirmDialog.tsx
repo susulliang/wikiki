@@ -24,7 +24,7 @@ export default function ConfirmDialog({
   onOpenChange,
   title,
   description,
-  confirmLabel = '确认',
+  confirmLabel = 'Confirm',
   variant = 'default',
   onConfirm,
 }: ConfirmDialogProps) {
@@ -36,7 +36,7 @@ export default function ConfirmDialog({
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>取消</AlertDialogCancel>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             className={variant === 'destructive' ? 'bg-destructive hover:bg-destructive/90' : ''}

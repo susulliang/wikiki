@@ -91,11 +91,11 @@ export function StorageModeProvider({ children }: { children: ReactNode }) {
           setSqliteReady(true);
         }
       } catch (e) {
-        logger.error('SQLite 初始化失败:', String(e));
+        logger.error('SQLite initialization failed:', String(e));
         if (!cancelled) {
           setSqliteError(String(e));
-          // 不自动降级，让用户看到错误
-          toast.error(`SQLite 初始化失败：${String(e).slice(0, 80)}`);
+          // Don't automatically downgrade, let the user see the error
+          toast.error(`SQLite initialization failed: ${String(e).slice(0, 80)}`);
         }
       } finally {
         if (!cancelled) setSqliteLoading(false);
@@ -134,8 +134,8 @@ export function StorageModeProvider({ children }: { children: ReactNode }) {
             }
           }
         } catch (e) {
-          logger.error('迁移到 SQLite 失败:', String(e));
-          toast.error(`迁移失败：${String(e).slice(0, 80)}`);
+          logger.error('Migration to SQLite failed:', String(e));
+          toast.error(`Migration failed: ${String(e).slice(0, 80)}`);
           throw e;
         }
       } else {
@@ -149,8 +149,8 @@ export function StorageModeProvider({ children }: { children: ReactNode }) {
             scopedStorage.setItem('__wikiki_data_version', '2');
           }
         } catch (e) {
-          logger.error('迁移到 JSON 失败:', String(e));
-          toast.error(`迁移失败：${String(e).slice(0, 80)}`);
+          logger.error('Migration to JSON failed:', String(e));
+          toast.error(`Migration failed: ${String(e).slice(0, 80)}`);
           throw e;
         }
       }
@@ -186,7 +186,7 @@ export function StorageModeProvider({ children }: { children: ReactNode }) {
       // JSON 模式下由调用方传入数据，这里只做兜底
       const raw = scopedStorage.getItem('__wikiki_products');
       if (!raw) {
-        toast.error('没有可导出的数据');
+        toast.error('No data to export');
         return;
       }
       const { normalizeProduct } = await import('@/data/products');
@@ -208,7 +208,7 @@ export function StorageModeProvider({ children }: { children: ReactNode }) {
       triggerDownload(blob, `wikiki-db-${getDateStamp()}.db`);
     } else {
       // JSON 模式：将 JSON 数据转换为 SQLite 格式导出
-      toast.info('正在转换为 SQLite 格式...');
+      toast.info('Converting to SQLite format...');
       const raw = scopedStorage.getItem('__wikiki_products');
       let products: IProduct[] = [];
       if (raw) {
@@ -221,7 +221,7 @@ export function StorageModeProvider({ children }: { children: ReactNode }) {
       const data = await jsonProductsToSQLite(products);
       const blob = new Blob([data.buffer as ArrayBuffer], { type: 'application/x-sqlite3' });
       triggerDownload(blob, `wikiki-db-${getDateStamp()}.db`);
-      toast.success('已导出 SQLite 数据库文件');
+      toast.success('SQLite database file exported');
     }
   }, [mode]);
 

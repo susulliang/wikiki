@@ -38,27 +38,27 @@ export default function PageDialog({ open, onOpenChange, onSave }: PageDialogPro
       <DialogContent className="sm:max-w-[400px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>添加页面</DialogTitle>
-            <DialogDescription>为新页面输入一个名称。</DialogDescription>
+            <DialogTitle>Add Page</DialogTitle>
+            <DialogDescription>Enter a name for the new page.</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <div className="space-y-2">
-              <Label htmlFor="page-name">页面名称</Label>
+              <Label htmlFor="page-name">Page Name</Label>
               <Input
                 id="page-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="输入页面名称"
+                placeholder="Enter page name"
                 autoFocus
               />
             </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              取消
+              Cancel
             </Button>
             <Button type="submit" disabled={!name.trim()}>
-              创建
+              Create
             </Button>
           </DialogFooter>
         </form>

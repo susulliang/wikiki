@@ -73,7 +73,7 @@ export default function ProductDetail({
   const handleSaveProduct = useCallback(
     async (name: string, tags: string[]) => {
       await onUpdateProduct(product.id, name, tags);
-      toast.success('产品信息已更新');
+      toast.success('Product updated');
     },
     [product.id, onUpdateProduct],
   );
@@ -84,7 +84,7 @@ export default function ProductDetail({
       if (newPage) {
         const idx = product.pages.length;
         onPageChange(idx);
-        toast.success(`页面 "${name}" 已创建`);
+        toast.success(`Page "${name}" created`);
       }
     },
     [product.id, product.pages.length, onAddPage, onPageChange],
@@ -96,7 +96,7 @@ export default function ProductDetail({
       if (pageIndex >= product.pages.length - 1) {
         onPageChange(Math.max(0, product.pages.length - 2));
       }
-      toast.success('页面已删除');
+      toast.success('Page deleted');
     }
     setDeletePageDialogOpen(false);
     setDeletePageId(null);
@@ -104,7 +104,7 @@ export default function ProductDetail({
 
   const handleDeleteProduct = useCallback(async () => {
     await onDeleteProduct(product.id);
-    toast.success('产品已删除');
+    toast.success('Product deleted');
     setDeleteProductDialogOpen(false);
   }, [product.id, onDeleteProduct]);
 
@@ -161,11 +161,11 @@ export default function ProductDetail({
               size="icon"
               onClick={() => setShowToolbar(!showToolbar)}
               className="h-8 w-8 text-muted-foreground hover:text-foreground"
-              title={showToolbar ? '隐藏工具栏' : '显示工具栏'}
+              title={showToolbar ? 'Hide Toolbar' : 'Show Toolbar'}
             >
               {showToolbar ? <PanelTopClose className="size-4" /> : <PanelTopOpen className="size-4" />}
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => setEditDialogOpen(true)} className="h-8 w-8 text-muted-foreground hover:text-foreground" title="编辑">
+            <Button variant="ghost" size="icon" onClick={() => setEditDialogOpen(true)} className="h-8 w-8 text-muted-foreground hover:text-foreground" title="Edit">
               <Pencil className="size-4" />
             </Button>
             <Button
@@ -173,7 +173,7 @@ export default function ProductDetail({
               size="icon"
               onClick={() => setDeleteProductDialogOpen(true)}
               className="h-8 w-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-              title="删除"
+              title="Delete"
             >
               <Trash2 className="size-4" />
             </Button>
@@ -207,7 +207,7 @@ export default function ProductDetail({
                       setDeletePageDialogOpen(true);
                     }}
                     className="ml-0.5 rounded-sm p-0.5 opacity-0 group-hover:opacity-100 hover:bg-destructive/20 hover:text-destructive transition-all"
-                    title="删除页面"
+                    title="Delete Page"
                   >
                     <Trash2 className="size-3" />
                   </button>
@@ -221,7 +221,7 @@ export default function ProductDetail({
             size="icon"
             onClick={() => setAddPageDialogOpen(true)}
             className="shrink-0 h-6 w-6 text-muted-foreground hover:text-foreground"
-            title="添加页面"
+            title="Add Page"
           >
             <Plus className="size-3.5" />
           </Button>
@@ -248,7 +248,7 @@ export default function ProductDetail({
         initialName={product.name}
         initialTags={product.tags}
         onSave={handleSaveProduct}
-        title="编辑产品信息"
+        title="Edit Product Info"
       />
 
       <PageDialog
@@ -260,9 +260,9 @@ export default function ProductDetail({
       <ConfirmDialog
         open={deleteProductDialogOpen}
         onOpenChange={setDeleteProductDialogOpen}
-        title="删除产品"
-        description={`确定要删除「${product.name}」吗？该产品下的所有页面数据将被永久删除，此操作不可撤销。`}
-        confirmLabel="删除"
+        title="Delete Product"
+        description={`Are you sure you want to delete "${product.name}"? All page data under this product will be permanently deleted. This action cannot be undone.`}
+        confirmLabel="Delete"
         variant="destructive"
         onConfirm={handleDeleteProduct}
       />
@@ -270,9 +270,9 @@ export default function ProductDetail({
       <ConfirmDialog
         open={deletePageDialogOpen}
         onOpenChange={setDeletePageDialogOpen}
-        title="删除页面"
-        description="确定要删除该页面吗？页面内容将被永久删除。"
-        confirmLabel="删除"
+        title="Delete Page"
+        description="Are you sure you want to delete this page? Page content will be permanently deleted."
+        confirmLabel="Delete"
         variant="destructive"
         onConfirm={handleDeletePageConfirm}
       />

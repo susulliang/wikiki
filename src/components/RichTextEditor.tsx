@@ -28,7 +28,7 @@ interface RichTextEditorProps {
 function processImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     if (file.size > 2 * 1024 * 1024) {
-      reject(new Error('图片大小不能超过 2MB'));
+      reject(new Error('Image size cannot exceed 2MB'));
       return;
     }
     const reader = new FileReader();
@@ -51,10 +51,10 @@ function processImage(file: File): Promise<string> {
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         resolve(canvas.toDataURL('image/jpeg', 0.8));
       };
-      img.onerror = () => reject(new Error('图片加载失败'));
+      img.onerror = () => reject(new Error('Failed to load image'));
       img.src = reader.result as string;
     };
-    reader.onerror = () => reject(new Error('文件读取失败'));
+    reader.onerror = () => reject(new Error('Failed to read file'));
     reader.readAsDataURL(file);
   });
 }
@@ -139,17 +139,50 @@ export default function RichTextEditor({ content, onChange, showToolbar = true, 
       const items = e.clipboardData?.items;
       if (!items) return;
       for (const item of Array.from(items)) {
-        if (item.type.startsWith('image/')) {
+        if (item.type.startsWith('image/') || item.type === 'image/svg+xml') {
           e.preventDefault();
           const blob = item.getAsFile();
           if (!blob) continue;
           try {
-            const dataUrl = await processImage(blob);
-            exec('insertImage', dataUrl);
+            if (item.type === 'image/svg+xml') {
+              const text = await blob.text();
+              const b64 = btoa(unescape(encodeURIComponent(text)));
+              const dataUrl = `data:image/svg+xml;base64,${b64}`;
+              exec('insertImage', dataUrl);
+            } else {
+              const dataUrl = await processImage(blob);
+              exec('insertImage', dataUrl);
+            }
           } catch (err) {
-            toast.error(err instanceof Error ? err.message : '图片处理失败');
+            toast.error(err instanceof Error ? err.message : 'Image processing failed');
           }
           break;
+        }
+      }
+    },
+    [exec],
+  );
+
+  const handleDrop = useCallback(
+    async (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const files = Array.from(e.dataTransfer.files);
+      for (const file of files) {
+        if (file.type.startsWith('image/') || file.type === 'image/svg+xml' || file.name.endsWith('.svg')) {
+          try {
+            if (file.type === 'image/svg+xml' || file.name.endsWith('.svg')) {
+              const text = await file.text();
+              const b64 = btoa(unescape(encodeURIComponent(text)));
+              const dataUrl = `data:image/svg+xml;base64,${b64}`;
+              exec('insertImage', dataUrl);
+            } else {
+              const dataUrl = await processImage(file);
+              exec('insertImage', dataUrl);
+            }
+          } catch (err) {
+            toast.error(err instanceof Error ? err.message : 'Image processing failed');
+          }
         }
       }
     },
@@ -159,29 +192,36 @@ export default function RichTextEditor({ content, onChange, showToolbar = true, 
   const handleImageUpload = useCallback(() => {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'image/*';
+    input.accept = 'image/*,.svg';
     input.onchange = async () => {
       const file = input.files?.[0];
       if (!file) return;
       try {
-        const dataUrl = await processImage(file);
-        exec('insertImage', dataUrl);
+        if (file.type === 'image/svg+xml' || file.name.endsWith('.svg')) {
+          const text = await file.text();
+          const b64 = btoa(unescape(encodeURIComponent(text)));
+          const dataUrl = `data:image/svg+xml;base64,${b64}`;
+          exec('insertImage', dataUrl);
+        } else {
+          const dataUrl = await processImage(file);
+          exec('insertImage', dataUrl);
+        }
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : '图片处理失败');
+        toast.error(err instanceof Error ? err.message : 'Image processing failed');
       }
     };
     input.click();
   }, [exec]);
 
   const handleImageUrl = useCallback(() => {
-    const url = prompt('请输入图片 URL:');
+    const url = prompt('Enter image URL:');
     if (url) {
       exec('insertImage', url);
     }
   }, [exec]);
 
   const handleLink = useCallback(() => {
-    const url = prompt('请输入链接 URL:');
+    const url = prompt('Enter link URL:');
     if (url) {
       exec('createLink', url);
     }
@@ -222,16 +262,16 @@ export default function RichTextEditor({ content, onChange, showToolbar = true, 
               size="sm"
               className="h-6 px-2 text-[11px]"
               onClick={() => handleHeadingChange('p')}
-              title="正文"
+              title="Paragraph"
             >
-              正文
+              Paragraph
             </Button>
             <Button
               variant={activeHeading === 'h1' ? 'secondary' : 'ghost'}
               size="sm"
               className="h-6 px-2.5 text-[11px]"
               onClick={() => handleHeadingChange('h1')}
-              title="标题 1"
+              title="Heading 1"
             >
               H1
             </Button>
@@ -240,7 +280,7 @@ export default function RichTextEditor({ content, onChange, showToolbar = true, 
               size="sm"
               className="h-6 px-2.5 text-[11px]"
               onClick={() => handleHeadingChange('h2')}
-              title="标题 2"
+              title="Heading 2"
             >
               H2
             </Button>
@@ -249,7 +289,7 @@ export default function RichTextEditor({ content, onChange, showToolbar = true, 
               size="sm"
               className="h-6 px-2.5 text-[11px]"
               onClick={() => handleHeadingChange('h3')}
-              title="标题 3"
+              title="Heading 3"
             >
               H3
             </Button>
@@ -262,7 +302,7 @@ export default function RichTextEditor({ content, onChange, showToolbar = true, 
             size="icon"
             className="h-7 w-7"
             onClick={() => exec('bold')}
-            title="加粗 (Ctrl+B)"
+            title="Bold (Ctrl+B)"
           >
             <Bold className="size-4" />
           </Button>
@@ -271,7 +311,7 @@ export default function RichTextEditor({ content, onChange, showToolbar = true, 
             size="icon"
             className="h-7 w-7"
             onClick={() => exec('italic')}
-            title="斜体 (Ctrl+I)"
+            title="Italic (Ctrl+I)"
           >
             <Italic className="size-4" />
           </Button>
@@ -280,7 +320,7 @@ export default function RichTextEditor({ content, onChange, showToolbar = true, 
             size="icon"
             className="h-7 w-7"
             onClick={() => exec('underline')}
-            title="下划线 (Ctrl+U)"
+            title="Underline (Ctrl+U)"
           >
             <Underline className="size-4" />
           </Button>
@@ -289,7 +329,7 @@ export default function RichTextEditor({ content, onChange, showToolbar = true, 
             size="icon"
             className="h-7 w-7"
             onClick={() => exec('strikeThrough')}
-            title="删除线"
+            title="Strikethrough"
           >
             <Strikethrough className="size-4" />
           </Button>
@@ -301,7 +341,7 @@ export default function RichTextEditor({ content, onChange, showToolbar = true, 
             size="icon"
             className="h-7 w-7"
             onClick={() => exec('insertUnorderedList')}
-            title="无序列表"
+            title="Bullet List"
           >
             <List className="size-4" />
           </Button>
@@ -310,7 +350,7 @@ export default function RichTextEditor({ content, onChange, showToolbar = true, 
             size="icon"
             className="h-7 w-7"
             onClick={() => exec('insertOrderedList')}
-            title="有序列表"
+            title="Numbered List"
           >
             <ListOrdered className="size-4" />
           </Button>
@@ -322,7 +362,7 @@ export default function RichTextEditor({ content, onChange, showToolbar = true, 
             size="icon"
             className="h-7 w-7"
             onClick={() => exec('formatBlock', 'pre')}
-            title="代码块"
+            title="Code Block"
           >
             <Code className="size-4" />
           </Button>
@@ -344,7 +384,7 @@ export default function RichTextEditor({ content, onChange, showToolbar = true, 
                 }
               }
             }}
-            title="行内代码"
+            title="Inline Code"
           >
             <Code2 className="size-4" />
           </Button>
@@ -356,7 +396,7 @@ export default function RichTextEditor({ content, onChange, showToolbar = true, 
             size="icon"
             className="h-7 w-7"
             onClick={handleLink}
-            title="插入链接"
+            title="Insert Link"
           >
             <Link className="size-4" />
           </Button>
@@ -365,7 +405,7 @@ export default function RichTextEditor({ content, onChange, showToolbar = true, 
             size="icon"
             className="h-7 w-7"
             onClick={handleImageUrl}
-            title="插入图片 URL"
+            title="Insert Image URL"
           >
             <ImageIcon className="size-4" />
           </Button>
@@ -374,10 +414,10 @@ export default function RichTextEditor({ content, onChange, showToolbar = true, 
             size="sm"
             className="h-7 gap-1 text-xs"
             onClick={handleImageUpload}
-            title="上传图片"
+            title="Upload Image"
           >
             <ImageIcon className="size-3.5" />
-            上传
+            Upload
           </Button>
 
           <Separator orientation="vertical" className="mx-0.5 h-4" />
@@ -387,7 +427,7 @@ export default function RichTextEditor({ content, onChange, showToolbar = true, 
             size="icon"
             className="h-7 w-7"
             onClick={() => exec('formatBlock', 'blockquote')}
-            title="引用块"
+            title="Blockquote"
           >
             <Quote className="size-4" />
           </Button>
@@ -396,7 +436,7 @@ export default function RichTextEditor({ content, onChange, showToolbar = true, 
             size="icon"
             className="h-7 w-7"
             onClick={() => exec('insertHorizontalRule')}
-            title="分隔线"
+            title="Horizontal Rule"
           >
             <Minus className="size-4" />
           </Button>
@@ -412,9 +452,14 @@ export default function RichTextEditor({ content, onChange, showToolbar = true, 
         onInput={handleInput}
         onKeyDown={handleKeyDown}
         onPaste={handlePaste}
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+        onDrop={handleDrop}
         onCompositionStart={handleCompositionStart}
         onCompositionEnd={handleCompositionEnd}
-        data-placeholder="开始输入内容..."
+        data-placeholder="Start typing..."
       />
     </div>
   );

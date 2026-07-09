@@ -39,7 +39,7 @@ export default function SearchResults({ results, query, onSelect }: SearchResult
       <div className="flex h-full flex-col items-center justify-center px-4 text-center">
         <FileText className="mb-4 size-12 text-muted-foreground/50" />
         <p className="text-sm text-muted-foreground">
-          未找到与 <span className="font-medium text-foreground">"{query}"</span> 相关的结果
+          No results found for <span className="font-medium text-foreground">"{query}"</span>
         </p>
       </div>
     );
@@ -48,9 +48,9 @@ export default function SearchResults({ results, query, onSelect }: SearchResult
   return (
     <div className="space-y-4 p-6">
       <div className="flex items-center gap-2">
-        <h2 className="text-lg font-semibold">搜索结果</h2>
+        <h2 className="text-lg font-semibold">Search Results</h2>
         <span className="text-sm text-muted-foreground">
-          找到 {results.length} 条与 "{query}" 相关的结果
+          Found {results.length} results for "{query}"
         </span>
       </div>
       <div className="space-y-3">
