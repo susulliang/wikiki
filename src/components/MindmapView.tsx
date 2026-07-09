@@ -168,10 +168,12 @@ export default function MindmapView({ content }: MindmapViewProps) {
           position: 'inside',
           align: 'center',
           verticalAlign: 'middle',
+          rotate: 0, // Keep text horizontal
         },
         leaves: {
           label: {
             position: 'inside',
+            rotate: 0, // Keep text horizontal
           }
         },
         lineStyle: {
