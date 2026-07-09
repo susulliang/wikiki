@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { Loader2, BookOpen } from 'lucide-react';
 import { useProducts } from '@/hooks/useProducts';
 import { useTheme } from '@/hooks/useTheme';
 import { scopedStorage, logger } from '@lark-apaas/client-toolkit-lite';
