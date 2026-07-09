@@ -1,9 +1,14 @@
+import { useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import HomePage from "@/pages/HomePage/HomePage";
 import NotFoundPage from "@/pages/NotFoundPage/NotFoundPage";
 
 export default function App() {
+  useEffect(() => {
+    document.title = "Wikiki";
+  }, []);
+
   return (
     <Routes>
       <Route element={<Layout />}>

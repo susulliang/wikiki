@@ -1,6 +1,5 @@
 import { useRef, useCallback, useEffect, useState, type KeyboardEvent, type ClipboardEvent } from 'react';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { logger } from '@lark-apaas/client-toolkit-lite';
@@ -17,15 +16,13 @@ import {
   Image as ImageIcon,
   Quote,
   Minus,
-  Heading1,
-  Heading2,
-  Heading3,
 } from 'lucide-react';
 
 interface RichTextEditorProps {
   content: string;
   onChange: (html: string) => void;
   showToolbar?: boolean;
+  stickyTop?: number;
 }
 
 function processImage(file: File): Promise<string> {
@@ -62,7 +59,7 @@ function processImage(file: File): Promise<string> {
   });
 }
 
-export default function RichTextEditor({ content, onChange, showToolbar = true }: RichTextEditorProps) {
+export default function RichTextEditor({ content, onChange, showToolbar = true, stickyTop = 0 }: RichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const isComposing = useRef(false);
   const [activeHeading, setActiveHeading] = useState<'p' | 'h1' | 'h2' | 'h3'>('p');
@@ -215,7 +212,10 @@ export default function RichTextEditor({ content, onChange, showToolbar = true }
     <div className="flex flex-col flex-1 relative">
       {/* Toolbar */}
       {showToolbar && (
-        <div className="sticky top-0 z-20 flex flex-wrap items-center gap-0.5 border-b border-border/70 bg-background/55 backdrop-blur-xl supports-[backdrop-filter]:bg-background/40 px-2.5 py-0.5">
+        <div
+          className="sticky z-20 flex flex-wrap items-center gap-0.5 border-b border-border/70 bg-background/55 backdrop-blur-xl supports-[backdrop-filter]:bg-background/40 px-2.5 py-0.5"
+          style={{ top: stickyTop }}
+        >
           <div className="flex items-center gap-1 mr-1">
             <Button
               variant={activeHeading === 'p' ? 'secondary' : 'ghost'}

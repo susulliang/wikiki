@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useLayoutEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -48,8 +48,27 @@ export default function ProductDetail({
   const [deletePageId, setDeletePageId] = useState<string | null>(null);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [showToolbar, setShowToolbar] = useState(true);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
 
   const currentPage = product.pages[pageIndex] ?? product.pages[0];
+
+  useLayoutEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+
+    const update = () => {
+      setHeaderHeight(el.getBoundingClientRect().height);
+    };
+
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+
+    return () => {
+      ro.disconnect();
+    };
+  }, []);
 
   const handleSaveProduct = useCallback(
     async (name: string, tags: string[]) => {
@@ -115,7 +134,10 @@ export default function ProductDetail({
   return (
     <div className="flex flex-col">
       {/* Product Header - sticky, blurred transparent */}
-      <div className="sticky top-0 z-30 isolate border-b border-border/70 px-6 py-2.5 flex flex-col gap-2 shrink-0 bg-background/45 backdrop-blur-xl supports-[backdrop-filter]:bg-background/35">
+      <div
+        ref={headerRef}
+        className="sticky top-0 z-30 isolate border-b border-border/70 px-6 py-2.5 flex flex-col gap-2 shrink-0 bg-background/45 backdrop-blur-xl supports-[backdrop-filter]:bg-background/35"
+      >
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0 flex-1 flex items-center gap-3">
             <h1 className="truncate text-xl font-bold tracking-tight">{product.name}</h1>
@@ -214,6 +236,7 @@ export default function ProductDetail({
             content={currentPage?.content ?? ''}
             onChange={(html) => onUpdatePageContent(product.id, currentPage.id, html)}
             showToolbar={showToolbar}
+            stickyTop={headerHeight}
           />
         </div>
       </div>

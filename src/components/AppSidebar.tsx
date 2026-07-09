@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -129,6 +130,7 @@ export default function AppSidebar({
   const [modeSwitchDialogOpen, setModeSwitchDialogOpen] = useState(false);
   const [targetMode, setTargetMode] = useState<StorageMode>('json');
   const [modeSwitching, setModeSwitching] = useState(false);
+  const [dbMenuOpen, setDbMenuOpen] = useState(false);
   const jsonFileInputRef = useRef<HTMLInputElement>(null);
   const dbFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -401,37 +403,91 @@ export default function AppSidebar({
           )}
         </div>
 
-        {/* 存储模式指示器 */}
         {!collapsed && (
-          <div className="border-b px-3 py-2">
-            <button
-              onClick={() => handleModeSwitchClick(storageMode === 'json' ? 'sqlite' : 'json')}
-              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors hover:bg-accent"
-              title="点击切换存储模式"
-            >
-              {storageMode === 'sqlite' ? (
-                <>
-                  <HardDrive className="size-3.5 shrink-0 text-primary" />
-                  <span className="flex-1 text-left">SQLite 模式</span>
-                  {sqliteInfo && (
-                    <span className="text-muted-foreground">{sqliteInfo.dbSizeFormatted}</span>
+          <div className="border-b px-2 py-2">
+            <Collapsible open={dbMenuOpen} onOpenChange={setDbMenuOpen}>
+              <CollapsibleTrigger asChild>
+                <button className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors hover:bg-accent">
+                  <Database className="size-3.5 shrink-0 text-primary" />
+                  <span className="flex-1 text-left">数据库</span>
+                  <ChevronDown
+                    className={`size-3.5 shrink-0 text-muted-foreground transition-transform ${
+                      dbMenuOpen ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+              </CollapsibleTrigger>
+
+              <CollapsibleContent className="mt-2 space-y-2 px-1 pb-1">
+                <button
+                  onClick={() => handleModeSwitchClick(storageMode === 'json' ? 'sqlite' : 'json')}
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors hover:bg-accent"
+                  title="点击切换存储模式"
+                >
+                  {storageMode === 'sqlite' ? (
+                    <>
+                      <HardDrive className="size-3.5 shrink-0 text-primary" />
+                      <span className="flex-1 text-left">SQLite 模式</span>
+                      {sqliteInfo && <span className="text-muted-foreground">{sqliteInfo.dbSizeFormatted}</span>}
+                      <ArrowLeftRight className="size-3 shrink-0 text-muted-foreground" />
+                    </>
+                  ) : (
+                    <>
+                      <FileJson className="size-3.5 shrink-0 text-primary" />
+                      <span className="flex-1 text-left">JSON 模式</span>
+                      <ArrowLeftRight className="size-3 shrink-0 text-muted-foreground" />
+                    </>
                   )}
-                  <ArrowLeftRight className="size-3 shrink-0 text-muted-foreground" />
-                </>
-              ) : (
-                <>
-                  <FileJson className="size-3.5 shrink-0 text-primary" />
-                  <span className="flex-1 text-left">JSON 模式</span>
-                  <ArrowLeftRight className="size-3 shrink-0 text-muted-foreground" />
-                </>
-              )}
-            </button>
-            {sqliteLoading && (
-              <div className="flex items-center gap-1.5 px-2 py-1 text-xs text-muted-foreground">
-                <Loader2 className="size-3 animate-spin" />
-                正在初始化 SQLite...
-              </div>
-            )}
+                </button>
+
+                {sqliteLoading && (
+                  <div className="flex items-center gap-1.5 px-2 py-1 text-xs text-muted-foreground">
+                    <Loader2 className="size-3 animate-spin" />
+                    正在初始化 SQLite...
+                  </div>
+                )}
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 w-full gap-1.5 text-xs">
+                      <Download className="size-3.5" />
+                      导入数据库
+                      <ChevronDown className="ml-auto size-3.5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48">
+                    <DropdownMenuItem onClick={handleJSONImportClick}>
+                      <FileJson className="size-4" />
+                      导入 JSON 文件
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleDBImportClick}>
+                      <Database className="size-4" />
+                      导入 SQLite DB
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 w-full gap-1.5 text-xs" disabled={products.length === 0}>
+                      <Upload className="size-3.5" />
+                      导出数据库
+                      <ChevronDown className="ml-auto size-3.5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48">
+                    <DropdownMenuItem onClick={handleExportJSON}>
+                      <FileJson className="size-4" />
+                      导出为 JSON
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleExportDB}>
+                      <Database className="size-4" />
+                      导出为 SQLite DB
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </CollapsibleContent>
+            </Collapsible>
           </div>
         )}
 
@@ -486,57 +542,15 @@ export default function AppSidebar({
               </Button>
             </>
           ) : (
-            <div className="flex w-full flex-col gap-2">
-              {/* 导入下拉菜单 */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-8 w-full gap-1.5 text-xs">
-                    <Download className="size-3.5" />
-                    导入数据库
-                    <ChevronDown className="ml-auto size-3.5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48">
-                  <DropdownMenuItem onClick={handleJSONImportClick}>
-                    <FileJson className="size-4" />
-                    导入 JSON 文件
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleDBImportClick}>
-                    <Database className="size-4" />
-                    导入 SQLite DB
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              {/* 导出下拉菜单 */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-8 w-full gap-1.5 text-xs" disabled={products.length === 0}>
-                    <Upload className="size-3.5" />
-                    导出数据库
-                    <ChevronDown className="ml-auto size-3.5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48">
-                  <DropdownMenuItem onClick={handleExportJSON}>
-                    <FileJson className="size-4" />
-                    导出为 JSON
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleExportDB}>
-                    <Database className="size-4" />
-                    导出为 SQLite DB
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => setAddDialogOpen(true)}
-                className="h-8 w-full gap-1.5 text-xs"
-              >
-                <Plus className="size-3.5" />
-                添加产品
-              </Button>
-            </div>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => setAddDialogOpen(true)}
+              className="h-8 w-full gap-1.5 text-xs"
+            >
+              <Plus className="size-3.5" />
+              添加产品
+            </Button>
           )}
         </div>
 
