@@ -556,8 +556,8 @@ export default function HomePage() {
           <BookOpen className="size-6 text-primary-foreground" />
         </button>
       )}
-      <main className="flex-1 min-w-0 bg-background flex flex-col">
-        <div className="flex-1 overflow-auto">
+      <main className="flex-1 min-w-0 bg-background flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col min-h-0">
           {renderMainContent()}
         </div>
         <div className="py-1 px-4 text-center pointer-events-none select-none">

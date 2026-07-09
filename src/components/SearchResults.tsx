@@ -46,7 +46,7 @@ export default function SearchResults({ results, query, onSelect }: SearchResult
   }
 
   return (
-    <div className="space-y-4 p-6">
+    <div className="h-full overflow-auto space-y-4 p-6">
       <div className="flex items-center gap-2">
         <h2 className="text-lg font-semibold">Search Results</h2>
         <span className="text-sm text-muted-foreground">

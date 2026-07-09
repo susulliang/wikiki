@@ -1,5 +1,6 @@
 import ReactECharts from 'echarts-for-react';
 import { useMemo } from 'react';
+import { useTheme, THEME_OPTIONS } from '@/hooks/useTheme';
 
 interface MindmapViewProps {
   content: string;
@@ -26,6 +27,9 @@ const COLORS = [
 ];
 
 export default function MindmapView({ content }: MindmapViewProps) {
+  const { theme: currentTheme } = useTheme();
+  const isDark = useMemo(() => THEME_OPTIONS.find(t => t.value === currentTheme)?.isDark ?? false, [currentTheme]);
+
   const treeData = useMemo(() => {
     // 1. Strip HTML tags to get plain text
     const parser = new DOMParser();
@@ -112,8 +116,8 @@ export default function MindmapView({ content }: MindmapViewProps) {
     if (!treeData) return null;
 
     const processNode = (node: MindmapNode, level: number, colorIdx: number): MindmapNode => {
-      const color = level === 0 ? '#0000FF' : COLORS[colorIdx % COLORS.length];
-      const textColor = level === 0 ? '#FFFFFF' : '#333333';
+      const color = level === 0 ? (isDark ? '#4F46E5' : '#0000FF') : COLORS[colorIdx % COLORS.length];
+      const textColor = level === 0 ? '#FFFFFF' : (isDark ? '#E5E7EB' : '#333333');
       
       return {
         ...node,
@@ -184,14 +188,14 @@ export default function MindmapView({ content }: MindmapViewProps) {
   };
 
   return (
-    <div className="w-full h-full bg-slate-50 relative">
+    <div className="w-full h-full bg-background relative">
       <div className="absolute top-4 left-4 z-10 text-[10px] text-muted-foreground uppercase tracking-widest pointer-events-none">
         Drag to move • Scroll to zoom
       </div>
       <ReactECharts 
         option={option} 
         style={{ height: '100%', width: '100%' }}
-        theme="light"
+        theme={isDark ? 'dark' : 'light'}
       />
     </div>
   );
