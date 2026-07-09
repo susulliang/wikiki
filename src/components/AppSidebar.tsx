@@ -513,7 +513,7 @@ export default function AppSidebar({
                 <PanelLeft className="size-4" />
               </Button>
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onToggleTheme} title="Switch Theme">
-                {theme === 'light' ? <Moon className="size-4" /> : <Sun className="size-4" />}
+                {THEME_OPTIONS.find(t => t.value === theme)?.isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
               </Button>
               {/* 导入下拉菜单（折叠态） */}
               <DropdownMenu>
@@ -590,7 +590,7 @@ export default function AppSidebar({
                 >
                   {theme === t.value && (
                     <span className="absolute inset-0 flex items-center justify-center">
-                      <span className="size-2 rounded-full bg-white/80 shadow" />
+                      <span className="size-2 rounded-full bg-white" />
                     </span>
                   )}
                 </button>

@@ -13,7 +13,7 @@ createRoot(document.getElementById("root")!).render(
           <div className="flex h-screen items-center justify-center p-8 text-center">
             <div>
               <h1 className="mb-2 text-xl font-semibold">Something went wrong</h1>
-              <pre className="text-sm text-muted-foreground">{error?.message}</pre>
+              <pre className="text-sm text-muted-foreground">{error instanceof Error ? error.message : String(error)}</pre>
             </div>
           </div>
         )}
