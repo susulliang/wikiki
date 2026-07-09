@@ -36,13 +36,12 @@
       "icons/icon.ico"
     ],
     "publisher": "Wikiki Contributors",
-    "macOS": {
-      "architectures": ["x86_64", "aarch64"]
+    "macos": {
     },
     "windows": {
       "certificateThumbprint": null,
       "digestAlgorithm": "sha256",
-      "timestampServer": ""
+      "timestampUrl": ""
     }
   }
 }
