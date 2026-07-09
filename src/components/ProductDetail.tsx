@@ -54,9 +54,27 @@ export default function ProductDetail({
   const [showToolbar, setShowToolbar] = useState(true);
   const [showMindmap, setShowMindmap] = useState(false);
   const headerRef = useRef<HTMLDivElement>(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
 
   const currentPage = product.pages[pageIndex] ?? product.pages[0];
   const mindmapPage = product.pages.find((p) => p.title.toLowerCase() === 'mindmap');
+
+  useLayoutEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+
+    const update = () => {
+      setHeaderHeight(el.getBoundingClientRect().height);
+    };
+
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+
+    return () => {
+      ro.disconnect();
+    };
+  }, []);
 
   const handleSaveProduct = useCallback(
     async (name: string, tags: string[]) => {
@@ -120,11 +138,11 @@ export default function ProductDetail({
   }, []);
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
+    <div className="flex-1 overflow-auto min-h-0 relative" id="product-detail-container">
       {/* Product Header - sticky, blurred transparent */}
       <div
         ref={headerRef}
-        className="shrink-0 z-30 isolate border-b border-border/70 px-6 py-2.5 flex flex-col gap-2 bg-background/45 backdrop-blur-xl supports-[backdrop-filter]:bg-background/35"
+        className="sticky top-0 z-30 border-b border-border/70 px-6 py-2.5 flex flex-col gap-2 bg-background/45 backdrop-blur-xl supports-[backdrop-filter]:bg-background/35"
       >
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0 flex-1 flex items-center gap-3">
@@ -228,16 +246,14 @@ export default function ProductDetail({
       </div>
 
       {/* Editor */}
-      <div className="flex-1 overflow-auto relative" id="wiki-editor-container">
-        <div className="flex flex-col min-h-full">
-          <RichTextEditor
-            key={currentPage.id}
-            content={currentPage?.content ?? ''}
-            onChange={(html) => onUpdatePageContent(product.id, currentPage.id, html)}
-            showToolbar={showToolbar}
-            stickyTop={0}
-          />
-        </div>
+      <div className="flex flex-col min-h-max">
+        <RichTextEditor
+          key={currentPage.id}
+          content={currentPage?.content ?? ''}
+          onChange={(html) => onUpdatePageContent(product.id, currentPage.id, html)}
+          showToolbar={showToolbar}
+          stickyTop={headerHeight}
+        />
       </div>
 
       {/* Mindmap Fullscreen Overlay */}

@@ -117,7 +117,8 @@ export default function MindmapView({ content }: MindmapViewProps) {
 
     const processNode = (node: MindmapNode, level: number, colorIdx: number): MindmapNode => {
       const color = level === 0 ? (isDark ? '#4F46E5' : '#0000FF') : COLORS[colorIdx % COLORS.length];
-      const textColor = level === 0 ? '#FFFFFF' : (isDark ? '#E5E7EB' : '#333333');
+      // For level > 0, we use the bright COLORS, so we should always use dark text for readability
+      const textColor = level === 0 ? '#FFFFFF' : '#333333';
       
       return {
         ...node,

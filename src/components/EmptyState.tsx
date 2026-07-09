@@ -9,7 +9,7 @@ interface EmptyStateProps {
 
 export default function EmptyState({ onCreateProduct, onImportJSON, onImportDB }: EmptyStateProps) {
   return (
-    <div className="flex h-full flex-col items-center justify-center px-4 text-center">
+    <div className="flex flex-1 flex-col items-center justify-center px-4 text-center">
       <div className="mb-6 flex size-20 items-center justify-center rounded-2xl bg-primary/10">
         <BookOpen className="size-10 text-primary" />
       </div>

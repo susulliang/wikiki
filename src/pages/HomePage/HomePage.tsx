@@ -520,7 +520,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex h-screen bg-background overflow-hidden">
       {!sidebarHidden ? (
         <AppSidebar
           products={products}
