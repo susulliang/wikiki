@@ -590,7 +590,7 @@ export default function AppSidebar({
                 >
                   {theme === t.value && (
                     <span className="absolute inset-0 flex items-center justify-center">
-                      <span className="size-2 rounded-full bg-white/80 shadow" />
+                      <span className="size-2 rounded-full bg-white" />
                     </span>
                   )}
                 </button>
