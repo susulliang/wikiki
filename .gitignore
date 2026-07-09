@@ -28,12 +28,9 @@ pids
 coverage/
 *.lcov
 
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+# Tauri
+src-tauri/target
+src-tauri/gen
 
 # OS generated files
 .DS_Store

@@ -140,6 +140,43 @@ Store templates, checklists, how-tos, and quick references. Search instantly whe
 
 ---
 
+## Desktop App
+
+Wikiki can also be run as a standalone desktop application for Windows and macOS, powered by [Tauri](https://tauri.app/).
+
+### Build Requirements
+
+To build the desktop app locally, you need to have the following installed:
+- [Rust](https://www.rust-lang.org/tools/install)
+- [Node.js](https://nodejs.org/)
+- System dependencies for Tauri (see [Tauri Prerequisites](https://tauri.app/v1/guides/getting-started/prerequisites))
+
+### Local Development
+
+1.  Generate icons (optional, if you want custom icons):
+    ```bash
+    npm run tauri:icon public/favicon.svg
+    ```
+2.  Run in development mode:
+    ```bash
+    npm run tauri dev
+    ```
+
+### Building Standalone App
+
+To build the production-ready standalone app:
+```bash
+npm run tauri:build
+```
+
+The output will be in `src-tauri/target/release/bundle/`.
+
+### Continuous Integration
+
+This repository includes a GitHub Actions workflow (`.github/workflows/release.yml`) that automatically builds and releases the desktop app for Windows (x64) and macOS (Universal) whenever a new tag starting with `v` is pushed.
+
+---
+
 ## Technical Details
 
 - **Framework**: React + TypeScript + Vite
