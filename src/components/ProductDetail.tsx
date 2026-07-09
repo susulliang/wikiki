@@ -10,10 +10,14 @@ import {
   GripVertical,
   PanelTopClose,
   PanelTopOpen,
+  Network,
+  Maximize2,
+  Minimize2,
 } from 'lucide-react';
 import type { IProduct, IPage } from '@/data/products';
 import { getTagColor } from '@/data/products';
 import RichTextEditor from '@/components/RichTextEditor';
+import MindmapView from '@/components/MindmapView';
 import ProductDialog from '@/components/ProductDialog';
 import PageDialog from '@/components/PageDialog';
 import ConfirmDialog from '@/components/ConfirmDialog';
@@ -48,10 +52,12 @@ export default function ProductDetail({
   const [deletePageId, setDeletePageId] = useState<string | null>(null);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [showToolbar, setShowToolbar] = useState(true);
+  const [showMindmap, setShowMindmap] = useState(false);
   const headerRef = useRef<HTMLDivElement>(null);
   const [headerHeight, setHeaderHeight] = useState(0);
 
   const currentPage = product.pages[pageIndex] ?? product.pages[0];
+  const mindmapPage = product.pages.find((p) => p.title.toLowerCase() === 'mindmap');
 
   useLayoutEffect(() => {
     const el = headerRef.current;
@@ -156,6 +162,17 @@ export default function ProductDetail({
             )}
           </div>
           <div className="flex shrink-0 items-center gap-1">
+            {mindmapPage && (
+              <Button
+                variant={showMindmap ? 'secondary' : 'ghost'}
+                size="icon"
+                onClick={() => setShowMindmap(!showMindmap)}
+                className={`h-8 w-8 ${showMindmap ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                title="Toggle Mindmap"
+              >
+                <Network className="size-4" />
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="icon"
@@ -240,6 +257,24 @@ export default function ProductDetail({
           />
         </div>
       </div>
+
+      {/* Mindmap Fullscreen Overlay */}
+      {showMindmap && mindmapPage && (
+        <div className="fixed inset-0 z-50 bg-background flex flex-col">
+          <div className="flex items-center justify-between border-b px-6 py-3 shrink-0">
+            <div className="flex items-center gap-2">
+              <Network className="size-5 text-primary" />
+              <h2 className="text-lg font-bold">{product.name} - Mindmap</h2>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setShowMindmap(false)}>
+              <Minimize2 className="size-5" />
+            </Button>
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <MindmapView content={mindmapPage.content} />
+          </div>
+        </div>
+      )}
 
       {/* Dialogs */}
       <ProductDialog

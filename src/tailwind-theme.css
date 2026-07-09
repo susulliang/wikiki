@@ -56,7 +56,7 @@
   --accent-border: hsl(from hsl(220 14% 96%) h s calc(l + var(--opaque-button-border-intensity)));
   --muted-border: hsl(from hsl(220 14% 96%) h s calc(l + var(--opaque-button-border-intensity)));
   --font-sans:
-    'LarkHackSafariFont', 'LarkEmojiFont', 'LarkChineseQuote', '-apple-system',
+    'Bahnschrift', 'Heiti SC', 'SimHei', 'LarkHackSafariFont', 'LarkEmojiFont', 'LarkChineseQuote', '-apple-system',
     'BlinkMacSystemFont', 'Helvetica Neue', 'Tahoma', 'PingFang SC',
     'Microsoft Yahei', 'Arial', 'Hiragino Sans GB', 'sans-serif',
     'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
@@ -139,7 +139,7 @@
   --destructive-border: hsl(from hsl(0 84% 60%) h s calc(l - 8));
   --accent-border: hsl(from hsl(210 15% 92%) h s calc(l - 8));
   --muted-border: hsl(from hsl(210 20% 96%) h s calc(l - 8));
-  --font-sans: 'Inter', 'Noto Sans SC', sans-serif;
+  --font-sans: 'Bahnschrift', 'Heiti SC', 'SimHei', 'Inter', 'Noto Sans SC', sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: 'Source Code Pro', monospace;
   --radius: 0.5rem;
@@ -206,7 +206,7 @@
   --destructive-border: hsl(from hsl(350 75% 58%) h s calc(l - 8));
   --accent-border: hsl(from hsl(280 14% 91%) h s calc(l - 8));
   --muted-border: hsl(from hsl(280 18% 96%) h s calc(l - 8));
-  --font-sans: 'Inter', 'Noto Sans SC', sans-serif;
+  --font-sans: 'Bahnschrift', 'Heiti SC', 'SimHei', 'Inter', 'Noto Sans SC', sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: 'Source Code Pro', monospace;
   --radius: 0.5rem;
@@ -273,7 +273,7 @@
   --destructive-border: hsl(from hsl(5 70% 55%) h s calc(l + 8));
   --accent-border: hsl(from hsl(220 12% 22%) h s calc(l + 8));
   --muted-border: hsl(from hsl(220 12% 18%) h s calc(l + 8));
-  --font-sans: 'Inter', 'Noto Sans SC', sans-serif;
+  --font-sans: 'Bahnschrift', 'Heiti SC', 'SimHei', 'Inter', 'Noto Sans SC', sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: 'Source Code Pro', monospace;
   --radius: 0.5rem;
@@ -340,7 +340,7 @@
   --destructive-border: hsl(from hsl(5 70% 55%) h s calc(l + 8));
   --accent-border: hsl(from hsl(230 25% 19%) h s calc(l + 8));
   --muted-border: hsl(from hsl(230 28% 14%) h s calc(l + 8));
-  --font-sans: 'Inter', 'Noto Sans SC', sans-serif;
+  --font-sans: 'Bahnschrift', 'Heiti SC', 'SimHei', 'Inter', 'Noto Sans SC', sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: 'Source Code Pro', monospace;
   --radius: 0.5rem;
@@ -396,7 +396,7 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  --font-sans: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;;
+  --font-sans: 'Bahnschrift', 'Heiti SC', 'SimHei', 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;;
   --font-mono: var(--font-mono);
   --font-serif: var(--font-serif);
 
