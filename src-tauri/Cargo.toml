@@ -1,0 +1,19 @@
+[package]
+name = "wikiki"
+version = "0.1.1"
+description = "A lightweight, localized personal Wiki tool"
+authors = ["Wikiki Contributors"]
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[features]
+# This feature is used for production builds or when a dev server is not used,
+# creating a standalone binary with the frontend resources embedded.
+custom-protocol = ["tauri/custom-protocol"]
