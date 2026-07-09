@@ -92,6 +92,12 @@ export default function HomePage() {
     getProduct: jsonGetProduct,
   } = useProducts();
 
+  useEffect(() => {
+    document.title = 'Wikiki';
+  }, []);
+
+  const [sidebarHidden, setSidebarHidden] = useState(false);
+
   // SQLite 模式状态
   const [selectedProductId, setSelectedProductId] = useState<string | null>(() => {
     try {
@@ -465,6 +471,8 @@ export default function HomePage() {
     jsonExportProducts();
   }, [jsonExportProducts]);
 
+  const isLoadingContent = storageMode === 'sqlite' && selectedProductId !== null && !loadedProductContent.has(selectedProductId);
+
   const renderMainContent = () => {
     if (isSearching) {
       return (
@@ -486,6 +494,15 @@ export default function HomePage() {
       );
     }
 
+    if (isLoadingContent) {
+      return (
+        <div className="flex h-[50vh] flex-col items-center justify-center gap-4 p-8 text-center">
+          <Loader2 className="size-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground italic">正在加载内容...</p>
+        </div>
+      );
+    }
+
     return (
       <ProductDetail
         product={selectedProduct}
@@ -503,30 +520,41 @@ export default function HomePage() {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <AppSidebar
-        products={products}
-        selectedProductId={selectedProductId}
-        collapsed={sidebarCollapsed}
-        theme={theme}
-        searchQuery={searchQuery}
-        filterTags={filterTags}
-        triggerAdd={triggerAddDialog}
-        triggerImportJSON={triggerImportJSON}
-        triggerImportDB={triggerImportDB}
-        onSelectProduct={handleSelectProduct}
-        onAddProduct={handleAddProductFromSidebar}
-        onImportProductsJSON={handleImportProductsJSON}
-        onExportProductsJSON={handleExportProductsJSON}
-        onToggleCollapse={handleToggleCollapse}
-        onToggleTheme={toggleTheme}
-        onSetTheme={setTheme}
-        onSearchChange={handleSearchChange}
-        onTagToggle={handleTagToggle}
-        onTriggerAddHandled={() => setTriggerAddDialog(false)}
-        onTriggerImportJSONHandled={() => setTriggerImportJSON(false)}
-        onTriggerImportDBHandled={() => setTriggerImportDB(false)}
-        onProductsChanged={handleReloadSQLite}
-      />
+      {!sidebarHidden ? (
+        <AppSidebar
+          products={products}
+          selectedProductId={selectedProductId}
+          collapsed={sidebarCollapsed}
+          theme={theme}
+          searchQuery={searchQuery}
+          filterTags={filterTags}
+          triggerAdd={triggerAddDialog}
+          triggerImportJSON={triggerImportJSON}
+          triggerImportDB={triggerImportDB}
+          onSelectProduct={handleSelectProduct}
+          onAddProduct={handleAddProductFromSidebar}
+          onImportProductsJSON={handleImportProductsJSON}
+          onExportProductsJSON={handleExportProductsJSON}
+          onToggleCollapse={handleToggleCollapse}
+          onToggleTheme={toggleTheme}
+          onSetTheme={setTheme}
+          onSearchChange={handleSearchChange}
+          onTagToggle={handleTagToggle}
+          onTriggerAddHandled={() => setTriggerAddDialog(false)}
+          onTriggerImportJSONHandled={() => setTriggerImportJSON(false)}
+          onTriggerImportDBHandled={() => setTriggerImportDB(false)}
+          onProductsChanged={handleReloadSQLite}
+          onHideSidebar={() => setSidebarHidden(true)}
+        />
+      ) : (
+        <button
+          onClick={() => setSidebarHidden(false)}
+          className="fixed bottom-6 left-6 z-[60] flex size-12 items-center justify-center rounded-full bg-primary shadow-lg transition-all hover:scale-110 hover:shadow-xl active:scale-95"
+          title="显示侧边栏"
+        >
+          <BookOpen className="size-6 text-primary-foreground" />
+        </button>
+      )}
       <main className="flex-1 min-w-0 bg-background">
         {renderMainContent()}
       </main>

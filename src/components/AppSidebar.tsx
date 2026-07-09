@@ -76,6 +76,7 @@ interface AppSidebarProps {
   onTriggerImportJSONHandled: () => void;
   onTriggerImportDBHandled: () => void;
   onProductsChanged?: () => void;
+  onHideSidebar?: () => void;
 }
 
 function parseImportFile(jsonText: string): IProduct[] | null {
@@ -111,6 +112,7 @@ export default function AppSidebar({
   onTriggerImportJSONHandled,
   onTriggerImportDBHandled,
   onProductsChanged,
+  onHideSidebar,
 }: AppSidebarProps) {
   const {
     mode: storageMode,
@@ -385,16 +387,24 @@ export default function AppSidebar({
         >
           {!collapsed && (
             <div className="flex items-center gap-2 min-w-0">
-              <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary">
+              <button
+                onClick={onHideSidebar}
+                className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary transition-transform hover:scale-110 active:scale-95"
+                title="隐藏侧边栏"
+              >
                 <BookOpen className="size-4 text-primary-foreground" />
-              </div>
+              </button>
               <span className="truncate text-sm font-semibold">Wikiki</span>
             </div>
           )}
           {collapsed && (
-            <div className="flex size-7 items-center justify-center rounded-md bg-primary">
+            <button
+              onClick={onHideSidebar}
+              className="flex size-7 items-center justify-center rounded-md bg-primary transition-transform hover:scale-110 active:scale-95"
+              title="隐藏侧边栏"
+            >
               <BookOpen className="size-4 text-primary-foreground" />
-            </div>
+            </button>
           )}
           {!collapsed && (
             <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={onToggleCollapse}>
