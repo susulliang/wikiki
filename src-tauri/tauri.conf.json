@@ -37,12 +37,10 @@
     ],
     "publisher": "Wikiki Contributors",
     "macOS": {
-      "architectures": ["x86_64", "aarch64"]
     },
     "windows": {
       "certificateThumbprint": null,
-      "digestAlgorithm": "sha256",
-      "timestampServer": ""
+      "digestAlgorithm": "sha256"
     }
   }
 }
