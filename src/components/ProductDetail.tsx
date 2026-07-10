@@ -32,6 +32,7 @@ interface ProductDetailProps {
   onDeletePage: (productId: string, pageId: string) => void | Promise<void>;
   onUpdatePageContent: (productId: string, pageId: string, content: string) => void | Promise<void>;
   onReorderPages: (productId: string, pages: IPage[]) => void | Promise<void>;
+  highlightQuery?: string;
 }
 
 export default function ProductDetail({
@@ -44,6 +45,7 @@ export default function ProductDetail({
   onDeletePage,
   onUpdatePageContent,
   onReorderPages,
+  highlightQuery = '',
 }: ProductDetailProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [addPageDialogOpen, setAddPageDialogOpen] = useState(false);
@@ -253,6 +255,7 @@ export default function ProductDetail({
           onChange={(html) => onUpdatePageContent(product.id, currentPage.id, html)}
           showToolbar={showToolbar}
           stickyTop={headerHeight}
+          highlightQuery={highlightQuery}
         />
       </div>
 

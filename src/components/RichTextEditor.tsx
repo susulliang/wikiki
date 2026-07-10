@@ -23,6 +23,7 @@ interface RichTextEditorProps {
   onChange: (html: string) => void;
   showToolbar?: boolean;
   stickyTop?: number;
+  highlightQuery?: string;
 }
 
 function processImage(file: File): Promise<string> {
@@ -59,11 +60,98 @@ function processImage(file: File): Promise<string> {
   });
 }
 
-export default function RichTextEditor({ content, onChange, showToolbar = true, stickyTop = 0 }: RichTextEditorProps) {
+export default function RichTextEditor({ 
+  content, 
+  onChange, 
+  showToolbar = true, 
+  stickyTop = 0,
+  highlightQuery = ''
+}: RichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const isComposing = useRef(false);
   const [activeHeading, setActiveHeading] = useState<'p' | 'h1' | 'h2' | 'h3'>('p');
   const saveTimerRef = useRef<number | null>(null);
+
+  // Auto-highlight and scroll when highlightQuery changes
+  useEffect(() => {
+    if (!highlightQuery || !editorRef.current) return;
+
+    // Small delay to ensure content is rendered
+    const timer = setTimeout(() => {
+      const editor = editorRef.current;
+      if (!editor) return;
+
+      const query = highlightQuery.toLowerCase().trim();
+      if (!query) return;
+
+      const selection = window.getSelection();
+      const range = document.createRange();
+      selection?.removeAllRanges();
+
+      // Find tokens to search for
+      const tokens = query.split(/\s+/).filter(t => t.length > 1);
+      const searchCandidates = [query, ...tokens];
+
+      const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT, null);
+      let node;
+      let found = false;
+
+      while ((node = walker.nextNode()) && !found) {
+        const textContent = node.textContent?.toLowerCase() || '';
+        
+        for (const candidate of searchCandidates) {
+          const index = textContent.indexOf(candidate);
+          if (index !== -1) {
+            try {
+              range.setStart(node, index);
+              range.setEnd(node, index + candidate.length);
+              selection?.addRange(range);
+              
+              const span = document.createElement('span');
+              span.className = 'temp-search-highlight';
+              range.surroundContents(span);
+              span.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              
+              // Apply styles directly for maximum reliability
+              span.style.backgroundColor = '#fef08a'; // yellow-200
+              span.style.color = '#1f2937'; // gray-800
+              span.style.padding = '2px 4px';
+              span.style.borderRadius = '4px';
+              span.style.boxShadow = '0 0 0 4px rgba(var(--primary-rgb, 133, 148, 107), 0.4)';
+              span.style.transition = 'all 0.5s ease-out';
+              
+              // Pulse effect
+              span.animate([
+                { boxShadow: '0 0 0 0px rgba(133, 148, 107, 0.7)' },
+                { boxShadow: '0 0 0 12px rgba(133, 148, 107, 0)' }
+              ], {
+                duration: 1000,
+                iterations: 3
+              });
+
+              setTimeout(() => {
+                if (span.parentNode) {
+                  const parent = span.parentNode;
+                  while (span.firstChild) {
+                    parent.insertBefore(span.firstChild, span);
+                  }
+                  parent.removeChild(span);
+                  parent.normalize();
+                }
+              }, 4000);
+              
+              found = true;
+              break;
+            } catch (e) {
+              console.error('Highlight failed:', e);
+            }
+          }
+        }
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [highlightQuery]);
 
   useEffect(() => {
     if (editorRef.current && editorRef.current.innerHTML !== content) {

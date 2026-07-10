@@ -62,6 +62,7 @@ export default function HomePage() {
   const [superSearchOpen, setSuperSearchOpen] = useState(false);
   const [superSearchQuery, setSuperSearchQuery] = useState('');
   const [debouncedSuperSearchQuery, setDebouncedSuperSearchQuery] = useState('');
+  const [activeHighlightQuery, setActiveHighlightQuery] = useState('');
 
   // Debounce Super Search Query
   useEffect(() => {
@@ -251,7 +252,9 @@ export default function HomePage() {
       setSelectedProductId(result.productId);
       setSelectedPageIndex(result.pageIndex ?? 0);
       setSuperSearchOpen(false);
-      setSuperSearchQuery('');
+      
+      // Use the actual search query for highlighting in the editor
+      setActiveHighlightQuery(superSearchQuery);
       
       try {
         scopedStorage.setItem(SELECTED_KEY, result.productId);
@@ -260,30 +263,15 @@ export default function HomePage() {
         // 忽略
       }
 
-      // Scroll to match after a short delay to allow the editor to mount/load
-      // Using a longer delay and multiple attempts to ensure the editor is ready
-      const scrollToMatch = (attempts = 0) => {
-        // Look for marks with our specific class
-        const marks = document.querySelectorAll('.search-highlight');
-        
-        if (marks.length > 0) {
-          const firstMark = marks[0];
-          firstMark.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          
-          // Visual cue
-          firstMark.classList.add('ring-4', 'ring-primary', 'ring-offset-2', 'transition-all', 'duration-500');
-          setTimeout(() => {
-            firstMark.classList.remove('ring-4', 'ring-primary', 'ring-offset-2');
-          }, 3000);
-        } else if (attempts < 20) {
-          // Keep trying for up to 2 seconds
-          setTimeout(() => scrollToMatch(attempts + 1), 100);
-        }
-      };
+      // Clear the query after selection
+      setSuperSearchQuery('');
 
-      setTimeout(() => scrollToMatch(), 200);
+      // Clear highlight after some time
+      setTimeout(() => {
+        setActiveHighlightQuery('');
+      }, 5000);
     },
-    [],
+    [superSearchQuery],
   );
 
   const handleOpenSuperSearch = useCallback(() => {
@@ -543,6 +531,7 @@ export default function HomePage() {
         onDeletePage={handleDeletePage}
         onUpdatePageContent={handleUpdatePageContent}
         onReorderPages={handleReorderPages}
+        highlightQuery={activeHighlightQuery}
       />
     );
   };
@@ -589,8 +578,8 @@ export default function HomePage() {
         <div className="flex-1 flex flex-col min-h-0">
           {renderMainContent()}
         </div>
-        <div className="py-1 px-4 text-center pointer-events-none select-none">
-          <span className="text-[9px] text-foreground/5 font-mono">Wikiki Pro 0.1.2</span>
+        <div className="py-1 px-4 text-center pointer-events-none select-none z-10 bg-background/30 backdrop-blur-sm supports-[backdrop-filter]:bg-background/20">
+          <span className="text-[9px] text-foreground/10 font-mono">Wikiki Pro 0.1.2</span>
         </div>
       </main>
       <SuperSearchOverlay
