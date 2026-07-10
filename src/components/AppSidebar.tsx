@@ -581,16 +581,19 @@ export default function AppSidebar({
                   key={t.value}
                   onClick={() => onSetTheme(t.value)}
                   title={t.label}
-                  className={`relative h-6 w-6 rounded-full border-2 transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                    theme === t.value ? 'border-foreground scale-110' : 'border-transparent'
+                  className={`group relative h-6 w-6 rounded-full transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                    theme === t.value ? 'ring-2 ring-foreground ring-offset-1 scale-110' : ''
                   }`}
-                  style={{
-                    background: THEME_PALETTE[t.value],
-                  }}
                 >
+                  <span
+                    className="absolute inset-0 rounded-full"
+                    style={{
+                      background: THEME_PALETTE[t.value],
+                    }}
+                  />
                   {theme === t.value && (
                     <span className="absolute inset-0 flex items-center justify-center">
-                      <span className="size-2 rounded-full bg-white" />
+                      <span className="size-2 rounded-full bg-white/90 shadow-sm" />
                     </span>
                   )}
                 </button>
