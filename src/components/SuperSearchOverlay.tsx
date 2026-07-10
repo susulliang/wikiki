@@ -116,8 +116,8 @@ export default function SuperSearchOverlay({
                   onClick={() => onSelect(result)}
                   className="absolute left-1/2 top-1/2 z-10 w-[240px] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border/70 bg-card/95 p-4 text-left shadow-sm transition-all hover:scale-[1.01] hover:border-primary/40 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
-                  <div className="mb-2 flex items-start justify-between gap-3">
-                    <div className="min-w-0">
+                  <div className="mb-3 flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold text-foreground">
                         {highlightSearchText(result.productName, query)}
                       </p>
@@ -125,29 +125,23 @@ export default function SuperSearchOverlay({
                         {result.pageName ? highlightSearchText(result.pageName, query) : 'Product overview'}
                       </p>
                     </div>
-                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-primary">
-                      {result.matchType}
-                    </span>
+                    <div className="flex flex-wrap justify-end gap-1 max-w-[40%]">
+                      {result.productTags.slice(0, 2).map((tag, idx) => {
+                        const color = getTagColor(tag);
+                        return (
+                          <span
+                            key={idx}
+                            className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-medium ${color.bg} ${color.text}`}
+                          >
+                            {tag}
+                          </span>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <div className="flex flex-wrap gap-1 mt-auto pt-1">
-                    {result.productTags.slice(0, 3).map((tag, idx) => {
-                      const color = getTagColor(tag);
-                      return (
-                        <span
-                          key={idx}
-                          className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] ${color.bg} ${color.text}`}
-                        >
-                          <span className={`size-1 rounded-full ${color.dot}`} />
-                          {tag}
-                        </span>
-                      );
-                    })}
-                    {result.productTags.length > 3 && (
-                      <span className="text-[9px] text-muted-foreground self-center">
-                        +{result.productTags.length - 3}
-                      </span>
-                    )}
-                  </div>
+                  <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">
+                    {highlightSearchText(result.snippet, query)}
+                  </p>
                 </motion.button>
               );
             })}

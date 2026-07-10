@@ -69,34 +69,35 @@ export default function SearchResults({ results, query, onSelect }: SearchResult
             }}
             className="w-full rounded-lg border p-4 text-left transition-colors hover:bg-accent/50"
           >
-            <div className="mb-1.5 flex items-center gap-2">
-              {result.matchType === 'tag' ? (
-                <Tag className="size-4 text-muted-foreground" />
-              ) : (
-                <BookOpen className="size-4 text-muted-foreground" />
-              )}
-              <span className="font-medium">{highlightText(result.productName, query)}</span>
-              {result.pageName && (
-                <>
-                  <span className="text-muted-foreground">/</span>
-                  <span className="text-sm text-muted-foreground">{result.pageName}</span>
-                </>
-              )}
+            <div className="mb-2 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2 overflow-hidden">
+                <BookOpen className="size-4 shrink-0 text-muted-foreground" />
+                <span className="font-medium truncate">{highlightText(result.productName, query)}</span>
+                {result.pageName && (
+                  <>
+                    <span className="text-muted-foreground shrink-0">/</span>
+                    <span className="text-sm text-muted-foreground truncate">{result.pageName}</span>
+                  </>
+                )}
+              </div>
+              <div className="flex flex-wrap justify-end gap-1.5 shrink-0">
+                {result.productTags.map((tag, idx) => {
+                  const color = getTagColor(tag);
+                  return (
+                    <span
+                      key={idx}
+                      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] ${color.bg} ${color.text}`}
+                    >
+                      <span className={`size-1 rounded-full ${color.dot}`} />
+                      {tag}
+                    </span>
+                  );
+                })}
+              </div>
             </div>
-            <div className="flex flex-wrap gap-1.5">
-              {result.productTags.map((tag, idx) => {
-                const color = getTagColor(tag);
-                return (
-                  <span
-                    key={idx}
-                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] ${color.bg} ${color.text}`}
-                  >
-                    <span className={`size-1 rounded-full ${color.dot}`} />
-                    {tag}
-                  </span>
-                );
-              })}
-            </div>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              {highlightText(result.snippet, query)}
+            </p>
           </motion.button>
         ))}
       </div>
