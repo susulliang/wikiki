@@ -226,6 +226,8 @@ export default function RichTextEditor({
     async (e: ClipboardEvent) => {
       const items = e.clipboardData?.items;
       if (!items) return;
+      
+      // Check for images first
       for (const item of Array.from(items)) {
         if (item.type.startsWith('image/') || item.type === 'image/svg+xml') {
           e.preventDefault();
@@ -244,11 +246,37 @@ export default function RichTextEditor({
           } catch (err) {
             toast.error(err instanceof Error ? err.message : 'Image processing failed');
           }
-          break;
+          return;
         }
       }
+
+      // Handle HTML/Text paste - strip inline styles
+      const html = e.clipboardData.getData('text/html');
+      if (html) {
+        e.preventDefault();
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        
+        // Remove all inline styles and dangerous attributes
+        const allElements = div.getElementsByTagName('*');
+        for (let i = 0; i < allElements.length; i++) {
+          const el = allElements[i] as HTMLElement;
+          el.removeAttribute('style');
+          el.removeAttribute('class');
+          el.removeAttribute('id');
+          el.removeAttribute('width');
+          el.removeAttribute('height');
+          el.removeAttribute('face');
+          el.removeAttribute('size');
+          el.removeAttribute('color');
+        }
+
+        const cleanedHtml = div.innerHTML;
+        document.execCommand('insertHTML', false, cleanedHtml);
+        syncContent();
+      }
     },
-    [exec],
+    [exec, syncContent],
   );
 
   const handleDrop = useCallback(

@@ -41,23 +41,36 @@
     background-color: var(--scrollbar-thumb-hover);
   }
 
-  /* Force default text color in editor to ignore copied styles */
-  [contenteditable] *, 
-  [contenteditable] {
+  /* Force default text color and font in editor to ignore copied styles */
+  [contenteditable],
+  [contenteditable] * {
     color: inherit !important;
     background-color: transparent !important;
+    font-family: var(--font-sans) !important;
+    font-size: inherit !important;
+    line-height: inherit !important;
+    letter-spacing: inherit !important;
+    text-transform: none !important;
   }
   
+  [contenteditable] h1, [contenteditable] h1 * { font-family: var(--font-serif) !important; font-size: 2.25rem !important; font-weight: 700 !important; line-height: 1.2 !important; margin-bottom: 0.5em !important; }
+  [contenteditable] h2, [contenteditable] h2 * { font-family: var(--font-serif) !important; font-size: 1.875rem !important; font-weight: 600 !important; line-height: 1.3 !important; margin-bottom: 0.5em !important; }
+  [contenteditable] h3, [contenteditable] h3 * { font-family: var(--font-serif) !important; font-size: 1.5rem !important; font-weight: 600 !important; line-height: 1.4 !important; margin-bottom: 0.5em !important; }
+  [contenteditable] p { margin-bottom: 1em !important; }
+
   [contenteditable] pre,
   [contenteditable] pre * {
     background-color: var(--accent) !important;
     color: var(--accent-foreground) !important;
+    font-family: var(--font-mono) !important;
+    font-size: 0.875rem !important;
   }
 
   [contenteditable] code,
   [contenteditable] code * {
     background-color: var(--muted) !important;
     color: var(--foreground) !important;
+    font-family: var(--font-mono) !important;
   }
 }
 
