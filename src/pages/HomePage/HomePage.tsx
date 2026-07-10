@@ -578,8 +578,8 @@ export default function HomePage() {
         <div className="flex-1 flex flex-col min-h-0">
           {renderMainContent()}
         </div>
-        <div className="py-1 px-4 text-center pointer-events-none select-none z-10 bg-background/30 backdrop-blur-sm supports-[backdrop-filter]:bg-background/20">
-          <span className="text-[9px] text-foreground/10 font-mono">Wikiki Pro 0.1.2</span>
+        <div className="py-1 px-4 text-center pointer-events-none select-none z-10 bg-transparent">
+          <span className="text-[9px] text-foreground/10 font-mono">Wikiki Pro 0.1.3</span>
         </div>
       </main>
       <SuperSearchOverlay
