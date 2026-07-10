@@ -574,14 +574,16 @@ export default function HomePage() {
           <BookOpen className="size-6 text-primary-foreground" />
         </button>
       )}
-      <main className="flex-1 min-w-0 bg-background flex flex-col overflow-hidden pb-5">
+      <main className="flex-1 min-w-0 bg-background flex flex-col overflow-hidden relative">
         <div className="flex-1 flex flex-col min-h-0">
           {renderMainContent()}
         </div>
+        
+        {/* Transparent version footer overlaying content area */}
+        <div className="absolute bottom-2 right-4 pointer-events-none select-none z-40">
+          <span className="text-[9px] text-foreground/20 font-mono">Wikiki Pro 0.1.3</span>
+        </div>
       </main>
-      <div className="absolute bottom-0 right-0 left-0 py-1 px-4 text-center pointer-events-none select-none z-40 bg-background/45 backdrop-blur-xl supports-[backdrop-filter]:bg-background/25 border-t border-border/20">
-        <span className="text-[9px] text-foreground/20 font-mono">Wikiki Pro 0.1.3</span>
-      </div>
       <SuperSearchOverlay
         open={superSearchOpen}
         query={superSearchQuery}
