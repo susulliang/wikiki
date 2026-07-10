@@ -46,13 +46,13 @@ import { useStorageMode, type StorageMode } from '@/lib/storage-context';
 import { type ThemeName, THEME_OPTIONS } from '@/hooks/useTheme';
 
 const THEME_PALETTE: Record<ThemeName, string> = {
-  'warm-light': 'linear-gradient(135deg, hsl(40 20% 97%) 0%, hsl(85 12% 48%) 100%)',
-  'clean-light': 'linear-gradient(135deg, hsl(210 20% 98%) 0%, hsl(210 70% 48%) 100%)',
-  'soft-light': 'linear-gradient(135deg, hsl(280 18% 97%) 0%, hsl(270 40% 58%) 100%)',
-  'sunset': 'linear-gradient(135deg, hsl(30 40% 96%) 0%, hsl(20 65% 55%) 100%)',
-  'forest': 'linear-gradient(135deg, hsl(80 15% 96%) 0%, hsl(140 25% 42%) 100%)',
-  'dark': 'linear-gradient(135deg, hsl(220 15% 13%) 0%, hsl(38 75% 55%) 100%)',
-  'midnight': 'linear-gradient(135deg, hsl(230 35% 9%) 0%, hsl(180 75% 45%) 100%)',
+  'warm-light': 'linear-gradient(135deg, #fbfaf7 0%, #85946b 100%)',
+  'clean-light': 'linear-gradient(135deg, #f8fafc 0%, #3b82f6 100%)',
+  'soft-light': 'linear-gradient(135deg, #FAF5FF 0%, #a855f7 100%)',
+  'sunset': 'linear-gradient(135deg, #2d1d18 0%, #f97316 100%)',
+  'forest': 'linear-gradient(135deg, #f4f7f4 0%, #2e7d32 100%)',
+  'dark': 'linear-gradient(135deg, #18181b 0%, #eab308 100%)',
+  'midnight': 'linear-gradient(135deg, #090d16 0%, #14b8a6 100%)',
 };
 
 interface AppSidebarProps {

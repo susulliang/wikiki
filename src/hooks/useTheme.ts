@@ -6,13 +6,13 @@ const THEME_KEY = '__wikiki_theme';
 export type ThemeName = 'warm-light' | 'clean-light' | 'soft-light' | 'sunset' | 'forest' | 'dark' | 'midnight';
 
 export const THEME_OPTIONS = [
-  { value: 'warm-light' as const, label: '温暖亮色', isDark: false },
-  { value: 'clean-light' as const, label: '清爽亮色', isDark: false },
-  { value: 'soft-light' as const, label: '柔和亮色', isDark: false },
-  { value: 'sunset' as const, label: '落日暖色', isDark: false },
-  { value: 'forest' as const, label: '森林暖色', isDark: false },
-  { value: 'dark' as const, label: '深色', isDark: true },
-  { value: 'midnight' as const, label: '午夜蓝', isDark: true },
+  { value: 'warm-light' as const, label: 'Warm Light', isDark: false },
+  { value: 'clean-light' as const, label: 'Clean Light', isDark: false },
+  { value: 'soft-light' as const, label: 'Soft Lavender', isDark: false },
+  { value: 'sunset' as const, label: 'Sunset Glow', isDark: true },
+  { value: 'forest' as const, label: 'Forest Moss', isDark: false },
+  { value: 'dark' as const, label: 'Charcoal Dark', isDark: true },
+  { value: 'midnight' as const, label: 'Midnight Blue', isDark: true },
 ] as const;
 
 export function useTheme() {
