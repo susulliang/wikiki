@@ -4,6 +4,7 @@ import { Search, Sparkles, CornerDownLeft, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import type { SearchResult } from '@/data/products';
+import { getTagColor } from '@/data/products';
 import { highlightSearchText } from '@/lib/search';
 
 interface SuperSearchOverlayProps {
@@ -128,36 +129,65 @@ export default function SuperSearchOverlay({
                       {result.matchType}
                     </span>
                   </div>
-                  <p className="line-clamp-4 text-sm leading-6 text-muted-foreground">
-                    {highlightSearchText(result.snippet, query)}
-                  </p>
+                  <div className="flex flex-wrap gap-1 mt-auto pt-1">
+                    {result.productTags.slice(0, 3).map((tag, idx) => {
+                      const color = getTagColor(tag);
+                      return (
+                        <span
+                          key={idx}
+                          className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] ${color.bg} ${color.text}`}
+                        >
+                          <span className={`size-1 rounded-full ${color.dot}`} />
+                          {tag}
+                        </span>
+                      );
+                    })}
+                    {result.productTags.length > 3 && (
+                      <span className="text-[9px] text-muted-foreground self-center">
+                        +{result.productTags.length - 3}
+                      </span>
+                    )}
+                  </div>
                 </motion.button>
               );
             })}
 
             <motion.div
               initial={{ opacity: 0, scale: 0.96, y: 16 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
+              animate={{ 
+                opacity: 1, 
+                scale: 1, 
+                y: query.trim() ? -180 : 0 
+              }}
               exit={{ opacity: 0, scale: 0.96, y: 16 }}
-              transition={{ duration: 0.22 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
               className="absolute left-1/2 top-1/2 z-20 w-[min(92vw,620px)] -translate-x-1/2 -translate-y-1/2"
             >
-              <div className="rounded-[28px] border border-border/80 bg-card/95 p-5 shadow-2xl backdrop-blur-xl">
-                <div className="mb-4 flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex size-11 items-center justify-center rounded-2xl bg-primary/12 text-primary">
-                      <Sparkles className="size-5" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">Super Search</p>
-                      <p className="text-xs text-muted-foreground">Case-insensitive and word-order-insensitive search</p>
-                    </div>
-                  </div>
-                  <div className="hidden items-center gap-1 rounded-full border bg-background/70 px-2.5 py-1 text-[11px] text-muted-foreground md:flex">
-                    <CornerDownLeft className="size-3" />
-                    Open result
-                  </div>
-                </div>
+              <div className="overflow-hidden rounded-[28px] border border-border/80 bg-card/95 p-5 shadow-2xl backdrop-blur-xl transition-all duration-300">
+                <AnimatePresence mode="wait">
+                  {!query.trim() && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mb-4 flex items-center justify-between gap-4"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex size-11 items-center justify-center rounded-2xl bg-primary/12 text-primary">
+                          <Sparkles className="size-5" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">Super Search</p>
+                          <p className="text-xs text-muted-foreground">Case-insensitive and word-order-insensitive search</p>
+                        </div>
+                      </div>
+                      <div className="hidden items-center gap-1 rounded-full border bg-background/70 px-2.5 py-1 text-[11px] text-muted-foreground md:flex">
+                        <CornerDownLeft className="size-3" />
+                        Open result
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -170,14 +200,29 @@ export default function SuperSearchOverlay({
                   />
                 </div>
 
-                <div className="mt-3 flex items-center justify-between gap-3 text-xs text-muted-foreground">
-                  <span>{query.trim() ? `${results.length} results connected to this query` : 'Type a few keywords to branch the results out'}</span>
-                  <span className="hidden md:inline">Press Esc to close</span>
-                </div>
+                <AnimatePresence>
+                  {!query.trim() && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                    >
+                      <div className="mt-3 flex items-center justify-between gap-3 text-xs text-muted-foreground">
+                        <span>Type a few keywords to branch the results out</span>
+                        <span className="hidden md:inline">Press Esc to close</span>
+                      </div>
 
-                {!query.trim() && (
-                  <div className="mt-5 rounded-2xl border border-dashed border-border/80 bg-background/60 px-4 py-5 text-center text-sm text-muted-foreground">
-                    Try `pricing roadmap`, `api auth`, or any phrase in any word order.
+                      <div className="mt-5 rounded-2xl border border-dashed border-border/80 bg-background/60 px-4 py-5 text-center text-sm text-muted-foreground">
+                        Try `pricing roadmap`, `api auth`, or any phrase in any word order.
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {query.trim() && (
+                  <div className="mt-3 flex items-center justify-between gap-3 text-xs text-muted-foreground">
+                    <span>{results.length} results connected to this query</span>
+                    <span className="hidden md:inline">Press Esc to close</span>
                   </div>
                 )}
 

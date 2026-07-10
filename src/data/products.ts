@@ -28,6 +28,7 @@ export interface IProduct {
 export interface SearchResult {
   productId: string;
   productName: string;
+  productTags: string[];
   pageId: string | null;
   pageIndex: number | null;
   pageName: string | null;

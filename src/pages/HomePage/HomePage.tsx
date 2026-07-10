@@ -61,6 +61,16 @@ export default function HomePage() {
   const [filterTags, setFilterTags] = useState<string[]>([]);
   const [superSearchOpen, setSuperSearchOpen] = useState(false);
   const [superSearchQuery, setSuperSearchQuery] = useState('');
+  const [debouncedSuperSearchQuery, setDebouncedSuperSearchQuery] = useState('');
+
+  // Debounce Super Search Query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSuperSearchQuery(superSearchQuery);
+    }, 300); // 300ms delay
+
+    return () => clearTimeout(timer);
+  }, [superSearchQuery]);
 
   const { theme, toggleTheme, setTheme } = useTheme();
 
@@ -165,8 +175,8 @@ export default function HomePage() {
   }, [storageMode, sqliteSearchProducts, products]);
 
   const searchResults = useMemo(
-    () => (superSearchQuery.trim() ? searchProducts(searchableProducts, superSearchQuery.trim()) : []),
-    [searchableProducts, superSearchQuery],
+    () => (debouncedSuperSearchQuery.trim() ? searchProducts(searchableProducts, debouncedSuperSearchQuery.trim()) : []),
+    [searchableProducts, debouncedSuperSearchQuery],
   );
 
   const handleSelectProduct = useCallback(
@@ -242,12 +252,28 @@ export default function HomePage() {
       setSelectedPageIndex(result.pageIndex ?? 0);
       setSuperSearchOpen(false);
       setSuperSearchQuery('');
+      
       try {
         scopedStorage.setItem(SELECTED_KEY, result.productId);
         scopedStorage.setItem(PAGE_INDEX_KEY, String(result.pageIndex ?? 0));
       } catch {
         // 忽略
       }
+
+      // Scroll to match after a short delay to allow the editor to mount/load
+      setTimeout(() => {
+        const editorContainer = document.getElementById('wiki-editor-container');
+        if (!editorContainer) return;
+        
+        const marks = editorContainer.getElementsByTagName('mark');
+        if (marks.length > 0) {
+          marks[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+          marks[0].classList.add('ring-2', 'ring-primary', 'ring-offset-2');
+          setTimeout(() => {
+            marks[0].classList.remove('ring-2', 'ring-primary', 'ring-offset-2');
+          }, 2000);
+        }
+      }, 300);
     },
     [],
   );

@@ -96,6 +96,7 @@ export function searchProducts(products: IProduct[], query: string): SearchResul
       const baseResult: SearchResult = {
         productId: product.id,
         productName: product.name,
+        productTags: product.tags,
         pageId: null,
         pageIndex: 0,
         pageName: null,
@@ -114,6 +115,7 @@ export function searchProducts(products: IProduct[], query: string): SearchResul
       const baseResult: SearchResult = {
         productId: product.id,
         productName: product.name,
+        productTags: product.tags,
         pageId: null,
         pageIndex: 0,
         pageName: null,
@@ -137,6 +139,7 @@ export function searchProducts(products: IProduct[], query: string): SearchResul
       const baseResult: SearchResult = {
         productId: product.id,
         productName: product.name,
+        productTags: product.tags,
         pageId: page.id,
         pageIndex,
         pageName: page.name,

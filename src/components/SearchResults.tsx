@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { FileText, Tag, BookOpen } from 'lucide-react';
 import type { SearchResult } from '@/data/products';
+import { getTagColor } from '@/data/products';
 
 interface SearchResultsProps {
   results: SearchResult[];
@@ -82,9 +83,20 @@ export default function SearchResults({ results, query, onSelect }: SearchResult
                 </>
               )}
             </div>
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              {highlightText(result.snippet, query)}
-            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {result.productTags.map((tag, idx) => {
+                const color = getTagColor(tag);
+                return (
+                  <span
+                    key={idx}
+                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] ${color.bg} ${color.text}`}
+                  >
+                    <span className={`size-1 rounded-full ${color.dot}`} />
+                    {tag}
+                  </span>
+                );
+              })}
+            </div>
           </motion.button>
         ))}
       </div>
