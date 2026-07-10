@@ -159,10 +159,14 @@ export default function SuperSearchOverlay({
               style={{ width: 'min(92vw, 620px)' }}
             >
               <motion.div 
-                layout
-                className="overflow-hidden rounded-[28px] border border-border/80 bg-card/95 p-5 shadow-2xl backdrop-blur-xl transition-all duration-300 flex flex-col items-center"
-                style={{ width: query.trim() ? 'auto' : '100%', minWidth: query.trim() ? '200px' : '100%' }}
-              >
+                  layout
+                  className="overflow-hidden rounded-[28px] border border-border/80 bg-card/95 p-5 shadow-2xl backdrop-blur-xl transition-all duration-300 flex flex-col items-center"
+                  style={{ 
+                    width: query.trim() ? 'auto' : '100%',
+                    maxWidth: '100%',
+                    minWidth: query.trim() ? '200px' : '100%'
+                  }}
+                >
                 <AnimatePresence mode="popLayout">
                   {!query.trim() && (
                     <motion.div

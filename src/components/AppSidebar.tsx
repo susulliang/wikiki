@@ -616,33 +616,16 @@ export default function AppSidebar({
         {/* 搜索 */}
         {!collapsed && (
           <div className="px-3 pt-3">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="search"
-                value={searchQuery}
-                onChange={(e) => onSearchChange(e.target.value)}
-                placeholder="Search products..."
-                className="h-8 pl-8 pr-7 text-xs"
-              />
-              {searchQuery && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="!absolute right-0.5 top-1/2 z-20 h-6 w-6 -translate-y-1/2"
-                  onClick={() => onSearchChange('')}
-                >
-                  <X className="size-3" />
-                </Button>
-              )}
-            </div>
             <button
               type="button"
               onClick={onOpenSuperSearch}
-              className="mt-2 flex h-8 w-full items-center justify-between rounded-md border border-dashed border-border/80 px-2.5 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:bg-accent/50 hover:text-foreground"
+              className="flex h-8 w-full items-center justify-between rounded-md border border-dashed border-border/80 bg-accent/30 px-2.5 text-xs text-muted-foreground transition-all hover:border-primary/40 hover:bg-accent/50 hover:text-foreground"
             >
-              <span>Open Super Search</span>
-              <span className="rounded-full border bg-background px-1.5 py-0.5 text-[10px]">Ctrl/Cmd K</span>
+              <div className="flex items-center gap-2">
+                <Search className="size-3.5" />
+                <span>Open Super Search</span>
+              </div>
+              <span className="rounded-full border bg-background px-1.5 py-0.5 text-[10px]">Ctrl K</span>
             </button>
           </div>
         )}
@@ -684,7 +667,32 @@ export default function AppSidebar({
         {!collapsed && <Separator className="mt-3" />}
 
         {/* 产品列表 */}
-        <ScrollArea className="flex-1">
+        <div className="flex flex-col flex-1 min-h-0">
+          {!collapsed && (
+            <div className="px-3 py-2 border-b">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="search"
+                  value={searchQuery}
+                  onChange={(e) => onSearchChange(e.target.value)}
+                  placeholder="Filter products..."
+                  className="h-8 pl-8 pr-7 text-xs bg-muted/50 border-none"
+                />
+                {searchQuery && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="!absolute right-0.5 top-1/2 z-20 h-6 w-6 -translate-y-1/2"
+                    onClick={() => onSearchChange('')}
+                  >
+                    <X className="size-3" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+          <ScrollArea className="flex-1">
           <div className={`${collapsed ? 'px-1 py-2' : 'p-2'}`}>
             {collapsed
               ? filteredProducts.map((product) => (
@@ -725,7 +733,8 @@ export default function AppSidebar({
             )}
           </div>
         </ScrollArea>
-      </aside>
+      </div>
+    </aside>
 
       {/* 隐藏的文件输入 */}
       <input

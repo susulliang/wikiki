@@ -165,12 +165,15 @@ export function highlightSearchText(text: string, query: string): ReactNode {
     return text;
   }
 
-  const pattern = new RegExp(`(${tokens.map((token) => token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'ig');
+  const pattern = new RegExp(`(${tokens.map((token) => token.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')).join('|')})`, 'ig');
   const parts = text.split(pattern);
 
   return parts.map((part, index) =>
     tokens.some((token) => part.toLowerCase() === token.toLowerCase()) ? (
-      <mark key={`${part}-${index}`} className="rounded-sm bg-primary/20 px-1 text-foreground">
+      <mark
+        key={`${part}-${index}`}
+        className="search-highlight rounded-sm bg-yellow-200 px-0.5 text-foreground dark:bg-yellow-500/30"
+      >
         {part}
       </mark>
     ) : (
