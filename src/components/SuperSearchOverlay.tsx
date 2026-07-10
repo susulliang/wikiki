@@ -155,18 +155,12 @@ export default function SuperSearchOverlay({
               }}
               exit={{ opacity: 0, scale: 0.96, y: 16 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center"
-              style={{ width: 'min(92vw, 620px)' }}
+              className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center w-[min(92vw,620px)]"
             >
               <motion.div 
-                  layout
-                  className="overflow-hidden rounded-[28px] border border-border/80 bg-card/95 p-5 shadow-2xl backdrop-blur-xl transition-all duration-300 flex flex-col items-center"
-                  style={{ 
-                    width: query.trim() ? 'auto' : '100%',
-                    maxWidth: '100%',
-                    minWidth: query.trim() ? '200px' : '100%'
-                  }}
-                >
+                layout
+                className="overflow-hidden rounded-[28px] border border-border/80 bg-card/95 p-5 shadow-2xl backdrop-blur-xl transition-all duration-300 flex flex-col items-center w-full"
+              >
                 <AnimatePresence mode="popLayout">
                   {!query.trim() && (
                     <motion.div
@@ -193,21 +187,28 @@ export default function SuperSearchOverlay({
                   )}
                 </AnimatePresence>
 
-                <div className="relative w-full flex justify-center">
-                  <div className="relative flex items-center min-w-[200px] max-w-full">
+                <motion.div 
+                  layout
+                  className="relative w-full flex justify-center"
+                >
+                  <motion.div 
+                    layout
+                    className="relative flex items-center w-full"
+                    style={{ 
+                      maxWidth: query.trim() ? '320px' : '100%',
+                      transition: 'max-width 0.3s ease-in-out'
+                    }}
+                  >
                     <Search className="pointer-events-none absolute left-4 size-4 text-muted-foreground" />
                     <Input
                       autoFocus
                       value={query}
                       onChange={(event) => onQueryChange(event.target.value)}
                       placeholder="Search product, page, or content..."
-                      className="h-14 rounded-2xl border-border/80 bg-background/70 pl-11 pr-4 text-base shadow-inner transition-all duration-300"
-                      style={{ 
-                        width: query.trim() ? `${Math.max(200, Math.min(580, query.length * 12 + 80))}px` : '100%' 
-                      }}
+                      className="h-14 w-full rounded-2xl border-border/80 bg-background/70 pl-11 pr-4 text-base shadow-inner transition-all duration-300"
                     />
-                  </div>
-                </div>
+                  </motion.div>
+                </motion.div>
 
                 <AnimatePresence mode="popLayout">
                   {!query.trim() && (
@@ -216,8 +217,9 @@ export default function SuperSearchOverlay({
                       initial={{ opacity: 0, height: 0, marginTop: 0 }}
                       animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
                       exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                      className="w-full"
                     >
-                      <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
+                      <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground px-1">
                         <span>Type a few keywords to branch the results out</span>
                         <span className="hidden md:inline">Press Esc to close</span>
                       </div>
