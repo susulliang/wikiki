@@ -151,20 +151,24 @@ export default function SuperSearchOverlay({
               animate={{ 
                 opacity: 1, 
                 scale: 1, 
-                y: query.trim() ? -180 : 0 
+                y: 0 
               }}
               exit={{ opacity: 0, scale: 0.96, y: 16 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
               className="absolute left-1/2 top-1/2 z-20 w-[min(92vw,620px)] -translate-x-1/2 -translate-y-1/2"
             >
-              <div className="overflow-hidden rounded-[28px] border border-border/80 bg-card/95 p-5 shadow-2xl backdrop-blur-xl transition-all duration-300">
-                <AnimatePresence mode="wait">
+              <motion.div 
+                layout
+                className="overflow-hidden rounded-[28px] border border-border/80 bg-card/95 p-5 shadow-2xl backdrop-blur-xl transition-all duration-300"
+              >
+                <AnimatePresence mode="popLayout">
                   {!query.trim() && (
                     <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="mb-4 flex items-center justify-between gap-4"
+                      key="header"
+                      initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                      animate={{ opacity: 1, height: 'auto', marginBottom: 16 }}
+                      exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                      className="flex items-center justify-between gap-4"
                     >
                       <div className="flex items-center gap-3">
                         <div className="flex size-11 items-center justify-center rounded-2xl bg-primary/12 text-primary">
@@ -194,14 +198,15 @@ export default function SuperSearchOverlay({
                   />
                 </div>
 
-                <AnimatePresence>
+                <AnimatePresence mode="popLayout">
                   {!query.trim() && (
                     <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
+                      key="tips"
+                      initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                      animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
+                      exit={{ opacity: 0, height: 0, marginTop: 0 }}
                     >
-                      <div className="mt-3 flex items-center justify-between gap-3 text-xs text-muted-foreground">
+                      <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
                         <span>Type a few keywords to branch the results out</span>
                         <span className="hidden md:inline">Press Esc to close</span>
                       </div>
@@ -212,13 +217,6 @@ export default function SuperSearchOverlay({
                     </motion.div>
                   )}
                 </AnimatePresence>
-
-                {query.trim() && (
-                  <div className="mt-3 flex items-center justify-between gap-3 text-xs text-muted-foreground">
-                    <span>{results.length} results connected to this query</span>
-                    <span className="hidden md:inline">Press Esc to close</span>
-                  </div>
-                )}
 
                 {query.trim() && loading && (
                   <div className="mt-5 rounded-2xl border border-dashed border-border/80 bg-background/60 px-4 py-5 text-center text-sm text-muted-foreground">
@@ -232,12 +230,12 @@ export default function SuperSearchOverlay({
                   </div>
                 )}
 
-                {results.length > visibleResults.length && (
+                {query.trim() && results.length > visibleResults.length && (
                   <p className="mt-3 text-center text-xs text-muted-foreground">
                     Showing the top {visibleResults.length} nodes around the root.
                   </p>
                 )}
-              </div>
+              </motion.div>
             </motion.div>
           </div>
         </motion.div>
