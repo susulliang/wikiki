@@ -261,19 +261,28 @@ export default function HomePage() {
       }
 
       // Scroll to match after a short delay to allow the editor to mount/load
-      setTimeout(() => {
+      // Using a longer delay and multiple attempts to ensure the editor is ready
+      const scrollToMatch = (attempts = 0) => {
         const editorContainer = document.getElementById('wiki-editor-container');
-        if (!editorContainer) return;
+        if (!editorContainer) {
+          if (attempts < 10) setTimeout(() => scrollToMatch(attempts + 1), 100);
+          return;
+        }
         
         const marks = editorContainer.getElementsByTagName('mark');
         if (marks.length > 0) {
           marks[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
-          marks[0].classList.add('ring-2', 'ring-primary', 'ring-offset-2');
+          marks[0].classList.add('ring-2', 'ring-primary', 'ring-offset-2', 'transition-all', 'duration-500');
           setTimeout(() => {
             marks[0].classList.remove('ring-2', 'ring-primary', 'ring-offset-2');
           }, 2000);
+        } else if (attempts < 15) {
+          // Content might still be rendering
+          setTimeout(() => scrollToMatch(attempts + 1), 100);
         }
-      }, 300);
+      };
+
+      setTimeout(() => scrollToMatch(), 200);
     },
     [],
   );

@@ -155,11 +155,13 @@ export default function SuperSearchOverlay({
               }}
               exit={{ opacity: 0, scale: 0.96, y: 16 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="absolute left-1/2 top-1/2 z-20 w-[min(92vw,620px)] -translate-x-1/2 -translate-y-1/2"
+              className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center"
+              style={{ width: 'min(92vw, 620px)' }}
             >
               <motion.div 
                 layout
-                className="overflow-hidden rounded-[28px] border border-border/80 bg-card/95 p-5 shadow-2xl backdrop-blur-xl transition-all duration-300"
+                className="overflow-hidden rounded-[28px] border border-border/80 bg-card/95 p-5 shadow-2xl backdrop-blur-xl transition-all duration-300 flex flex-col items-center"
+                style={{ width: query.trim() ? 'auto' : '100%', minWidth: query.trim() ? '200px' : '100%' }}
               >
                 <AnimatePresence mode="popLayout">
                   {!query.trim() && (
@@ -168,7 +170,7 @@ export default function SuperSearchOverlay({
                       initial={{ opacity: 0, height: 0, marginBottom: 0 }}
                       animate={{ opacity: 1, height: 'auto', marginBottom: 16 }}
                       exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-                      className="flex items-center justify-between gap-4"
+                      className="flex w-full items-center justify-between gap-4"
                     >
                       <div className="flex items-center gap-3">
                         <div className="flex size-11 items-center justify-center rounded-2xl bg-primary/12 text-primary">
@@ -187,15 +189,20 @@ export default function SuperSearchOverlay({
                   )}
                 </AnimatePresence>
 
-                <div className="relative">
-                  <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    autoFocus
-                    value={query}
-                    onChange={(event) => onQueryChange(event.target.value)}
-                    placeholder="Search product, page, or content..."
-                    className="h-14 rounded-2xl border-border/80 bg-background/70 pl-11 pr-4 text-base shadow-inner"
-                  />
+                <div className="relative w-full flex justify-center">
+                  <div className="relative flex items-center min-w-[200px] max-w-full">
+                    <Search className="pointer-events-none absolute left-4 size-4 text-muted-foreground" />
+                    <Input
+                      autoFocus
+                      value={query}
+                      onChange={(event) => onQueryChange(event.target.value)}
+                      placeholder="Search product, page, or content..."
+                      className="h-14 rounded-2xl border-border/80 bg-background/70 pl-11 pr-4 text-base shadow-inner transition-all duration-300"
+                      style={{ 
+                        width: query.trim() ? `${Math.max(200, Math.min(580, query.length * 12 + 80))}px` : '100%' 
+                      }}
+                    />
+                  </div>
                 </div>
 
                 <AnimatePresence mode="popLayout">
