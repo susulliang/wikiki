@@ -163,15 +163,27 @@ function scoreResult(result: ExtendedSearchResult, query: string, tokens: string
 
   let score = 0;
 
-  // Phrase exact match (whole word)
-  if (phrase && isWholeWordMatch(productName, phrase)) score += 100;
-  else if (phrase && productName.includes(phrase)) score += 60;
-  
-  if (phrase && isWholeWordMatch(pageName, phrase)) score += 70;
-  else if (phrase && pageName.includes(phrase)) score += 40;
-  
-  if (phrase && isWholeWordMatch(snippet, phrase)) score += 50;
-  else if (phrase && snippet.includes(phrase)) score += 25;
+  // EXACT PHRASE MATCH - Highest priority (massive boost)
+  // This ensures "cleaning tray error" as a phrase ranks above "cleaning" and "error" separately
+  if (phrase) {
+    // Check if the exact phrase appears anywhere in the searchable content
+    const normalizedSnippet = normalizeForSearch(snippet);
+    const normalizedProductName = normalizeForSearch(productName);
+    const normalizedPageName = normalizeForSearch(pageName);
+    
+    // Exact phrase in product name - highest score
+    if (normalizedProductName.includes(phrase)) {
+      score += 500;
+    }
+    // Exact phrase in page name - very high score
+    if (pageName && normalizedPageName.includes(phrase)) {
+      score += 400;
+    }
+    // Exact phrase in snippet - high score
+    if (normalizedSnippet.includes(phrase)) {
+      score += 300;
+    }
+  }
 
   // Individual token matches (whole word)
   for (const token of tokens) {
@@ -185,7 +197,7 @@ function scoreResult(result: ExtendedSearchResult, query: string, tokens: string
     else if (snippet.includes(token)) score += 6;
   }
 
-  // Sequence bonus
+  // Sequence bonus (for partial matches)
   score += calculateSequenceScore(productName, tokens);
   score += calculateSequenceScore(pageName, tokens) * 0.7;
   score += calculateSequenceScore(snippet, tokens) * 0.5;

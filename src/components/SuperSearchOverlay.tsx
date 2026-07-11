@@ -191,8 +191,8 @@ export default function SuperSearchOverlay({
   const positions = useMemo(() => getNodePositions(visibleResults.length), [visibleResults.length]);
 
   const handleResultClick = (result: ExtendedSearchResult) => {
-    // If only one paragraph, go directly to the product
-    if (result.matchingParagraphs.length === 1) {
+    // If mindmap or only one paragraph, go directly to the product
+    if (result.isMindmap || result.matchingParagraphs.length === 1) {
       onSelect(result, 0);
     } else {
       // Show expanded panel with all paragraphs
