@@ -1,4 +1,4 @@
-import { useState, useCallback, useLayoutEffect, useRef, useMemo } from 'react';
+import { useState, useCallback, useLayoutEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -58,8 +58,6 @@ export default function BundleDetail({
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [showToolbar, setShowToolbar] = useState(true);
   const [showMindmap, setShowMindmap] = useState(false);
-  const headerRef = useRef<HTMLDivElement>(null);
-  const [headerHeight, setHeaderHeight] = useState(0);
 
   const currentPage = bundle.pages[pageIndex] ?? bundle.pages[0];
   
@@ -89,23 +87,6 @@ export default function BundleDetail({
       setShowMindmap(true);
     }
   }, [openMindmap, mindmapPage]);
-
-  useLayoutEffect(() => {
-    const el = headerRef.current;
-    if (!el) return;
-
-    const update = () => {
-      setHeaderHeight(el.getBoundingClientRect().height);
-    };
-
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-
-    return () => {
-      ro.disconnect();
-    };
-  }, []);
 
   const handleSaveBundle = useCallback(
     async (name: string, tags: string[]) => {
@@ -172,7 +153,6 @@ export default function BundleDetail({
     <div className="flex-1 overflow-auto min-h-0 relative" id="bundle-detail-container">
       {/* Bundle Header - sticky, blurred transparent */}
       <div
-        ref={headerRef}
         className="sticky top-0 z-30 border-b border-border/70 px-6 py-2.5 flex flex-col gap-2 bg-background/45 backdrop-blur-xl supports-[backdrop-filter]:bg-background/35"
       >
         <div className="flex items-center justify-between gap-4">
@@ -283,7 +263,6 @@ export default function BundleDetail({
           content={currentPage?.content ?? ''}
           onChange={(html) => onUpdatePageContent(bundle.id, currentPage.id, html)}
           showToolbar={showToolbar}
-          stickyTop={headerHeight}
           highlightQuery={highlightQuery}
         />
       </div>

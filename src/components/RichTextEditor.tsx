@@ -13,6 +13,7 @@ import {
   Code2,
   Link,
   Image as ImageIcon,
+  Upload,
   Quote,
   Minus,
 } from 'lucide-react';
@@ -21,7 +22,6 @@ interface RichTextEditorProps {
   content: string;
   onChange: (html: string) => void;
   showToolbar?: boolean;
-  stickyTop?: number;
   highlightQuery?: string;
 }
 
@@ -59,11 +59,10 @@ function processImage(file: File): Promise<string> {
   });
 }
 
-export default function RichTextEditor({ 
-  content, 
-  onChange, 
-  showToolbar = true, 
-  stickyTop = 0,
+export default function RichTextEditor({
+  content,
+  onChange,
+  showToolbar = true,
   highlightQuery = ''
 }: RichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
@@ -366,120 +365,77 @@ export default function RichTextEditor({
 
   return (
     <div className="flex flex-col flex-1 relative">
-      {/* Toolbar */}
+      {/* Floating Vertical Toolbar */}
       {showToolbar && (
-        <div
-          className="sticky z-20 flex flex-wrap items-center gap-0.5 border-b border-border/70 bg-background/55 backdrop-blur-xl supports-[backdrop-filter]:bg-background/40 px-2.5 py-0.5"
-          style={{ top: stickyTop }}
-        >
-          <div className="flex items-center gap-1 mr-1">
-            <Button
-              variant={activeHeading === 'p' ? 'secondary' : 'ghost'}
-              size="sm"
-              className="h-6 px-2 text-[11px]"
-              onClick={() => handleHeadingChange('p')}
-              title="Paragraph"
-            >
-              Paragraph
-            </Button>
-            <Button
-              variant={activeHeading === 'h1' ? 'secondary' : 'ghost'}
-              size="sm"
-              className="h-6 px-2.5 text-[11px]"
-              onClick={() => handleHeadingChange('h1')}
-              title="Heading 1"
-            >
-              H1
-            </Button>
-            <Button
-              variant={activeHeading === 'h2' ? 'secondary' : 'ghost'}
-              size="sm"
-              className="h-6 px-2.5 text-[11px]"
-              onClick={() => handleHeadingChange('h2')}
-              title="Heading 2"
-            >
-              H2
-            </Button>
-            <Button
-              variant={activeHeading === 'h3' ? 'secondary' : 'ghost'}
-              size="sm"
-              className="h-6 px-2.5 text-[11px]"
-              onClick={() => handleHeadingChange('h3')}
-              title="Heading 3"
-            >
-              H3
-            </Button>
-          </div>
-
-          <Separator orientation="vertical" className="mx-0.5 h-4" />
-
+        <div className="fixed right-4 top-1/2 z-30 flex max-h-[85vh] -translate-y-1/2 flex-col items-center gap-0.5 overflow-y-auto no-scrollbar rounded-full border border-foreground/10 bg-background/40 p-1.5 shadow-2xl backdrop-blur-2xl backdrop-saturate-150">
+          {/* Headings */}
           <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => exec('bold')}
-            title="Bold (Ctrl+B)"
+            variant={activeHeading === 'p' ? 'secondary' : 'ghost'}
+            size="sm"
+            className="h-7 w-7 p-0 text-[10px] font-mono"
+            onClick={() => handleHeadingChange('p')}
+            title="Paragraph"
           >
+            P
+          </Button>
+          <Button
+            variant={activeHeading === 'h1' ? 'secondary' : 'ghost'}
+            size="sm"
+            className="h-7 w-7 p-0 text-[10px] font-mono"
+            onClick={() => handleHeadingChange('h1')}
+            title="Heading 1"
+          >
+            H1
+          </Button>
+          <Button
+            variant={activeHeading === 'h2' ? 'secondary' : 'ghost'}
+            size="sm"
+            className="h-7 w-7 p-0 text-[10px] font-mono"
+            onClick={() => handleHeadingChange('h2')}
+            title="Heading 2"
+          >
+            H2
+          </Button>
+          <Button
+            variant={activeHeading === 'h3' ? 'secondary' : 'ghost'}
+            size="sm"
+            className="h-7 w-7 p-0 text-[10px] font-mono"
+            onClick={() => handleHeadingChange('h3')}
+            title="Heading 3"
+          >
+            H3
+          </Button>
+
+          <Separator orientation="horizontal" className="my-0.5 w-5" />
+
+          {/* Text format */}
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => exec('bold')} title="Bold (Ctrl+B)">
             <Bold className="size-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => exec('italic')}
-            title="Italic (Ctrl+I)"
-          >
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => exec('italic')} title="Italic (Ctrl+I)">
             <Italic className="size-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => exec('underline')}
-            title="Underline (Ctrl+U)"
-          >
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => exec('underline')} title="Underline (Ctrl+U)">
             <Underline className="size-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => exec('strikeThrough')}
-            title="Strikethrough"
-          >
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => exec('strikeThrough')} title="Strikethrough">
             <Strikethrough className="size-4" />
           </Button>
 
-          <Separator orientation="vertical" className="mx-0.5 h-4" />
+          <Separator orientation="horizontal" className="my-0.5 w-5" />
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => exec('insertUnorderedList')}
-            title="Bullet List"
-          >
+          {/* Lists */}
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => exec('insertUnorderedList')} title="Bullet List">
             <List className="size-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => exec('insertOrderedList')}
-            title="Numbered List"
-          >
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => exec('insertOrderedList')} title="Numbered List">
             <ListOrdered className="size-4" />
           </Button>
 
-          <Separator orientation="vertical" className="mx-0.5 h-4" />
+          <Separator orientation="horizontal" className="my-0.5 w-5" />
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => exec('formatBlock', 'pre')}
-            title="Code Block"
-          >
+          {/* Code */}
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => exec('formatBlock', 'pre')} title="Code Block">
             <Code className="size-4" />
           </Button>
           <Button
@@ -505,66 +461,37 @@ export default function RichTextEditor({
             <Code2 className="size-4" />
           </Button>
 
-          <Separator orientation="vertical" className="mx-0.5 h-4" />
+          <Separator orientation="horizontal" className="my-0.5 w-5" />
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={handleLink}
-            title="Insert Link"
-          >
+          {/* Link & Image */}
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleLink} title="Insert Link">
             <Link className="size-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={handleImageUrl}
-            title="Insert Image URL"
-          >
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleImageUrl} title="Insert Image URL">
             <ImageIcon className="size-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 gap-1 text-xs"
-            onClick={handleImageUpload}
-            title="Upload Image"
-          >
-            <ImageIcon className="size-3.5" />
-            Upload
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleImageUpload} title="Upload Image">
+            <Upload className="size-4" />
           </Button>
 
-          <Separator orientation="vertical" className="mx-0.5 h-4" />
+          <Separator orientation="horizontal" className="my-0.5 w-5" />
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => exec('formatBlock', 'blockquote')}
-            title="Blockquote"
-          >
+          {/* Quote & HR */}
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => exec('formatBlock', 'blockquote')} title="Blockquote">
             <Quote className="size-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => exec('insertHorizontalRule')}
-            title="Horizontal Rule"
-          >
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => exec('insertHorizontalRule')} title="Horizontal Rule">
             <Minus className="size-4" />
           </Button>
         </div>
       )}
 
-      {/* Editor area */}
+      {/* Editor area — padded right to clear the floating toolbar */}
       <div
         ref={editorRef}
         contentEditable
         suppressContentEditableWarning
-        className="prose prose-sm max-w-none dark:prose-invert min-h-max h-full flex-1 px-8 py-6 outline-none focus:outline-none"
+        className={`prose prose-sm max-w-none dark:prose-invert min-h-max h-full flex-1 py-6 pl-8 outline-none focus:outline-none ${showToolbar ? 'pr-20' : 'pr-8'}`}
         onInput={handleInput}
         onKeyDown={handleKeyDown}
         onPaste={handlePaste}
