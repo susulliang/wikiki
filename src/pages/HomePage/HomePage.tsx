@@ -3,7 +3,6 @@ import { Loader2 } from 'lucide-react';
 import { useProducts } from '@/hooks/useProducts';
 import { useTheme } from '@/hooks/useTheme';
 import { scopedStorage, logger } from '@lark-apaas/client-toolkit-lite';
-import { cn } from '@/lib/utils';
 import FloatingTabBar, { type TabId } from '@/components/FloatingTabBar';
 import ProductDialog from '@/components/ProductDialog';
 import DatabasePage from '@/pages/DatabasePage';
@@ -218,6 +217,14 @@ export default function HomePage() {
       }
     },
     [],
+  );
+
+  const handleSelectProductFromMindmap = useCallback(
+    (id: string) => {
+      handleSelectProduct(id);
+      handleTabChange('wikis');
+    },
+    [handleSelectProduct, handleTabChange],
   );
 
   const handleDeleteProduct = useCallback(
@@ -600,6 +607,7 @@ export default function HomePage() {
         return (
           <MindmapsPage
             products={products}
+            onSelectProduct={handleSelectProductFromMindmap}
           />
         );
 
@@ -617,7 +625,10 @@ export default function HomePage() {
         onMinimizedChange={handleMinimizedChange}
       />
 
-      <main className={cn('flex-1 min-h-0 overflow-hidden', !tabBarMinimized && 'pt-20')}>
+      <main
+        className="flex-1 min-h-0 overflow-hidden transition-[padding] duration-300 ease-in-out"
+        style={{ paddingTop: tabBarMinimized ? 0 : '5rem' }}
+      >
         <div className="h-full overflow-y-auto">
           {renderTabContent()}
         </div>
@@ -625,7 +636,7 @@ export default function HomePage() {
 
       {/* Version footer */}
       <div className="pointer-events-none absolute bottom-2 right-4 z-40 select-none">
-        <span className="font-mono text-[9px] text-foreground/20">Wikiki Pro 0.1.4</span>
+        <span className="text-[9px] uppercase tracking-wider text-foreground/20">Wikiki Pro 0.1.4</span>
       </div>
 
       {/* Product creation dialog */}
