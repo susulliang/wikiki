@@ -363,6 +363,40 @@ export default function RichTextEditor({
     syncContent();
   }, [syncContent]);
 
+  // Hijack right-click: if text is selected, wrap it in a bookmark span.
+  // The bookmark is stored inline in the page HTML, so it persists in both
+  // JSON and SQLite storage modes automatically.
+  const handleContextMenu = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+        toast.info('Select text first to bookmark it');
+        return;
+      }
+
+      const range = selection.getRangeAt(0);
+      const span = document.createElement('span');
+      span.className = 'wiki-bookmark';
+
+      try {
+        range.surroundContents(span);
+      } catch {
+        // surroundContents fails when selection spans element boundaries.
+        // Fallback: extract contents and re-insert wrapped in the span.
+        const contents = range.extractContents();
+        span.appendChild(contents);
+        range.insertNode(span);
+      }
+
+      selection.removeAllRanges();
+      editorRef.current?.focus();
+      syncContent();
+      toast.success('Bookmarked');
+    },
+    [syncContent],
+  );
+
   return (
     <div className="flex flex-col flex-1 relative">
       {/* Floating Vertical Toolbar */}
@@ -495,6 +529,7 @@ export default function RichTextEditor({
         onInput={handleInput}
         onKeyDown={handleKeyDown}
         onPaste={handlePaste}
+        onContextMenu={handleContextMenu}
         onDragOver={(e) => {
           e.preventDefault();
           e.stopPropagation();

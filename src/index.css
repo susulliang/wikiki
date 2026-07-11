@@ -83,6 +83,19 @@
     color: var(--foreground) !important;
     font-family: var(--font-mono) !important;
   }
+
+  /* Bookmark styling — right-click to bookmark selected text.
+     Higher specificity than [contenteditable] * to override transparent bg. */
+  [contenteditable] .wiki-bookmark {
+    background-color: rgba(234, 179, 8, 0.16) !important;
+    border: 2px dotted #eab308 !important;
+    border-radius: 6px !important;
+    font-size: 1.12em !important;
+    padding: 1px 5px !important;
+    display: inline !important;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
 }
 
 @layer utilities {
