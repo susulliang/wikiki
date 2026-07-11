@@ -1,13 +1,13 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import type { IProduct, IPage } from '@/data/products';
-import { normalizeProduct, denormalizeProduct } from '@/data/products';
+import type { IBundle, IPage } from '@/data/bundles';
+import { normalizeBundle, denormalizeBundle } from '@/data/bundles';
 
-const STORAGE_KEY = '__wikiki_products';
+const STORAGE_KEY = '__wikiki_bundles';
 const VERSION_KEY = '__wikiki_data_version';
 const CURRENT_VERSION = 2;
 
-function stripBase64Images(products: IProduct[]): IProduct[] {
-  return products.map((p) => ({
+function stripBase64Images(bundles: IBundle[]): IBundle[] {
+  return bundles.map((p) => ({
     ...p,
     pages: p.pages.map((pg) => ({
       ...pg,
@@ -19,17 +19,17 @@ function stripBase64Images(products: IProduct[]): IProduct[] {
   }));
 }
 
-function persistProducts(products: IProduct[]): boolean {
+function persistBundles(bundles: IBundle[]): boolean {
   try {
-    const exportData = products.map(denormalizeProduct);
+    const exportData = bundles.map(denormalizeBundle);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(exportData));
     localStorage.setItem(VERSION_KEY, String(CURRENT_VERSION));
     return true;
   } catch (e) {
     if (e instanceof DOMException && (e.name === 'QuotaExceededError' || (e as DOMException).code === 22)) {
-      const stripped = stripBase64Images(products);
+      const stripped = stripBase64Images(bundles);
       try {
-        const exportData = stripped.map(denormalizeProduct);
+        const exportData = stripped.map(denormalizeBundle);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(exportData));
         localStorage.setItem(VERSION_KEY, String(CURRENT_VERSION));
         console.warn('Storage quota exceeded, base64 images stripped');
@@ -39,12 +39,12 @@ function persistProducts(products: IProduct[]): boolean {
         return false;
       }
     }
-    console.error('Failed to save products:', String(e));
+    console.error('Failed to save bundles:', String(e));
     return false;
   }
 }
 
-function loadProducts(): IProduct[] {
+function loadBundles(): IBundle[] {
   try {
     const storedVersion = localStorage.getItem(VERSION_KEY);
     // Clear old data if version mismatch (v1 had mock data, v2 starts fresh)
@@ -60,15 +60,15 @@ function loadProducts(): IProduct[] {
     const data = JSON.parse(raw);
     if (!Array.isArray(data)) return [];
 
-    return data.map((item: Record<string, unknown>) => normalizeProduct(item));
+    return data.map((item: Record<string, unknown>) => normalizeBundle(item));
   } catch (e) {
-    console.error('Failed to load products:', String(e));
+    console.error('Failed to load bundles:', String(e));
     return [];
   }
 }
 
-export function useProducts() {
-  const [products, setProducts] = useState<IProduct[]>(() => loadProducts());
+export function useBundles() {
+  const [bundles, setBundles] = useState<IBundle[]>(() => loadBundles());
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const isInitialMount = useRef(true);
 
@@ -79,16 +79,16 @@ export function useProducts() {
     }
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
-      persistProducts(products);
+      persistBundles(bundles);
     }, 500);
     return () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     };
-  }, [products]);
+  }, [bundles]);
 
-  const addProduct = useCallback((name: string, tags: string[]): IProduct => {
+  const addBundle = useCallback((name: string, tags: string[]): IBundle => {
     const now = new Date().toISOString();
-    const newProduct: IProduct = {
+    const newBundle: IBundle = {
       id: `user-${Date.now()}`,
       name,
       tags,
@@ -107,27 +107,27 @@ export function useProducts() {
       updatedAt: now,
       source: 'user',
     };
-    setProducts((prev) => [...prev, newProduct]);
-    return newProduct;
+    setBundles((prev) => [...prev, newBundle]);
+    return newBundle;
   }, []);
 
-  const updateProduct = useCallback((id: string, name: string, tags: string[]) => {
-    setProducts((prev) =>
+  const updateBundle = useCallback((id: string, name: string, tags: string[]) => {
+    setBundles((prev) =>
       prev.map((p) =>
         p.id === id ? { ...p, name, tags, updatedAt: new Date().toISOString() } : p,
       ),
     );
   }, []);
 
-  const deleteProduct = useCallback((id: string) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
+  const deleteBundle = useCallback((id: string) => {
+    setBundles((prev) => prev.filter((p) => p.id !== id));
   }, []);
 
-  const addPage = useCallback((productId: string, pageName: string): IPage | null => {
+  const addPage = useCallback((bundleId: string, pageName: string): IPage | null => {
     let newPage: IPage | null = null;
-    setProducts((prev) =>
+    setBundles((prev) =>
       prev.map((p) => {
-        if (p.id !== productId) return p;
+        if (p.id !== bundleId) return p;
         const now = new Date().toISOString();
         const maxOrder = p.pages.reduce((max, pg) => Math.max(max, pg.order), -1);
         newPage = {
@@ -149,10 +149,10 @@ export function useProducts() {
     return newPage;
   }, []);
 
-  const deletePage = useCallback((productId: string, pageId: string) => {
-    setProducts((prev) =>
+  const deletePage = useCallback((bundleId: string, pageId: string) => {
+    setBundles((prev) =>
       prev.map((p) => {
-        if (p.id !== productId) return p;
+        if (p.id !== bundleId) return p;
         if (p.pages.length <= 1) return p;
         return {
           ...p,
@@ -163,10 +163,10 @@ export function useProducts() {
     );
   }, []);
 
-  const updatePageContent = useCallback((productId: string, pageId: string, content: string) => {
-    setProducts((prev) =>
+  const updatePageContent = useCallback((bundleId: string, pageId: string, content: string) => {
+    setBundles((prev) =>
       prev.map((p) => {
-        if (p.id !== productId) return p;
+        if (p.id !== bundleId) return p;
         return {
           ...p,
           pages: p.pages.map((pg) =>
@@ -178,20 +178,20 @@ export function useProducts() {
     );
   }, []);
 
-  const reorderPages = useCallback((productId: string, reordered: IPage[]) => {
-    setProducts((prev) =>
+  const reorderPages = useCallback((bundleId: string, reordered: IPage[]) => {
+    setBundles((prev) =>
       prev.map((p) => {
-        if (p.id !== productId) return p;
+        if (p.id !== bundleId) return p;
         const updated = reordered.map((pg, idx) => ({ ...pg, order: idx }));
         return { ...p, pages: updated, updatedAt: new Date().toISOString() };
       }),
     );
   }, []);
 
-  const importProducts = useCallback((incoming: IProduct[]): { added: number; updated: number } => {
+  const importBundles = useCallback((incoming: IBundle[]): { added: number; updated: number } => {
     let added = 0;
     let updated = 0;
-    setProducts((prev) => {
+    setBundles((prev) => {
       const map = new Map(prev.map((p) => [p.name, p]));
       for (const item of incoming) {
         if (map.has(item.name)) {
@@ -207,8 +207,8 @@ export function useProducts() {
     return { added, updated };
   }, []);
 
-  const exportProducts = useCallback(() => {
-    const exportData = products.map(denormalizeProduct);
+  const exportBundles = useCallback(() => {
+    const exportData = bundles.map(denormalizeBundle);
     const json = JSON.stringify(exportData, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -219,27 +219,27 @@ export function useProducts() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }, [products]);
+  }, [bundles]);
 
-  const getProduct = useCallback(
-    (id: string | null): IProduct | undefined => {
+  const getBundle = useCallback(
+    (id: string | null): IBundle | undefined => {
       if (!id) return undefined;
-      return products.find((p) => p.id === id);
+      return bundles.find((p) => p.id === id);
     },
-    [products],
+    [bundles],
   );
 
   return {
-    products,
-    addProduct,
-    updateProduct,
-    deleteProduct,
+    bundles,
+    addBundle,
+    updateBundle,
+    deleteBundle,
     addPage,
     deletePage,
     updatePageContent,
     reorderPages,
-    importProducts,
-    exportProducts,
-    getProduct,
+    importBundles,
+    exportBundles,
+    getBundle,
   };
 }

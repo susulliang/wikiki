@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { ExtendedSearchResult, MatchingParagraph } from '@/lib/search';
-import { getTagColor } from '@/data/products';
+import { getTagColor } from '@/data/bundles';
 import { highlightSearchText } from '@/lib/search';
 
 interface SuperSearchOverlayProps {
@@ -132,7 +132,7 @@ function ExpandedResultPanel({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <p className="truncate text-sm font-semibold text-foreground">
-              {highlightSearchText(result.productName, query)}
+              {highlightSearchText(result.bundleName, query)}
             </p>
             {result.isMindmap && (
               <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-primary/15 text-primary shadow-sm">
@@ -147,7 +147,7 @@ function ExpandedResultPanel({
           )}
         </div>
         <div className="flex flex-wrap justify-end gap-1">
-          {result.productTags.slice(0, 2).map((tag, idx) => {
+          {result.bundleTags.slice(0, 2).map((tag, idx) => {
             const color = getTagColor(tag);
             return (
               <span
@@ -200,7 +200,7 @@ export default function SuperSearchOverlay({
   const positions = useMemo(() => getNodePositions(visibleResults.length), [visibleResults.length]);
 
   const handleResultClick = (result: ExtendedSearchResult) => {
-    // If mindmap or only one paragraph, go directly to the product
+    // If mindmap or only one paragraph, go directly to the bundle
     if (result.isMindmap || result.matchingParagraphs.length === 1) {
       onSelect(result, 0);
     } else {
@@ -261,7 +261,7 @@ export default function SuperSearchOverlay({
 
                   return (
                     <motion.div
-                      key={`line-${visibleResults[index]?.productId}-${visibleResults[index]?.pageId ?? 'root'}-${index}`}
+                      key={`line-${visibleResults[index]?.bundleId}-${visibleResults[index]?.pageId ?? 'root'}-${index}`}
                       initial={{ opacity: 0, scaleX: 0 }}
                       animate={{ opacity: 0.55, scaleX: 1 }}
                       exit={{ opacity: 0, scaleX: 0 }}
@@ -286,7 +286,7 @@ export default function SuperSearchOverlay({
 
               return (
                 <motion.button
-                  key={`${result.productId}-${result.pageId ?? 'root'}-${index}`}
+                  key={`${result.bundleId}-${result.pageId ?? 'root'}-${index}`}
                   initial={{ opacity: 0, scale: 0.92, x: position.x * 0.8, y: position.y * 0.8 }}
                   animate={{ opacity: 1, scale: 1, x: position.x, y: position.y }}
                   exit={{ opacity: 0, scale: 0.92, x: position.x * 0.8, y: position.y * 0.8 }}
@@ -298,7 +298,7 @@ export default function SuperSearchOverlay({
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
                         <p className="truncate text-sm font-semibold text-foreground">
-                          {highlightSearchText(result.productName, query)}
+                          {highlightSearchText(result.bundleName, query)}
                         </p>
                         {result.isMindmap && (
                           <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-sm" title="Mindmap">
@@ -307,11 +307,11 @@ export default function SuperSearchOverlay({
                         )}
                       </div>
                       <p className="truncate text-xs text-muted-foreground">
-                        {result.pageName ? highlightSearchText(result.pageName, query) : 'Product overview'}
+                        {result.pageName ? highlightSearchText(result.pageName, query) : 'Bundle overview'}
                       </p>
                     </div>
                     <div className="flex flex-wrap justify-end gap-1 max-w-[40%]">
-                      {result.productTags.slice(0, 2).map((tag, idx) => {
+                      {result.bundleTags.slice(0, 2).map((tag, idx) => {
                         const color = getTagColor(tag);
                         return (
                           <span
@@ -398,7 +398,7 @@ export default function SuperSearchOverlay({
                       autoFocus
                       value={query}
                       onChange={(event) => onQueryChange(event.target.value)}
-                      placeholder="Search product, page, or content..."
+                      placeholder="Search bundle, page, or content..."
                       className="h-14 w-full rounded-2xl border-border/80 bg-background/70 pl-11 pr-4 text-base shadow-inner"
                     />
                   </motion.div>

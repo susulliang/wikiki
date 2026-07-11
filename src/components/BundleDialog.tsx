@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { X, Plus } from 'lucide-react';
 
-interface ProductDialogProps {
+interface BundleDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialName?: string;
@@ -22,14 +22,14 @@ interface ProductDialogProps {
   title: string;
 }
 
-export default function ProductDialog({
+export default function BundleDialog({
   open,
   onOpenChange,
   initialName = '',
   initialTags = [],
   onSave,
   title,
-}: ProductDialogProps) {
+}: BundleDialogProps) {
   const [name, setName] = useState(initialName);
   const [tags, setTags] = useState<string[]>(initialTags);
   const [tagInput, setTagInput] = useState('');
@@ -76,16 +76,16 @@ export default function ProductDialog({
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
-            <DialogDescription>Fill in product information to continue.</DialogDescription>
+            <DialogDescription>Fill in bundle information to continue.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="product-name">Product Name</Label>
+              <Label htmlFor="bundle-name">Bundle Name</Label>
               <Input
-                id="product-name"
+                id="bundle-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Enter product name"
+                placeholder="Enter bundle name"
                 autoFocus
               />
             </div>

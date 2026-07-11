@@ -1,37 +1,37 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
-import { useProducts } from '@/hooks/useProducts';
+import { useBundles } from '@/hooks/useBundles';
 import { useTheme } from '@/hooks/useTheme';
 import FloatingTabBar, { type TabId } from '@/components/FloatingTabBar';
-import ProductDialog from '@/components/ProductDialog';
-import ProductsPage from '@/pages/ProductsPage';
+import BundleDialog from '@/components/BundleDialog';
+import BundlesPage from '@/pages/BundlesPage';
 import WikisPage from '@/pages/WikisPage';
 import ThemesPage from '@/pages/ThemesPage';
 import MindmapsPage from '@/pages/MindmapsPage';
 import SuperSearchPage from '@/pages/SuperSearchPage';
 import { useStorageMode } from '@/lib/storage-context';
 import { getSQLiteStorage } from '@/lib/sqlite-storage';
-import type { IProduct, IPage } from '@/data/products';
-import { searchProducts, type ExtendedSearchResult } from '@/lib/search';
+import type { IBundle, IPage } from '@/data/bundles';
+import { searchBundles, type ExtendedSearchResult } from '@/lib/search';
 
-const SELECTED_KEY = '__wikiki_selected_product_id';
+const SELECTED_KEY = '__wikiki_selected_bundle_id';
 const PAGE_INDEX_KEY = '__wikiki_selected_page_index';
 const ACTIVE_TAB_KEY = '__wikiki_active_tab';
 const TABBAR_MINIMIZED_KEY = '__wikiki_tabbar_minimized';
 
 export default function HomePage() {
-  const { mode: storageMode, sqliteReady, reloadSQLiteProducts, exportProductsJSON, exportSQLiteDB, importSQLiteDB, sqliteInfo } = useStorageMode();
+  const { mode: storageMode, sqliteReady, reloadSQLiteBundles, exportBundlesJSON, exportSQLiteDB, importSQLiteDB, sqliteInfo } = useStorageMode();
 
   const {
-    products: jsonProducts,
-    addProduct: jsonAddProduct,
-    updateProduct: jsonUpdateProduct,
-    deleteProduct: jsonDeleteProduct,
+    bundles: jsonBundles,
+    addBundle: jsonAddBundle,
+    updateBundle: jsonUpdateBundle,
+    deleteBundle: jsonDeleteBundle,
     addPage: jsonAddPage,
     deletePage: jsonDeletePage,
     updatePageContent: jsonUpdatePageContent,
     reorderPages: jsonReorderPages,
-  } = useProducts();
+  } = useBundles();
 
   useEffect(() => {
     document.title = 'Wikiki';
@@ -41,7 +41,7 @@ export default function HomePage() {
     try {
       const stored = localStorage.getItem(ACTIVE_TAB_KEY) as string;
       if (stored === 'database') return 'mindmaps';
-      if (stored && ['products', 'supersearch', 'wikis', 'themes', 'mindmaps'].includes(stored)) {
+      if (stored && ['bundles', 'supersearch', 'wikis', 'themes', 'mindmaps'].includes(stored)) {
         return stored as TabId;
       }
     } catch {
@@ -76,7 +76,7 @@ export default function HomePage() {
     }
   }, []);
 
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(() => {
+  const [selectedBundleId, setSelectedBundleId] = useState<string | null>(() => {
     try {
       return localStorage.getItem(SELECTED_KEY) || null;
     } catch {
@@ -108,66 +108,66 @@ export default function HomePage() {
 
   const { theme, setTheme } = useTheme();
 
-  const [sqliteProducts, setSqliteProducts] = useState<IProduct[]>([]);
-  const [sqliteSearchProducts, setSqliteSearchProducts] = useState<IProduct[]>([]);
+  const [sqliteBundles, setSqliteBundles] = useState<IBundle[]>([]);
+  const [sqliteSearchBundles, setSqliteSearchBundles] = useState<IBundle[]>([]);
   const [dbPrepping, setDbPrepping] = useState(false);
-  const [loadedProductContent, setLoadedProductContent] = useState<Map<string, IProduct>>(new Map());
+  const [loadedBundleContent, setLoadedBundleContent] = useState<Map<string, IBundle>>(new Map());
 
   useEffect(() => {
     if (storageMode !== 'sqlite' || !sqliteReady) return;
     const storage = getSQLiteStorage();
-    storage.getAllProductsShallow().then((prods) => {
-      setSqliteProducts(prods);
+    storage.getAllBundlesShallow().then((prods) => {
+      setSqliteBundles(prods);
     }).catch((e) => {
-      console.error('Failed to load SQLite products:', String(e));
+      console.error('Failed to load SQLite bundles:', String(e));
     });
   }, [storageMode, sqliteReady]);
 
   useEffect(() => {
-    if (storageMode !== 'sqlite' || !selectedProductId) return;
-    if (loadedProductContent.has(selectedProductId)) return;
+    if (storageMode !== 'sqlite' || !selectedBundleId) return;
+    if (loadedBundleContent.has(selectedBundleId)) return;
 
     const storage = getSQLiteStorage();
-    storage.getProduct(selectedProductId).then((fullProduct) => {
-      if (fullProduct) {
-        setLoadedProductContent((prev) => new Map(prev).set(selectedProductId, fullProduct));
+    storage.getBundle(selectedBundleId).then((fullBundle) => {
+      if (fullBundle) {
+        setLoadedBundleContent((prev) => new Map(prev).set(selectedBundleId, fullBundle));
       }
     }).catch((e) => {
-      console.error('Failed to load product content:', String(e));
+      console.error('Failed to load bundle content:', String(e));
     });
-  }, [storageMode, selectedProductId, loadedProductContent]);
+  }, [storageMode, selectedBundleId, loadedBundleContent]);
 
   useEffect(() => {
     if (storageMode === 'json') {
-      setLoadedProductContent(new Map());
+      setLoadedBundleContent(new Map());
     }
   }, [storageMode]);
 
   const handleReloadSQLite = useCallback(async () => {
     if (storageMode !== 'sqlite') return;
-    const prods = await reloadSQLiteProducts();
-    setSqliteProducts(prods);
-    setLoadedProductContent(new Map());
-  }, [storageMode, reloadSQLiteProducts]);
+    const prods = await reloadSQLiteBundles();
+    setSqliteBundles(prods);
+    setLoadedBundleContent(new Map());
+  }, [storageMode, reloadSQLiteBundles]);
 
-  const products = useMemo(() => {
-    if (storageMode === 'json') return jsonProducts;
-    return sqliteProducts.map((p) => {
-      if (p.id === selectedProductId && loadedProductContent.has(p.id)) {
-        return loadedProductContent.get(p.id)!;
+  const bundles = useMemo(() => {
+    if (storageMode === 'json') return jsonBundles;
+    return sqliteBundles.map((p) => {
+      if (p.id === selectedBundleId && loadedBundleContent.has(p.id)) {
+        return loadedBundleContent.get(p.id)!;
       }
       return p;
     });
-  }, [storageMode, jsonProducts, sqliteProducts, selectedProductId, loadedProductContent]);
+  }, [storageMode, jsonBundles, sqliteBundles, selectedBundleId, loadedBundleContent]);
 
-  const selectedProduct = useMemo(
-    () => products.find((p) => p.id === selectedProductId) ?? null,
-    [products, selectedProductId],
+  const selectedBundle = useMemo(
+    () => bundles.find((p) => p.id === selectedBundleId) ?? null,
+    [bundles, selectedBundleId],
   );
 
   useEffect(() => {
     if (storageMode !== 'sqlite' || !sqliteReady || activeTab !== 'supersearch') {
-      setSqliteSearchProducts([]);
+      setSqliteSearchBundles([]);
       setDbPrepping(false);
       return;
     }
@@ -175,22 +175,22 @@ export default function HomePage() {
     let cancelled = false;
     setDbPrepping(true);
 
-    // Defer the heavy getAllProducts() call so the search page can render
+    // Defer the heavy getAllBundles() call so the search page can render
     // and the input can be focused first — the user sees the page immediately.
     const timer = setTimeout(() => {
       const storage = getSQLiteStorage();
       storage
-        .getAllProducts()
-        .then((allProducts) => {
+        .getAllBundles()
+        .then((allBundles) => {
           if (!cancelled) {
-            setSqliteSearchProducts(allProducts);
+            setSqliteSearchBundles(allBundles);
             setDbPrepping(false);
           }
         })
         .catch((error) => {
           console.error('Failed to load SQLite search index:', String(error));
           if (!cancelled) {
-            setSqliteSearchProducts([]);
+            setSqliteSearchBundles([]);
             setDbPrepping(false);
           }
         });
@@ -202,22 +202,22 @@ export default function HomePage() {
     };
   }, [storageMode, sqliteReady, activeTab]);
 
-  const searchableProducts = useMemo(() => {
+  const searchableBundles = useMemo(() => {
     if (storageMode !== 'sqlite') {
-      return products;
+      return bundles;
     }
 
-    return sqliteSearchProducts.length > 0 ? sqliteSearchProducts : products;
-  }, [storageMode, sqliteSearchProducts, products]);
+    return sqliteSearchBundles.length > 0 ? sqliteSearchBundles : bundles;
+  }, [storageMode, sqliteSearchBundles, bundles]);
 
   const searchResults = useMemo<ExtendedSearchResult[]>(
-    () => (debouncedSuperSearchQuery.trim() ? searchProducts(searchableProducts, debouncedSuperSearchQuery.trim()) : []),
-    [searchableProducts, debouncedSuperSearchQuery],
+    () => (debouncedSuperSearchQuery.trim() ? searchBundles(searchableBundles, debouncedSuperSearchQuery.trim()) : []),
+    [searchableBundles, debouncedSuperSearchQuery],
   );
 
-  const handleSelectProduct = useCallback(
+  const handleSelectBundle = useCallback(
     (id: string) => {
-      setSelectedProductId(id);
+      setSelectedBundleId(id);
       setSelectedPageIndex(0);
       try {
         localStorage.setItem(SELECTED_KEY, id);
@@ -228,25 +228,25 @@ export default function HomePage() {
     [],
   );
 
-  const handleSelectProductFromMindmap = useCallback(
+  const handleSelectBundleFromMindmap = useCallback(
     (id: string) => {
-      handleSelectProduct(id);
+      handleSelectBundle(id);
       handleTabChange('wikis');
     },
-    [handleSelectProduct, handleTabChange],
+    [handleSelectBundle, handleTabChange],
   );
 
-  const handleDeleteProduct = useCallback(
+  const handleDeleteBundle = useCallback(
     async (id: string) => {
       if (storageMode === 'sqlite') {
         const storage = getSQLiteStorage();
-        await storage.deleteProduct(id);
+        await storage.deleteBundle(id);
         await handleReloadSQLite();
       } else {
-        jsonDeleteProduct(id);
+        jsonDeleteBundle(id);
       }
-      if (selectedProductId === id) {
-        setSelectedProductId(null);
+      if (selectedBundleId === id) {
+        setSelectedBundleId(null);
         try {
           localStorage.setItem(SELECTED_KEY, '');
         } catch {
@@ -254,7 +254,7 @@ export default function HomePage() {
         }
       }
     },
-    [storageMode, jsonDeleteProduct, selectedProductId, handleReloadSQLite],
+    [storageMode, jsonDeleteBundle, selectedBundleId, handleReloadSQLite],
   );
 
   const handlePageChange = useCallback((index: number) => {
@@ -268,7 +268,7 @@ export default function HomePage() {
 
   const handleSearchResultSelect = useCallback(
     (result: ExtendedSearchResult, paragraphIndex?: number) => {
-      setSelectedProductId(result.productId);
+      setSelectedBundleId(result.bundleId);
       setSelectedPageIndex(result.pageIndex ?? 0);
       setActiveTab('wikis');
 
@@ -276,7 +276,7 @@ export default function HomePage() {
       setOpenMindmapMode(result.isMindmap ? Date.now() : 0);
 
       try {
-        localStorage.setItem(SELECTED_KEY, result.productId);
+        localStorage.setItem(SELECTED_KEY, result.bundleId);
         localStorage.setItem(PAGE_INDEX_KEY, String(result.pageIndex ?? 0));
         localStorage.setItem(ACTIVE_TAB_KEY, 'wikis');
       } catch {
@@ -312,7 +312,7 @@ export default function HomePage() {
 
   const [triggerAddDialog, setTriggerAddDialog] = useState(false);
 
-  const handleCreateProduct = useCallback(() => {
+  const handleCreateBundle = useCallback(() => {
     setTriggerAddDialog(true);
   }, []);
 
@@ -326,23 +326,23 @@ export default function HomePage() {
       const text = await file.text();
       const data = JSON.parse(text);
       if (Array.isArray(data)) {
-        const { normalizeProduct } = await import('@/data/products');
-        const products = data.map((item: Record<string, unknown>) => normalizeProduct(item));
+        const { normalizeBundle } = await import('@/data/bundles');
+        const bundles = data.map((item: Record<string, unknown>) => normalizeBundle(item));
         if (storageMode === 'sqlite') {
           const storage = getSQLiteStorage();
           if (!storage.initialized) await storage.init();
-          await storage.importProducts(products);
+          await storage.importBundles(bundles);
           await handleReloadSQLite();
         } else {
-          products.forEach((p: IProduct) => {
-            jsonAddProduct(p.name, p.tags);
+          bundles.forEach((p: IBundle) => {
+            jsonAddBundle(p.name, p.tags);
           });
         }
         handleTabChange('mindmaps');
       }
     };
     input.click();
-  }, [storageMode, jsonAddProduct, handleReloadSQLite, handleTabChange]);
+  }, [storageMode, jsonAddBundle, handleReloadSQLite, handleTabChange]);
 
   const handleImportDB = useCallback(() => {
     const input = document.createElement('input');
@@ -359,10 +359,10 @@ export default function HomePage() {
     input.click();
   }, [importSQLiteDB, handleReloadSQLite, handleTabChange]);
 
-  const handleAddProductFromSidebar = useCallback(
-    (name: string, tags: string[]): IProduct => {
+  const handleAddBundleFromSidebar = useCallback(
+    (name: string, tags: string[]): IBundle => {
       const now = new Date().toISOString();
-      const newProduct: IProduct = {
+      const newBundle: IBundle = {
         id: `user-${Date.now()}`,
         name,
         tags,
@@ -387,50 +387,50 @@ export default function HomePage() {
           try {
             const storage = getSQLiteStorage();
             if (!storage.initialized) await storage.init();
-            await storage.addProduct(newProduct);
-            const prods = await reloadSQLiteProducts();
-            setSqliteProducts(prods);
+            await storage.addBundle(newBundle);
+            const prods = await reloadSQLiteBundles();
+            setSqliteBundles(prods);
           } catch (e) {
-            console.error('SQLite add product failed:', String(e));
+            console.error('SQLite add bundle failed:', String(e));
           }
         })();
       } else {
-        jsonAddProduct(name, tags);
+        jsonAddBundle(name, tags);
       }
 
-      setSelectedProductId(newProduct.id);
+      setSelectedBundleId(newBundle.id);
       try {
-        localStorage.setItem(SELECTED_KEY, newProduct.id);
+        localStorage.setItem(SELECTED_KEY, newBundle.id);
       } catch {
         // ignore
       }
       setTriggerAddDialog(false);
-      return newProduct;
+      return newBundle;
     },
-    [storageMode, jsonAddProduct, reloadSQLiteProducts],
+    [storageMode, jsonAddBundle, reloadSQLiteBundles],
   );
 
-  const handleUpdateProduct = useCallback(
+  const handleUpdateBundle = useCallback(
     async (id: string, name: string, tags: string[]) => {
       if (storageMode === 'sqlite') {
         const storage = getSQLiteStorage();
-        const product = await storage.getProduct(id);
-        if (product) {
-          product.name = name;
-          product.tags = tags;
-          product.updatedAt = new Date().toISOString();
-          await storage.updateProduct(product);
+        const bundle = await storage.getBundle(id);
+        if (bundle) {
+          bundle.name = name;
+          bundle.tags = tags;
+          bundle.updatedAt = new Date().toISOString();
+          await storage.updateBundle(bundle);
           await handleReloadSQLite();
         }
       } else {
-        jsonUpdateProduct(id, name, tags);
+        jsonUpdateBundle(id, name, tags);
       }
     },
-    [storageMode, jsonUpdateProduct, handleReloadSQLite],
+    [storageMode, jsonUpdateBundle, handleReloadSQLite],
   );
 
   const handleAddPage = useCallback(
-    async (productId: string, pageName: string): Promise<IPage | null> => {
+    async (bundleId: string, pageName: string): Promise<IPage | null> => {
       const now = new Date().toISOString();
       const newPage: IPage = {
         id: `page-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -444,104 +444,104 @@ export default function HomePage() {
 
       if (storageMode === 'sqlite') {
         const storage = getSQLiteStorage();
-        const product = await storage.getProduct(productId);
-        if (product) {
-          const maxOrder = product.pages.reduce((max, pg) => Math.max(max, pg.order), -1);
+        const bundle = await storage.getBundle(bundleId);
+        if (bundle) {
+          const maxOrder = bundle.pages.reduce((max, pg) => Math.max(max, pg.order), -1);
           newPage.order = maxOrder + 1;
-          product.pages.push(newPage);
-          product.updatedAt = now;
-          await storage.updateProduct(product);
+          bundle.pages.push(newPage);
+          bundle.updatedAt = now;
+          await storage.updateBundle(bundle);
           await handleReloadSQLite();
           return newPage;
         }
         return null;
       }
-      const result = jsonAddPage(productId, pageName);
+      const result = jsonAddPage(bundleId, pageName);
       return result;
     },
     [storageMode, jsonAddPage, handleReloadSQLite],
   );
 
   const handleDeletePage = useCallback(
-    async (productId: string, pageId: string) => {
+    async (bundleId: string, pageId: string) => {
       if (storageMode === 'sqlite') {
         const storage = getSQLiteStorage();
-        const product = await storage.getProduct(productId);
-        if (product && product.pages.length > 1) {
-          product.pages = product.pages.filter((pg) => pg.id !== pageId);
-          product.updatedAt = new Date().toISOString();
-          await storage.updateProduct(product);
+        const bundle = await storage.getBundle(bundleId);
+        if (bundle && bundle.pages.length > 1) {
+          bundle.pages = bundle.pages.filter((pg) => pg.id !== pageId);
+          bundle.updatedAt = new Date().toISOString();
+          await storage.updateBundle(bundle);
           await handleReloadSQLite();
         }
       } else {
-        jsonDeletePage(productId, pageId);
+        jsonDeletePage(bundleId, pageId);
       }
     },
     [storageMode, jsonDeletePage, handleReloadSQLite],
   );
 
   const handleUpdatePageContent = useCallback(
-    async (productId: string, pageId: string, content: string) => {
+    async (bundleId: string, pageId: string, content: string) => {
       if (storageMode === 'sqlite') {
         const storage = getSQLiteStorage();
-        await storage.updatePageContent(productId, pageId, content);
-        setLoadedProductContent((prev) => {
-          const cached = prev.get(productId);
+        await storage.updatePageContent(bundleId, pageId, content);
+        setLoadedBundleContent((prev) => {
+          const cached = prev.get(bundleId);
           if (!cached) return prev;
           const updatedPages = cached.pages.map((pg) =>
             pg.id === pageId ? { ...pg, content, updatedAt: new Date().toISOString() } : pg,
           );
           const updated = { ...cached, pages: updatedPages, updatedAt: new Date().toISOString() };
-          return new Map(prev).set(productId, updated);
+          return new Map(prev).set(bundleId, updated);
         });
       } else {
-        jsonUpdatePageContent(productId, pageId, content);
+        jsonUpdatePageContent(bundleId, pageId, content);
       }
     },
     [storageMode, jsonUpdatePageContent],
   );
 
   const handleReorderPages = useCallback(
-    async (productId: string, reordered: IProduct['pages']) => {
+    async (bundleId: string, reordered: IBundle['pages']) => {
       if (storageMode === 'sqlite') {
         const storage = getSQLiteStorage();
-        const product = await storage.getProduct(productId);
-        if (product) {
-          product.pages = reordered.map((pg, idx) => ({ ...pg, order: idx }));
-          product.updatedAt = new Date().toISOString();
-          await storage.updateProduct(product);
+        const bundle = await storage.getBundle(bundleId);
+        if (bundle) {
+          bundle.pages = reordered.map((pg, idx) => ({ ...pg, order: idx }));
+          bundle.updatedAt = new Date().toISOString();
+          await storage.updateBundle(bundle);
           await handleReloadSQLite();
         }
       } else {
-        jsonReorderPages(productId, reordered);
+        jsonReorderPages(bundleId, reordered);
       }
     },
     [storageMode, jsonReorderPages, handleReloadSQLite],
   );
 
   const handleExportJSON = useCallback(() => {
-    exportProductsJSON();
-  }, [exportProductsJSON]);
+    exportBundlesJSON();
+  }, [exportBundlesJSON]);
 
   const handleExportDB = useCallback(() => {
     exportSQLiteDB();
   }, [exportSQLiteDB]);
 
-  const isLoadingContent = storageMode === 'sqlite' && selectedProductId !== null && !loadedProductContent.has(selectedProductId);
+  const isLoadingContent = storageMode === 'sqlite' && selectedBundleId !== null && !loadedBundleContent.has(selectedBundleId);
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'products':
+      case 'bundles':
         return (
-          <ProductsPage
-            products={products}
-            selectedProductId={selectedProductId}
-            onSelectProduct={(id) => {
-              handleSelectProduct(id);
+          <BundlesPage
+            bundles={bundles}
+            selectedBundleId={selectedBundleId}
+            onSelectBundle={(id) => {
+              handleSelectBundle(id);
               handleTabChange('wikis');
             }}
-            onCreateProduct={handleCreateProduct}
-            onDeleteProduct={handleDeleteProduct}
+            onCreateBundle={handleCreateBundle}
+            onDeleteBundle={handleDeleteBundle}
           />
         );
 
@@ -553,8 +553,8 @@ export default function HomePage() {
             loading={
               storageMode === 'sqlite' &&
               superSearchQuery.trim().length > 0 &&
-              sqliteProducts.length > 0 &&
-              sqliteSearchProducts.length === 0
+              sqliteBundles.length > 0 &&
+              sqliteSearchBundles.length === 0
             }
             dbPrepping={dbPrepping}
             onQueryChange={setSuperSearchQuery}
@@ -573,18 +573,18 @@ export default function HomePage() {
         }
         return (
           <WikisPage
-            product={selectedProduct}
+            bundle={selectedBundle}
             pageIndex={selectedPageIndex}
             onPageChange={handlePageChange}
-            onUpdateProduct={handleUpdateProduct}
-            onDeleteProduct={handleDeleteProduct}
+            onUpdateBundle={handleUpdateBundle}
+            onDeleteBundle={handleDeleteBundle}
             onAddPage={handleAddPage}
             onDeletePage={handleDeletePage}
             onUpdatePageContent={handleUpdatePageContent}
             onReorderPages={handleReorderPages}
             highlightQuery={activeHighlightQuery}
             openMindmap={openMindmapMode}
-            onNoProduct={() => handleTabChange('products')}
+            onNoBundle={() => handleTabChange('bundles')}
           />
         );
 
@@ -599,8 +599,8 @@ export default function HomePage() {
       case 'mindmaps':
         return (
           <MindmapsPage
-            products={products}
-            onSelectProduct={handleSelectProductFromMindmap}
+            bundles={bundles}
+            onSelectBundle={handleSelectBundleFromMindmap}
             storageMode={storageMode}
             sqliteInfo={sqliteInfo}
             sqliteReady={sqliteReady}
@@ -639,13 +639,13 @@ export default function HomePage() {
         <span className="text-[9px] uppercase tracking-wider text-foreground/20">Wikiki Pro {__APP_VERSION__}</span>
       </div>
 
-      {/* Product creation dialog */}
-      <ProductDialog
+      {/* Bundle creation dialog */}
+      <BundleDialog
         open={triggerAddDialog}
         onOpenChange={setTriggerAddDialog}
-        title="Create Product"
+        title="Create Bundle"
         onSave={(name, tags) => {
-          handleAddProductFromSidebar(name, tags);
+          handleAddBundleFromSidebar(name, tags);
           handleTabChange('wikis');
         }}
       />

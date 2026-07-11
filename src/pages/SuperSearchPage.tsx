@@ -2,7 +2,7 @@ import { useRef, useEffect } from 'react';
 import { Search, Network, FileText, Loader2 } from 'lucide-react';
 import type { ExtendedSearchResult } from '@/lib/search';
 import { highlightSearchText } from '@/lib/search';
-import { getTagColor } from '@/data/products';
+import { getTagColor } from '@/data/bundles';
 import { cn } from '@/lib/utils';
 
 interface SuperSearchPageProps {
@@ -40,7 +40,7 @@ export default function SuperSearchPage({
             type="text"
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
-            placeholder="Search products, pages, tags..."
+            placeholder="Search bundles, pages, tags..."
             className="w-full border-2 border-border bg-card py-4 pl-12 pr-4 font-serif text-lg text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
           {(loading || dbPrepping) && (
@@ -72,7 +72,7 @@ export default function SuperSearchPage({
         <div className="space-y-3">
           {results.map((result, idx) => (
             <ResultCard
-              key={`${result.productId}-${result.pageId ?? 'p'}-${idx}`}
+              key={`${result.bundleId}-${result.pageId ?? 'p'}-${idx}`}
               result={result}
               query={query}
               onSelect={onSelect}
@@ -100,7 +100,7 @@ function ResultCard({ result, query, onSelect }: ResultCardProps) {
       <div className="mb-2 flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
           <span className="truncate font-serif text-lg font-bold text-foreground">
-            {result.productName}
+            {result.bundleName}
           </span>
           {result.isMindmap && (
             <span className="flex shrink-0 items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 font-mono text-xs uppercase tracking-wider text-primary">
@@ -134,9 +134,9 @@ function ResultCard({ result, query, onSelect }: ResultCardProps) {
         {highlightSearchText(result.snippet, query)}
       </p>
 
-      {result.productTags.length > 0 && (
+      {result.bundleTags.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
-          {result.productTags.map((tag) => {
+          {result.bundleTags.map((tag) => {
             const color = getTagColor(tag);
             return (
               <span

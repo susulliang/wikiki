@@ -1,4 +1,4 @@
-// EXPORTS: IProduct, IPage, SearchResult, getTagColor
+// EXPORTS: IBundle, IPage, SearchResult, getTagColor
 
 export interface IPage {
   id: string;
@@ -14,7 +14,7 @@ export interface IPage {
   updatedAt: string;
 }
 
-export interface IProduct {
+export interface IBundle {
   id: string;
   name: string;
   tags: string[];
@@ -26,9 +26,9 @@ export interface IProduct {
 }
 
 export interface SearchResult {
-  productId: string;
-  productName: string;
-  productTags: string[];
+  bundleId: string;
+  bundleName: string;
+  bundleTags: string[];
   pageId: string | null;
   pageIndex: number | null;
   pageName: string | null;
@@ -56,8 +56,8 @@ export function getTagColor(tag: string): typeof TAG_COLORS[number] {
   return TAG_COLORS[Math.abs(hash) % TAG_COLORS.length];
 }
 
-/** Normalize imported product data to internal format */
-export function normalizeProduct(raw: Record<string, unknown>): IProduct {
+/** Normalize imported bundle data to internal format */
+export function normalizeBundle(raw: Record<string, unknown>): IBundle {
   const now = new Date().toISOString();
   const createdAt = typeof raw.createdAt === 'number'
     ? new Date(raw.createdAt).toISOString()
@@ -89,7 +89,7 @@ export function normalizeProduct(raw: Record<string, unknown>): IProduct {
   });
 
   return {
-    id: String(raw.id ?? `product-${Date.now()}`),
+    id: String(raw.id ?? `bundle-${Date.now()}`),
     name: String(raw.name ?? 'Untitled'),
     tags: Array.isArray(raw.tags) ? raw.tags.map(String) : [],
     pages,
@@ -99,20 +99,20 @@ export function normalizeProduct(raw: Record<string, unknown>): IProduct {
   };
 }
 
-/** Convert internal product back to export format */
-export function denormalizeProduct(product: IProduct): Record<string, unknown> {
+/** Convert internal bundle back to export format */
+export function denormalizeBundle(bundle: IBundle): Record<string, unknown> {
   return {
-    id: product.id,
-    name: product.name,
-    pages: product.pages.map((pg) => ({
+    id: bundle.id,
+    name: bundle.name,
+    pages: bundle.pages.map((pg) => ({
       id: pg.id,
       title: pg.title,
       name: pg.name,
       content: pg.content,
     })),
-    tags: product.tags,
-    createdAt: new Date(product.createdAt).getTime(),
-    updatedAt: new Date(product.updatedAt).getTime(),
-    source: product.source || 'user',
+    tags: bundle.tags,
+    createdAt: new Date(bundle.createdAt).getTime(),
+    updatedAt: new Date(bundle.updatedAt).getTime(),
+    source: bundle.source || 'user',
   };
 }

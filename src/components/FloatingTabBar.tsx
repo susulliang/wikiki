@@ -4,7 +4,7 @@ import { Package, Search, BookOpen, Palette, Network } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export type TabId = 'products' | 'supersearch' | 'wikis' | 'themes' | 'mindmaps';
+export type TabId = 'bundles' | 'supersearch' | 'wikis' | 'themes' | 'mindmaps';
 
 interface FloatingTabBarProps {
   activeTab: TabId;
@@ -15,7 +15,7 @@ interface FloatingTabBarProps {
 
 const TABS: Array<{ id: TabId; label: string; icon: LucideIcon }> = [
   { id: 'mindmaps', label: 'Mindmaps', icon: Network },
-  { id: 'products', label: 'Products', icon: Package },
+  { id: 'bundles', label: 'Bundles', icon: Package },
   { id: 'supersearch', label: 'Search', icon: Search },
   { id: 'wikis', label: 'Wikis', icon: BookOpen },
   { id: 'themes', label: 'Themes', icon: Palette },

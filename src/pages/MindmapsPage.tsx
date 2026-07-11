@@ -1,14 +1,14 @@
 import { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { Network, Database, FileJson, Download, Upload, HardDrive } from 'lucide-react';
-import type { IProduct } from '@/data/products';
+import type { IBundle } from '@/data/bundles';
 import { useTheme, THEME_OPTIONS } from '@/hooks/useTheme';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 interface MindmapsPageProps {
-  products: IProduct[];
-  onSelectProduct: (id: string) => void;
+  bundles: IBundle[];
+  onSelectBundle: (id: string) => void;
   storageMode: 'json' | 'sqlite';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   sqliteInfo: any;
@@ -20,7 +20,7 @@ interface MindmapsPageProps {
 }
 
 interface GroupItem {
-  product: IProduct;
+  bundle: IBundle;
   label: string;
 }
 interface Group {
@@ -33,22 +33,22 @@ const ROOT_COLORS = [
   'var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)',
 ];
 
-function buildGroups(products: IProduct[]): Map<string, Group> {
+function buildGroups(bundles: IBundle[]): Map<string, Group> {
   const groups = new Map<string, Group>();
-  products.forEach((p) => {
+  bundles.forEach((p) => {
     const parts = p.name.trim().split(/\s+/);
     const firstWord = parts[0] || p.name;
     const key = firstWord.toLowerCase();
     const remainder = parts.slice(1).join(' ').trim();
     if (!groups.has(key)) groups.set(key, { root: firstWord, items: [] });
-    groups.get(key)!.items.push({ product: p, label: remainder || firstWord });
+    groups.get(key)!.items.push({ bundle: p, label: remainder || firstWord });
   });
   return groups;
 }
 
 export default function MindmapsPage({
-  products,
-  onSelectProduct,
+  bundles,
+  onSelectBundle,
   storageMode,
   sqliteInfo,
   sqliteReady,
@@ -63,16 +63,16 @@ export default function MindmapsPage({
     [currentTheme],
   );
 
-  const totalPages = products.reduce((sum, p) => sum + p.pages.length, 0);
+  const totalPages = bundles.reduce((sum, p) => sum + p.pages.length, 0);
   const allTags = new Set<string>();
-  products.forEach((p) => p.tags.forEach((t) => allTags.add(t)));
+  bundles.forEach((p) => p.tags.forEach((t) => allTags.add(t)));
   const sqliteActive = storageMode === 'sqlite';
 
-  const { option, nodeIdToProductId } = useMemo(() => {
-    const groups = buildGroups(products);
+  const { option, nodeIdToBundleId } = useMemo(() => {
+    const groups = buildGroups(bundles);
     const nodes: Record<string, unknown>[] = [];
     const links: Record<string, unknown>[] = [];
-    const nodeIdToProductId = new Map<string, string>();
+    const nodeIdToBundleId = new Map<string, string>();
 
     let colorIdx = 0;
     groups.forEach((group, key) => {
@@ -88,7 +88,7 @@ export default function MindmapsPage({
         category: 0,
       });
       group.items.forEach((item) => {
-        const nodeId = `node-${item.product.id}`;
+        const nodeId = `node-${item.bundle.id}`;
         nodes.push({
           id: nodeId,
           name: item.label,
@@ -105,7 +105,7 @@ export default function MindmapsPage({
           },
           category: 1,
         });
-        nodeIdToProductId.set(nodeId, item.product.id);
+        nodeIdToBundleId.set(nodeId, item.bundle.id);
         links.push({
           source: rootNodeId,
           target: nodeId,
@@ -144,22 +144,22 @@ export default function MindmapsPage({
           },
           categories: [
             { name: 'Groups' },
-            { name: 'Products' },
+            { name: 'Bundles' },
           ],
         },
       ],
     };
-    return { option, nodeIdToProductId };
-  }, [products, isDark]);
+    return { option, nodeIdToBundleId };
+  }, [bundles, isDark]);
 
   const onEvents = useMemo(
     () => ({
       click: (params: { data?: { id?: string } }) => {
-        const productId = params.data?.id ? nodeIdToProductId.get(params.data.id) : undefined;
-        if (productId) onSelectProduct(productId);
+        const bundleId = params.data?.id ? nodeIdToBundleId.get(params.data.id) : undefined;
+        if (bundleId) onSelectBundle(bundleId);
       },
     }),
-    [nodeIdToProductId, onSelectProduct],
+    [nodeIdToBundleId, onSelectBundle],
   );
 
   return (
@@ -188,7 +188,7 @@ export default function MindmapsPage({
 
         {/* Stats */}
         <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-          <span>{products.length} products</span>
+          <span>{bundles.length} bundles</span>
           <span>{totalPages} pages</span>
           <span>{allTags.size} tags</span>
           {sqliteInfo && (
@@ -250,16 +250,16 @@ export default function MindmapsPage({
       </div>
 
       {/* Mindmap or empty state */}
-      {products.length === 0 ? (
+      {bundles.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
           <div className="mb-6 flex size-20 items-center justify-center border-2 border-border bg-card">
             <Network className="size-10 text-muted-foreground" />
           </div>
           <h2 className="text-2xl font-bold uppercase tracking-tight text-foreground">
-            No Products Yet
+            No Bundles Yet
           </h2>
           <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-            Import a database or add products to see a visual grouping here.
+            Import a database or add bundles to see a visual grouping here.
           </p>
         </div>
       ) : (

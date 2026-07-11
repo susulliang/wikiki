@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { IProduct, SearchResult } from '@/data/products';
+import type { IBundle, SearchResult } from '@/data/bundles';
 
 const EXCERPT_RADIUS = 80;
 
@@ -156,7 +156,7 @@ function findAllMatchingParagraphs(content: string, tokens: string[], query: str
 }
 
 function scoreResult(result: ExtendedSearchResult, query: string, tokens: string[]): number {
-  const productName = result.productName.toLowerCase();
+  const bundleName = result.bundleName.toLowerCase();
   const pageName = result.pageName?.toLowerCase() ?? '';
   const snippet = result.snippet.toLowerCase();
   const phrase = query.toLowerCase().trim();
@@ -168,11 +168,11 @@ function scoreResult(result: ExtendedSearchResult, query: string, tokens: string
   if (phrase) {
     // Check if the exact phrase appears anywhere in the searchable content
     const normalizedSnippet = normalizeForSearch(snippet);
-    const normalizedProductName = normalizeForSearch(productName);
+    const normalizedBundleName = normalizeForSearch(bundleName);
     const normalizedPageName = normalizeForSearch(pageName);
     
-    // Exact phrase in product name - highest score
-    if (normalizedProductName.includes(phrase)) {
+    // Exact phrase in bundle name - highest score
+    if (normalizedBundleName.includes(phrase)) {
       score += 500;
     }
     // Exact phrase in page name - very high score
@@ -187,8 +187,8 @@ function scoreResult(result: ExtendedSearchResult, query: string, tokens: string
 
   // Individual token matches (whole word)
   for (const token of tokens) {
-    if (isWholeWordMatch(productName, token)) score += 30;
-    else if (productName.includes(token)) score += 15;
+    if (isWholeWordMatch(bundleName, token)) score += 30;
+    else if (bundleName.includes(token)) score += 15;
     
     if (isWholeWordMatch(pageName, token)) score += 20;
     else if (pageName.includes(token)) score += 10;
@@ -198,7 +198,7 @@ function scoreResult(result: ExtendedSearchResult, query: string, tokens: string
   }
 
   // Sequence bonus (for partial matches)
-  score += calculateSequenceScore(productName, tokens);
+  score += calculateSequenceScore(bundleName, tokens);
   score += calculateSequenceScore(pageName, tokens) * 0.7;
   score += calculateSequenceScore(snippet, tokens) * 0.5;
 
@@ -213,7 +213,7 @@ function scoreResult(result: ExtendedSearchResult, query: string, tokens: string
   return score;
 }
 
-export function searchProducts(products: IProduct[], query: string): ExtendedSearchResult[] {
+export function searchBundles(bundles: IBundle[], query: string): ExtendedSearchResult[] {
   const trimmedQuery = query.trim();
   const tokens = tokenizeQuery(trimmedQuery);
 
@@ -223,26 +223,26 @@ export function searchProducts(products: IProduct[], query: string): ExtendedSea
 
   const results: ExtendedSearchResult[] = [];
 
-  for (const product of products) {
-    const productNameText = normalizeForSearch(product.name);
-    const tagsText = normalizeForSearch(product.tags.join(' '));
+  for (const bundle of bundles) {
+    const bundleNameText = normalizeForSearch(bundle.name);
+    const tagsText = normalizeForSearch(bundle.tags.join(' '));
 
-    // Check product name match (all tokens must match as whole words)
-    const productNameMatches = tokens.every(token => isWholeWordMatch(productNameText, token));
+    // Check bundle name match (all tokens must match as whole words)
+    const bundleNameMatches = tokens.every(token => isWholeWordMatch(bundleNameText, token));
     
-    if (productNameMatches) {
+    if (bundleNameMatches) {
       const baseResult: ExtendedSearchResult = {
-        productId: product.id,
-        productName: product.name,
-        productTags: product.tags,
+        bundleId: bundle.id,
+        bundleName: bundle.name,
+        bundleTags: bundle.tags,
         pageId: null,
         pageIndex: 0,
         pageName: null,
-        snippet: product.name,
+        snippet: bundle.name,
         matchType: 'name',
         score: 0,
         matchingParagraphs: [{
-          excerpt: product.name,
+          excerpt: bundle.name,
           matchStart: 0,
           matchedTokens: tokens,
           score: 100,
@@ -255,16 +255,16 @@ export function searchProducts(products: IProduct[], query: string): ExtendedSea
     }
 
     // Check tag matches (all tokens must match at least one tag)
-    if (product.tags.length > 0) {
-      const matchingTags = product.tags.filter(tag => 
+    if (bundle.tags.length > 0) {
+      const matchingTags = bundle.tags.filter(tag => 
         tokens.every(token => isWholeWordMatch(normalizeForSearch(tag), token))
       );
       
       if (matchingTags.length > 0) {
         const baseResult: ExtendedSearchResult = {
-          productId: product.id,
-          productName: product.name,
-          productTags: product.tags,
+          bundleId: bundle.id,
+          bundleName: bundle.name,
+          bundleTags: bundle.tags,
           pageId: null,
           pageIndex: 0,
           pageName: null,
@@ -286,7 +286,7 @@ export function searchProducts(products: IProduct[], query: string): ExtendedSea
     }
 
     // Search page content
-    product.pages.forEach((page, pageIndex) => {
+    bundle.pages.forEach((page, pageIndex) => {
       const pageNameText = normalizeForSearch(page.name);
       const pageContent = stripHtml(page.content);
       const searchableText = normalizeForSearch([page.name, pageContent].join(' '));
@@ -316,9 +316,9 @@ export function searchProducts(products: IProduct[], query: string): ExtendedSea
 
       const bestParagraph = matchingParagraphs[0];
       const baseResult: ExtendedSearchResult = {
-        productId: product.id,
-        productName: product.name,
-        productTags: product.tags,
+        bundleId: bundle.id,
+        bundleName: bundle.name,
+        bundleTags: bundle.tags,
         pageId: page.id,
         pageIndex,
         pageName: page.name,
@@ -342,7 +342,7 @@ export function searchProducts(products: IProduct[], query: string): ExtendedSea
 
   // Sort by score (descending) - higher score = better match = displayed first (top in radial)
   return results
-    .sort((left, right) => right.score - left.score || left.productName.localeCompare(right.productName))
+    .sort((left, right) => right.score - left.score || left.bundleName.localeCompare(right.bundleName))
     .slice(0, 16);
 }
 

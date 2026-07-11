@@ -1,51 +1,51 @@
 import { BookOpen, ArrowRight } from 'lucide-react';
-import type { IProduct, IPage } from '@/data/products';
-import ProductDetail from '@/components/ProductDetail';
+import type { IBundle, IPage } from '@/data/bundles';
+import BundleDetail from '@/components/BundleDetail';
 import { Button } from '@/components/ui/button';
 
 interface WikisPageProps {
-  product: IProduct | null;
+  bundle: IBundle | null;
   pageIndex: number;
   onPageChange: (index: number) => void;
-  onUpdateProduct: (id: string, name: string, tags: string[]) => void | Promise<void>;
-  onDeleteProduct: (id: string) => void | Promise<void>;
-  onAddPage: (productId: string, name: string) => Promise<IPage | null>;
-  onDeletePage: (productId: string, pageId: string) => void | Promise<void>;
-  onUpdatePageContent: (productId: string, pageId: string, content: string) => void | Promise<void>;
-  onReorderPages: (productId: string, pages: IPage[]) => void | Promise<void>;
+  onUpdateBundle: (id: string, name: string, tags: string[]) => void | Promise<void>;
+  onDeleteBundle: (id: string) => void | Promise<void>;
+  onAddPage: (bundleId: string, name: string) => Promise<IPage | null>;
+  onDeletePage: (bundleId: string, pageId: string) => void | Promise<void>;
+  onUpdatePageContent: (bundleId: string, pageId: string, content: string) => void | Promise<void>;
+  onReorderPages: (bundleId: string, pages: IPage[]) => void | Promise<void>;
   highlightQuery?: string;
   openMindmap?: number;
-  onNoProduct: () => void;
+  onNoBundle: () => void;
 }
 
 export default function WikisPage({
-  product,
+  bundle,
   pageIndex,
   onPageChange,
-  onUpdateProduct,
-  onDeleteProduct,
+  onUpdateBundle,
+  onDeleteBundle,
   onAddPage,
   onDeletePage,
   onUpdatePageContent,
   onReorderPages,
   highlightQuery,
   openMindmap,
-  onNoProduct,
+  onNoBundle,
 }: WikisPageProps) {
-  if (!product) {
+  if (!bundle) {
     return (
       <div className="flex h-full flex-col items-center justify-center px-6 text-center">
         <div className="mb-6 flex size-20 items-center justify-center border-2 border-border bg-card">
           <BookOpen className="size-10 text-muted-foreground" />
         </div>
         <h2 className="font-serif text-3xl font-bold uppercase tracking-tight text-foreground">
-          Select a Product
+          Select a Bundle
         </h2>
         <p className="mb-8 mt-2 max-w-sm text-sm text-muted-foreground">
-          Choose a product from the Products page to view and edit its wiki pages.
+          Choose a bundle from the Bundles page to view and edit its wiki pages.
         </p>
-        <Button onClick={onNoProduct} className="gap-2 uppercase tracking-wider">
-          Go to Products
+        <Button onClick={onNoBundle} className="gap-2 uppercase tracking-wider">
+          Go to Bundles
           <ArrowRight className="size-4" />
         </Button>
       </div>
@@ -53,12 +53,12 @@ export default function WikisPage({
   }
 
   return (
-    <ProductDetail
-      product={product}
+    <BundleDetail
+      bundle={bundle}
       pageIndex={pageIndex}
       onPageChange={onPageChange}
-      onUpdateProduct={onUpdateProduct}
-      onDeleteProduct={onDeleteProduct}
+      onUpdateBundle={onUpdateBundle}
+      onDeleteBundle={onDeleteBundle}
       onAddPage={onAddPage}
       onDeletePage={onDeletePage}
       onUpdatePageContent={onUpdatePageContent}

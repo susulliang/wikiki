@@ -38,9 +38,9 @@ import {
   Loader2,
   ChevronDown,
 } from 'lucide-react';
-import type { IProduct } from '@/data/products';
-import { getTagColor, normalizeProduct } from '@/data/products';
-import ProductDialog from '@/components/ProductDialog';
+import type { IBundle } from '@/data/bundles';
+import { getTagColor, normalizeBundle } from '@/data/bundles';
+import BundleDialog from '@/components/BundleDialog';
 import { useStorageMode, type StorageMode } from '@/lib/storage-context';
 import { type ThemeName, THEME_OPTIONS } from '@/hooks/useTheme';
 
@@ -57,8 +57,8 @@ const THEME_PALETTE: Record<ThemeName, string> = {
 };
 
 interface AppSidebarProps {
-  products: IProduct[];
-  selectedProductId: string | null;
+  bundles: IBundle[];
+  selectedBundleId: string | null;
   collapsed: boolean;
   theme: ThemeName;
   searchQuery: string;
@@ -66,10 +66,10 @@ interface AppSidebarProps {
   triggerAdd: boolean;
   triggerImportJSON: boolean;
   triggerImportDB: boolean;
-  onSelectProduct: (id: string) => void;
-  onAddProduct: (name: string, tags: string[]) => IProduct;
-  onImportProductsJSON: (incoming: IProduct[]) => { added: number; updated: number };
-  onExportProductsJSON: () => void;
+  onSelectBundle: (id: string) => void;
+  onAddBundle: (name: string, tags: string[]) => IBundle;
+  onImportBundlesJSON: (incoming: IBundle[]) => { added: number; updated: number };
+  onExportBundlesJSON: () => void;
   onToggleCollapse: () => void;
   onToggleTheme: () => void;
   onSetTheme: (theme: ThemeName) => void;
@@ -79,23 +79,23 @@ interface AppSidebarProps {
   onTriggerAddHandled: () => void;
   onTriggerImportJSONHandled: () => void;
   onTriggerImportDBHandled: () => void;
-  onProductsChanged?: () => void;
+  onBundlesChanged?: () => void;
   onHideSidebar?: () => void;
 }
 
-function parseImportFile(jsonText: string): IProduct[] | null {
+function parseImportFile(jsonText: string): IBundle[] | null {
   try {
     const data = JSON.parse(jsonText);
     if (!Array.isArray(data)) return null;
-    return data.map((item: Record<string, unknown>) => normalizeProduct(item));
+    return data.map((item: Record<string, unknown>) => normalizeBundle(item));
   } catch {
     return null;
   }
 }
 
 export default function AppSidebar({
-  products,
-  selectedProductId,
+  bundles,
+  selectedBundleId,
   collapsed,
   theme,
   searchQuery,
@@ -103,10 +103,10 @@ export default function AppSidebar({
   triggerAdd,
   triggerImportJSON,
   triggerImportDB,
-  onSelectProduct,
-  onAddProduct,
-  onImportProductsJSON,
-  onExportProductsJSON,
+  onSelectBundle,
+  onAddBundle,
+  onImportBundlesJSON,
+  onExportBundlesJSON,
   onToggleCollapse,
   onToggleTheme,
   onSetTheme,
@@ -116,7 +116,7 @@ export default function AppSidebar({
   onTriggerAddHandled,
   onTriggerImportJSONHandled,
   onTriggerImportDBHandled,
-  onProductsChanged,
+  onBundlesChanged,
   onHideSidebar,
 }: AppSidebarProps) {
   const {
@@ -125,11 +125,11 @@ export default function AppSidebar({
     sqliteReady,
     sqliteLoading,
     switchMode,
-    importProducts: importProductsSQLite,
-    exportProductsJSON: exportJSONFromContext,
+    importBundles: importBundlesSQLite,
+    exportBundlesJSON: exportJSONFromContext,
     exportSQLiteDB,
     importSQLiteDB,
-    reloadSQLiteProducts,
+    reloadSQLiteBundles,
   } = useStorageMode();
 
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -162,8 +162,8 @@ export default function AppSidebar({
     }
   }, [triggerImportDB, onTriggerImportDBHandled]);
 
-  const filteredProducts = useMemo(() => {
-    let result = products;
+  const filteredBundles = useMemo(() => {
+    let result = bundles;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter(
@@ -176,21 +176,21 @@ export default function AppSidebar({
       result = result.filter((p) => filterTags.every((t) => p.tags.includes(t)));
     }
     return result;
-  }, [products, searchQuery, filterTags]);
+  }, [bundles, searchQuery, filterTags]);
 
   const allTags = useMemo(() => {
     const tagSet = new Set<string>();
-    products.forEach((p) => p.tags.forEach((t) => tagSet.add(t)));
+    bundles.forEach((p) => p.tags.forEach((t) => tagSet.add(t)));
     return Array.from(tagSet).sort();
-  }, [products]);
+  }, [bundles]);
 
-  const handleAddProduct = useCallback(
+  const handleAddBundle = useCallback(
     (name: string, tags: string[]) => {
-      const product = onAddProduct(name, tags);
-      onSelectProduct(product.id);
-      toast.success(`Product "${name}" created`);
+      const bundle = onAddBundle(name, tags);
+      onSelectBundle(bundle.id);
+      toast.success(`Bundle "${name}" created`);
     },
-    [onAddProduct, onSelectProduct],
+    [onAddBundle, onSelectBundle],
   );
 
   const processJSONFile = useCallback(
@@ -207,20 +207,20 @@ export default function AppSidebar({
           return;
         }
         if (parsed.length === 0) {
-          toast.error('No product data found in file');
+          toast.error('No bundle data found in file');
           return;
         }
         try {
           if (storageMode === 'sqlite') {
-            const { added, updated } = await importProductsSQLite(parsed);
+            const { added, updated } = await importBundlesSQLite(parsed);
             const parts: string[] = [];
             if (added > 0) parts.push(`${added} added`);
             if (updated > 0) parts.push(`${updated} updated`);
             toast.success(`Import completed: ${parts.join(', ')}`);
-            await reloadSQLiteProducts();
-            onProductsChanged?.();
+            await reloadSQLiteBundles();
+            onBundlesChanged?.();
           } else {
-            const { added, updated } = onImportProductsJSON(parsed);
+            const { added, updated } = onImportBundlesJSON(parsed);
             const parts: string[] = [];
             if (added > 0) parts.push(`${added} added`);
             if (updated > 0) parts.push(`${updated} updated`);
@@ -234,7 +234,7 @@ export default function AppSidebar({
       reader.onerror = () => toast.error('Failed to read file');
       reader.readAsText(file);
     },
-    [storageMode, importProductsSQLite, onImportProductsJSON, reloadSQLiteProducts, onProductsChanged],
+    [storageMode, importBundlesSQLite, onImportBundlesJSON, reloadSQLiteBundles, onBundlesChanged],
   );
 
   const processDBFile = useCallback(
@@ -249,16 +249,16 @@ export default function AppSidebar({
         await importSQLiteDB(data);
         const info = sqliteInfo;
         toast.success(
-          `SQLite DB imported: ${info?.productCount ?? 0} products, ${info?.pageCount ?? 0} pages`,
+          `SQLite DB imported: ${info?.bundleCount ?? 0} bundles, ${info?.pageCount ?? 0} pages`,
         );
-        await reloadSQLiteProducts();
-        onProductsChanged?.();
+        await reloadSQLiteBundles();
+        onBundlesChanged?.();
       } catch (e) {
         console.error('DB import failed:', String(e));
         toast.error('Failed to import SQLite DB: Invalid or corrupted file');
       }
     },
-    [importSQLiteDB, sqliteInfo, reloadSQLiteProducts, onProductsChanged],
+    [importSQLiteDB, sqliteInfo, reloadSQLiteBundles, onBundlesChanged],
   );
 
   const handleJSONImportClick = useCallback(() => {
@@ -325,10 +325,10 @@ export default function AppSidebar({
     if (storageMode === 'sqlite') {
       await exportJSONFromContext();
     } else {
-      onExportProductsJSON();
+      onExportBundlesJSON();
     }
     toast.success('JSON file exported');
-  }, [storageMode, exportJSONFromContext, onExportProductsJSON]);
+  }, [storageMode, exportJSONFromContext, onExportBundlesJSON]);
 
   const handleExportDB = useCallback(async () => {
     try {
@@ -360,8 +360,8 @@ export default function AppSidebar({
         );
         // 不刷新页面，由 useEffect 重新初始化
         if (targetMode === 'sqlite') {
-          await reloadSQLiteProducts();
-          onProductsChanged?.();
+          await reloadSQLiteBundles();
+          onBundlesChanged?.();
         }
         setModeSwitchDialogOpen(false);
       } catch (e) {
@@ -371,7 +371,7 @@ export default function AppSidebar({
         setModeSwitching(false);
       }
     },
-    [targetMode, switchMode, reloadSQLiteProducts, onProductsChanged],
+    [targetMode, switchMode, reloadSQLiteBundles, onBundlesChanged],
   );
 
   return (
@@ -484,7 +484,7 @@ export default function AppSidebar({
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-8 w-full gap-1.5 text-xs" disabled={products.length === 0}>
+                    <Button variant="outline" size="sm" className="h-8 w-full gap-1.5 text-xs" disabled={bundles.length === 0}>
                       <Upload className="size-3.5" />
                       Export DB
                       <ChevronDown className="ml-auto size-3.5" />
@@ -537,7 +537,7 @@ export default function AppSidebar({
               {/* 导出下拉菜单（折叠态） */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" title="Export" disabled={products.length === 0}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" title="Export" disabled={bundles.length === 0}>
                     <Upload className="size-4" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -552,7 +552,7 @@ export default function AppSidebar({
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setAddDialogOpen(true)} title="Add Product">
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setAddDialogOpen(true)} title="Add Bundle">
                 <Plus className="size-4" />
               </Button>
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onOpenSuperSearch} title="Super Search">
@@ -567,7 +567,7 @@ export default function AppSidebar({
               className="h-8 w-full gap-1.5 text-xs"
             >
               <Plus className="size-3.5" />
-              Add Product
+              Add Bundle
             </Button>
           )}
         </div>
@@ -677,7 +677,7 @@ export default function AppSidebar({
                   type="search"
                   value={searchQuery}
                   onChange={(e) => onSearchChange(e.target.value)}
-                  placeholder="Filter products..."
+                  placeholder="Filter bundles..."
                   className="h-8 pl-8 pr-7 text-xs bg-muted/50 border-none"
                 />
                 {searchQuery && (
@@ -696,40 +696,40 @@ export default function AppSidebar({
           <ScrollArea className="flex-1">
           <div className={`${collapsed ? 'px-1 py-2' : 'p-2'}`}>
             {collapsed
-              ? filteredProducts.map((product) => (
+              ? filteredBundles.map((bundle) => (
                   <button
-                    key={product.id}
-                    onClick={() => onSelectProduct(product.id)}
+                    key={bundle.id}
+                    onClick={() => onSelectBundle(bundle.id)}
                     className={`mb-1 flex w-full items-center justify-center rounded-md p-2 transition-colors ${
-                      product.id === selectedProductId
+                      bundle.id === selectedBundleId
                         ? 'bg-accent text-accent-foreground'
                         : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
                     }`}
-                    title={product.name}
+                    title={bundle.name}
                   >
                     <BookOpen className="size-4" />
                   </button>
                 ))
-              : filteredProducts.map((product) => (
+              : filteredBundles.map((bundle) => (
                   <button
-                    key={product.id}
-                    onClick={() => onSelectProduct(product.id)}
+                    key={bundle.id}
+                    onClick={() => onSelectBundle(bundle.id)}
                     className={`mb-0.5 flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm transition-colors ${
-                      product.id === selectedProductId
+                      bundle.id === selectedBundleId
                         ? 'bg-accent text-accent-foreground font-medium'
                         : 'text-foreground hover:bg-accent/50'
                     }`}
                   >
                     <BookOpen className="size-4 shrink-0 text-muted-foreground" />
-                    <span className="truncate flex-1">{product.name}</span>
+                    <span className="truncate flex-1">{bundle.name}</span>
                     <span className="shrink-0 text-xs text-muted-foreground">
-                      {product.pages.length}
+                      {bundle.pages.length}
                     </span>
                   </button>
                 ))}
-            {!collapsed && filteredProducts.length === 0 && (
+            {!collapsed && filteredBundles.length === 0 && (
               <p className="px-2.5 py-4 text-center text-xs text-muted-foreground">
-                {products.length === 0 ? 'No products yet, please import or create' : 'No results found'}
+                {bundles.length === 0 ? 'No bundles yet, please import or create' : 'No results found'}
               </p>
             )}
           </div>
@@ -754,11 +754,11 @@ export default function AppSidebar({
       />
 
       {/* 添加产品对话框 */}
-      <ProductDialog
+      <BundleDialog
         open={addDialogOpen}
         onOpenChange={setAddDialogOpen}
-        onSave={handleAddProduct}
-        title="Create New Product"
+        onSave={handleAddBundle}
+        title="Create New Bundle"
       />
 
       {/* 模式切换对话框 */}

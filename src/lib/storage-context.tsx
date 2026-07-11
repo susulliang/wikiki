@@ -1,8 +1,8 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import { toast } from 'sonner';
-import { getSQLiteStorage, resetSQLiteStorage, jsonProductsToSQLite, type StorageInfo } from '@/lib/sqlite-storage';
-import type { IProduct } from '@/data/products';
-import { denormalizeProduct } from '@/data/products';
+import { getSQLiteStorage, resetSQLiteStorage, jsonBundlesToSQLite, type StorageInfo } from '@/lib/sqlite-storage';
+import type { IBundle } from '@/data/bundles';
+import { denormalizeBundle } from '@/data/bundles';
 
 export type StorageMode = 'json' | 'sqlite';
 
@@ -14,15 +14,15 @@ interface StorageModeContextValue {
   sqliteError: string | null;
   switchMode: (newMode: StorageMode, migrate?: boolean) => Promise<void>;
   /** 导入产品到当前存储模式 */
-  importProducts: (products: IProduct[]) => Promise<{ added: number; updated: number }>;
+  importBundles: (bundles: IBundle[]) => Promise<{ added: number; updated: number }>;
   /** 从当前存储模式导出 JSON */
-  exportProductsJSON: () => Promise<void>;
+  exportBundlesJSON: () => Promise<void>;
   /** 导出 SQLite 数据库 .db 文件（跨格式支持） */
   exportSQLiteDB: () => Promise<void>;
   /** 导入 SQLite .db 文件 */
   importSQLiteDB: (data: Uint8Array) => Promise<void>;
   /** 重新加载 SQLite 产品数据 */
-  reloadSQLiteProducts: () => Promise<IProduct[]>;
+  reloadSQLiteBundles: () => Promise<IBundle[]>;
 }
 
 const StorageModeContext = createContext<StorageModeContextValue | null>(null);
@@ -105,11 +105,11 @@ export function StorageModeProvider({ children }: { children: ReactNode }) {
     return () => { cancelled = true; };
   }, [mode]);
 
-  const reloadSQLiteProducts = useCallback(async (): Promise<IProduct[]> => {
+  const reloadSQLiteBundles = useCallback(async (): Promise<IBundle[]> => {
     if (mode !== 'sqlite') return [];
     const storage = getSQLiteStorage();
     if (!storage.initialized) await storage.init();
-    const prods = await storage.getAllProducts();
+    const prods = await storage.getAllBundles();
     const info = await storage.getInfo();
     setSqliteInfo(info);
     return prods;
@@ -122,15 +122,15 @@ export function StorageModeProvider({ children }: { children: ReactNode }) {
       if (newMode === 'sqlite') {
         // JSON → SQLite
         try {
-          const raw = localStorage.getItem('__wikiki_products');
+          const raw = localStorage.getItem('__wikiki_bundles');
           const storage = getSQLiteStorage();
           await storage.init();
           if (raw) {
             const data = JSON.parse(raw);
             if (Array.isArray(data) && data.length > 0) {
-              const { normalizeProduct } = await import('@/data/products');
-              const products = data.map((item: Record<string, unknown>) => normalizeProduct(item));
-              await storage.importProducts(products);
+              const { normalizeBundle } = await import('@/data/bundles');
+              const bundles = data.map((item: Record<string, unknown>) => normalizeBundle(item));
+              await storage.importBundles(bundles);
             }
           }
         } catch (e) {
@@ -143,9 +143,9 @@ export function StorageModeProvider({ children }: { children: ReactNode }) {
         try {
           const storage = getSQLiteStorage();
           if (storage.initialized) {
-            const products = await storage.getAllProducts();
-            const exportData = products.map(denormalizeProduct);
-            localStorage.setItem('__wikiki_products', JSON.stringify(exportData));
+            const bundles = await storage.getAllBundles();
+            const exportData = bundles.map(denormalizeBundle);
+            localStorage.setItem('__wikiki_bundles', JSON.stringify(exportData));
             localStorage.setItem('__wikiki_data_version', '2');
           }
         } catch (e) {
@@ -164,11 +164,11 @@ export function StorageModeProvider({ children }: { children: ReactNode }) {
     saveMode(newMode);
   }, [mode]);
 
-  const importProducts = useCallback(async (products: IProduct[]): Promise<{ added: number; updated: number }> => {
+  const importBundles = useCallback(async (bundles: IBundle[]): Promise<{ added: number; updated: number }> => {
     if (mode === 'sqlite') {
       const storage = getSQLiteStorage();
       if (!storage.initialized) await storage.init();
-      const result = await storage.importProducts(products);
+      const result = await storage.importBundles(bundles);
       const info = await storage.getInfo();
       setSqliteInfo(info);
       return result;
@@ -176,24 +176,24 @@ export function StorageModeProvider({ children }: { children: ReactNode }) {
     return { added: 0, updated: 0 };
   }, [mode]);
 
-  const exportProductsJSON = useCallback(async (): Promise<void> => {
-    let products: IProduct[];
+  const exportBundlesJSON = useCallback(async (): Promise<void> => {
+    let bundles: IBundle[];
     if (mode === 'sqlite') {
       const storage = getSQLiteStorage();
       if (!storage.initialized) await storage.init();
-      products = await storage.getAllProducts();
+      bundles = await storage.getAllBundles();
     } else {
       // JSON 模式下由调用方传入数据，这里只做兜底
-      const raw = localStorage.getItem('__wikiki_products');
+      const raw = localStorage.getItem('__wikiki_bundles');
       if (!raw) {
         toast.error('No data to export');
         return;
       }
-      const { normalizeProduct } = await import('@/data/products');
+      const { normalizeBundle } = await import('@/data/bundles');
       const data = JSON.parse(raw);
-      products = data.map((item: Record<string, unknown>) => normalizeProduct(item));
+      bundles = data.map((item: Record<string, unknown>) => normalizeBundle(item));
     }
-    const exportData = products.map(denormalizeProduct);
+    const exportData = bundles.map(denormalizeBundle);
     const json = JSON.stringify(exportData, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     triggerDownload(blob, `wikiki-export-${getDateStamp()}.json`);
@@ -209,16 +209,16 @@ export function StorageModeProvider({ children }: { children: ReactNode }) {
     } else {
       // JSON 模式：将 JSON 数据转换为 SQLite 格式导出
       toast.info('Converting to SQLite format...');
-      const raw = localStorage.getItem('__wikiki_products');
-      let products: IProduct[] = [];
+      const raw = localStorage.getItem('__wikiki_bundles');
+      let bundles: IBundle[] = [];
       if (raw) {
-        const { normalizeProduct } = await import('@/data/products');
+        const { normalizeBundle } = await import('@/data/bundles');
         const data = JSON.parse(raw);
         if (Array.isArray(data)) {
-          products = data.map((item: Record<string, unknown>) => normalizeProduct(item));
+          bundles = data.map((item: Record<string, unknown>) => normalizeBundle(item));
         }
       }
-      const data = await jsonProductsToSQLite(products);
+      const data = await jsonBundlesToSQLite(bundles);
       const blob = new Blob([data.buffer as ArrayBuffer], { type: 'application/x-sqlite3' });
       triggerDownload(blob, `wikiki-db-${getDateStamp()}.db`);
       toast.success('SQLite database file exported');
@@ -246,11 +246,11 @@ export function StorageModeProvider({ children }: { children: ReactNode }) {
         sqliteLoading,
         sqliteError,
         switchMode,
-        importProducts,
-        exportProductsJSON,
+        importBundles,
+        exportBundlesJSON,
         exportSQLiteDB,
         importSQLiteDB,
-        reloadSQLiteProducts,
+        reloadSQLiteBundles,
       }}
     >
       {children}
