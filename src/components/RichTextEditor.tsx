@@ -2,7 +2,6 @@ import { useRef, useCallback, useEffect, useState, type KeyboardEvent, type Clip
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { logger } from '@lark-apaas/client-toolkit-lite';
 import {
   Bold,
   Italic,

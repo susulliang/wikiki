@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { scopedStorage, logger } from '@lark-apaas/client-toolkit-lite';
 import type { IProduct, IPage } from '@/data/products';
 import { normalizeProduct, denormalizeProduct } from '@/data/products';
 
@@ -23,39 +22,39 @@ function stripBase64Images(products: IProduct[]): IProduct[] {
 function persistProducts(products: IProduct[]): boolean {
   try {
     const exportData = products.map(denormalizeProduct);
-    scopedStorage.setItem(STORAGE_KEY, JSON.stringify(exportData));
-    scopedStorage.setItem(VERSION_KEY, String(CURRENT_VERSION));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(exportData));
+    localStorage.setItem(VERSION_KEY, String(CURRENT_VERSION));
     return true;
   } catch (e) {
     if (e instanceof DOMException && (e.name === 'QuotaExceededError' || (e as DOMException).code === 22)) {
       const stripped = stripBase64Images(products);
       try {
         const exportData = stripped.map(denormalizeProduct);
-        scopedStorage.setItem(STORAGE_KEY, JSON.stringify(exportData));
-        scopedStorage.setItem(VERSION_KEY, String(CURRENT_VERSION));
-        logger.warn('Storage quota exceeded, base64 images stripped');
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(exportData));
+        localStorage.setItem(VERSION_KEY, String(CURRENT_VERSION));
+        console.warn('Storage quota exceeded, base64 images stripped');
         return true;
       } catch (e2) {
-        logger.error('Failed to save even after stripping images:', String(e2));
+        console.error('Failed to save even after stripping images:', String(e2));
         return false;
       }
     }
-    logger.error('Failed to save products:', String(e));
+    console.error('Failed to save products:', String(e));
     return false;
   }
 }
 
 function loadProducts(): IProduct[] {
   try {
-    const storedVersion = scopedStorage.getItem(VERSION_KEY);
+    const storedVersion = localStorage.getItem(VERSION_KEY);
     // Clear old data if version mismatch (v1 had mock data, v2 starts fresh)
     if (storedVersion !== String(CURRENT_VERSION)) {
-      scopedStorage.setItem(STORAGE_KEY, '');
-      scopedStorage.setItem(VERSION_KEY, String(CURRENT_VERSION));
+      localStorage.setItem(STORAGE_KEY, '');
+      localStorage.setItem(VERSION_KEY, String(CURRENT_VERSION));
       return [];
     }
 
-    const raw = scopedStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw || raw === '[]' || raw === 'null' || raw === '""') return [];
 
     const data = JSON.parse(raw);
@@ -63,7 +62,7 @@ function loadProducts(): IProduct[] {
 
     return data.map((item: Record<string, unknown>) => normalizeProduct(item));
   } catch (e) {
-    logger.error('Failed to load products:', String(e));
+    console.error('Failed to load products:', String(e));
     return [];
   }
 }

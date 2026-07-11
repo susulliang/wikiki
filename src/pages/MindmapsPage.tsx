@@ -1,12 +1,22 @@
 import { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
-import { Network } from 'lucide-react';
+import { Network, Database, FileJson, Download, Upload, HardDrive } from 'lucide-react';
 import type { IProduct } from '@/data/products';
 import { useTheme, THEME_OPTIONS } from '@/hooks/useTheme';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 interface MindmapsPageProps {
   products: IProduct[];
   onSelectProduct: (id: string) => void;
+  storageMode: 'json' | 'sqlite';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  sqliteInfo: any;
+  sqliteReady: boolean;
+  onExportJSON: () => void;
+  onExportDB: () => void;
+  onImportJSON: () => void;
+  onImportDB: () => void;
 }
 
 interface GroupItem {
@@ -18,14 +28,11 @@ interface Group {
   items: GroupItem[];
 }
 
-/** Color palette for root nodes. Uses CSS chart variables so it adapts to the
- *  active theme (greyscale in Graphite / Graphite Night, colorful elsewhere). */
 const ROOT_COLORS = [
   'var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)',
   'var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)',
 ];
 
-/** Group products by the first word of their name (e.g. "Apple iPhone" → root "Apple"). */
 function buildGroups(products: IProduct[]): Map<string, Group> {
   const groups = new Map<string, Group>();
   products.forEach((p) => {
@@ -39,12 +46,27 @@ function buildGroups(products: IProduct[]): Map<string, Group> {
   return groups;
 }
 
-export default function MindmapsPage({ products, onSelectProduct }: MindmapsPageProps) {
+export default function MindmapsPage({
+  products,
+  onSelectProduct,
+  storageMode,
+  sqliteInfo,
+  sqliteReady,
+  onExportJSON,
+  onExportDB,
+  onImportJSON,
+  onImportDB,
+}: MindmapsPageProps) {
   const { theme: currentTheme } = useTheme();
   const isDark = useMemo(
     () => THEME_OPTIONS.find((t) => t.value === currentTheme)?.isDark ?? false,
     [currentTheme],
   );
+
+  const totalPages = products.reduce((sum, p) => sum + p.pages.length, 0);
+  const allTags = new Set<string>();
+  products.forEach((p) => p.tags.forEach((t) => allTags.add(t)));
+  const sqliteActive = storageMode === 'sqlite';
 
   const { option, nodeIdToProductId } = useMemo(() => {
     const groups = buildGroups(products);
@@ -134,35 +156,119 @@ export default function MindmapsPage({ products, onSelectProduct }: MindmapsPage
     [nodeIdToProductId, onSelectProduct],
   );
 
-  if (products.length === 0) {
-    return (
-      <div className="flex h-full flex-col items-center justify-center px-6 text-center">
-        <div className="mb-6 flex size-20 items-center justify-center border-2 border-border bg-card">
-          <Network className="size-10 text-muted-foreground" />
-        </div>
-        <h2 className="text-2xl font-bold uppercase tracking-tight text-foreground">
-          No Products Yet
-        </h2>
-        <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-          Add products to see a visual grouping of your database here.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="flex h-full flex-col">
-      <div className="relative flex-1 overflow-hidden">
-        <div className="pointer-events-none absolute left-4 top-4 z-10 text-[10px] uppercase tracking-widest text-muted-foreground">
-          Drag to move • Scroll to zoom • Click a node to open
+      {/* Minimal info bar */}
+      <div className="flex items-center gap-3 border-b border-border bg-card/50 px-4 py-2 backdrop-blur-sm">
+        {/* Storage mode indicator */}
+        <div className="flex items-center gap-1.5">
+          {sqliteActive ? (
+            <Database className="size-3.5 text-primary" />
+          ) : (
+            <FileJson className="size-3.5 text-muted-foreground" />
+          )}
+          <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+            {sqliteActive ? 'SQLite' : 'JSON'}
+          </span>
+          {sqliteActive && (
+            <span
+              className={cn(
+                'size-1.5 rounded-full',
+                sqliteReady ? 'bg-primary' : 'bg-muted-foreground animate-pulse',
+              )}
+            />
+          )}
         </div>
-        <ReactECharts
-          option={option}
-          onEvents={onEvents}
-          style={{ height: '100%', width: '100%' }}
-          theme={isDark ? 'dark' : 'light'}
-        />
+
+        {/* Stats */}
+        <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+          <span>{products.length} products</span>
+          <span>{totalPages} pages</span>
+          <span>{allTags.size} tags</span>
+          {sqliteInfo && (
+            <span className="hidden sm:inline">{sqliteInfo.dbSizeFormatted}</span>
+          )}
+        </div>
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Import / Export buttons */}
+        <div className="flex items-center gap-1">
+          <Button
+            onClick={onImportJSON}
+            variant="ghost"
+            size="sm"
+            className="h-7 gap-1.5 px-2 font-mono text-[10px] uppercase tracking-wider"
+            title="Import JSON"
+          >
+            <Upload className="size-3" />
+            <span className="hidden sm:inline">JSON</span>
+          </Button>
+          {sqliteActive && (
+            <Button
+              onClick={onImportDB}
+              variant="ghost"
+              size="sm"
+              className="h-7 gap-1.5 px-2 font-mono text-[10px] uppercase tracking-wider"
+              title="Import SQLite"
+            >
+              <Upload className="size-3" />
+              <span className="hidden sm:inline">DB</span>
+            </Button>
+          )}
+          <div className="mx-1 h-4 w-px bg-border" />
+          <Button
+            onClick={onExportJSON}
+            variant="ghost"
+            size="sm"
+            className="h-7 gap-1.5 px-2 font-mono text-[10px] uppercase tracking-wider"
+            title="Export JSON"
+          >
+            <Download className="size-3" />
+            <span className="hidden sm:inline">JSON</span>
+          </Button>
+          {sqliteActive && (
+            <Button
+              onClick={onExportDB}
+              variant="ghost"
+              size="sm"
+              className="h-7 gap-1.5 px-2 font-mono text-[10px] uppercase tracking-wider"
+              title="Export SQLite"
+            >
+              <HardDrive className="size-3" />
+              <span className="hidden sm:inline">DB</span>
+            </Button>
+          )}
+        </div>
       </div>
+
+      {/* Mindmap or empty state */}
+      {products.length === 0 ? (
+        <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
+          <div className="mb-6 flex size-20 items-center justify-center border-2 border-border bg-card">
+            <Network className="size-10 text-muted-foreground" />
+          </div>
+          <h2 className="text-2xl font-bold uppercase tracking-tight text-foreground">
+            No Products Yet
+          </h2>
+          <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+            Import a database or add products to see a visual grouping here.
+          </p>
+        </div>
+      ) : (
+        <div className="relative flex-1 overflow-hidden">
+          <div className="pointer-events-none absolute left-4 top-4 z-10 text-[10px] uppercase tracking-widest text-muted-foreground">
+            Drag to move - Scroll to zoom - Click a node to open
+          </div>
+          <ReactECharts
+            option={option}
+            onEvents={onEvents}
+            style={{ height: '100%', width: '100%' }}
+            theme={isDark ? 'dark' : 'light'}
+          />
+        </div>
+      )}
     </div>
   );
 }

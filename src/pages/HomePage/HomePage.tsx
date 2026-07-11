@@ -2,10 +2,8 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useProducts } from '@/hooks/useProducts';
 import { useTheme } from '@/hooks/useTheme';
-import { scopedStorage, logger } from '@lark-apaas/client-toolkit-lite';
 import FloatingTabBar, { type TabId } from '@/components/FloatingTabBar';
 import ProductDialog from '@/components/ProductDialog';
-import DatabasePage from '@/pages/DatabasePage';
 import ProductsPage from '@/pages/ProductsPage';
 import WikisPage from '@/pages/WikisPage';
 import ThemesPage from '@/pages/ThemesPage';
@@ -22,7 +20,7 @@ const ACTIVE_TAB_KEY = '__wikiki_active_tab';
 const TABBAR_MINIMIZED_KEY = '__wikiki_tabbar_minimized';
 
 export default function HomePage() {
-  const { mode: storageMode, sqliteReady, reloadSQLiteProducts, switchMode, exportProductsJSON, exportSQLiteDB, importSQLiteDB, sqliteInfo } = useStorageMode();
+  const { mode: storageMode, sqliteReady, reloadSQLiteProducts, exportProductsJSON, exportSQLiteDB, importSQLiteDB, sqliteInfo } = useStorageMode();
 
   const {
     products: jsonProducts,
@@ -41,20 +39,21 @@ export default function HomePage() {
 
   const [activeTab, setActiveTab] = useState<TabId>(() => {
     try {
-      const stored = scopedStorage.getItem(ACTIVE_TAB_KEY) as TabId;
-      if (stored && ['database', 'products', 'supersearch', 'wikis', 'themes', 'mindmaps'].includes(stored)) {
-        return stored;
+      const stored = localStorage.getItem(ACTIVE_TAB_KEY) as string;
+      if (stored === 'database') return 'mindmaps';
+      if (stored && ['products', 'supersearch', 'wikis', 'themes', 'mindmaps'].includes(stored)) {
+        return stored as TabId;
       }
     } catch {
       // ignore
     }
-    return 'products';
+    return 'mindmaps';
   });
 
   const handleTabChange = useCallback((tab: TabId) => {
     setActiveTab(tab);
     try {
-      scopedStorage.setItem(ACTIVE_TAB_KEY, tab);
+      localStorage.setItem(ACTIVE_TAB_KEY, tab);
     } catch {
       // ignore
     }
@@ -62,7 +61,7 @@ export default function HomePage() {
 
   const [tabBarMinimized, setTabBarMinimized] = useState<boolean>(() => {
     try {
-      return scopedStorage.getItem(TABBAR_MINIMIZED_KEY) === 'true';
+      return localStorage.getItem(TABBAR_MINIMIZED_KEY) === 'true';
     } catch {
       return false;
     }
@@ -71,7 +70,7 @@ export default function HomePage() {
   const handleMinimizedChange = useCallback((minimized: boolean) => {
     setTabBarMinimized(minimized);
     try {
-      scopedStorage.setItem(TABBAR_MINIMIZED_KEY, String(minimized));
+      localStorage.setItem(TABBAR_MINIMIZED_KEY, String(minimized));
     } catch {
       // ignore
     }
@@ -79,7 +78,7 @@ export default function HomePage() {
 
   const [selectedProductId, setSelectedProductId] = useState<string | null>(() => {
     try {
-      return scopedStorage.getItem(SELECTED_KEY) || null;
+      return localStorage.getItem(SELECTED_KEY) || null;
     } catch {
       return null;
     }
@@ -87,7 +86,7 @@ export default function HomePage() {
 
   const [selectedPageIndex, setSelectedPageIndex] = useState(() => {
     try {
-      const stored = scopedStorage.getItem(PAGE_INDEX_KEY);
+      const stored = localStorage.getItem(PAGE_INDEX_KEY);
       return stored ? parseInt(stored, 10) : 0;
     } catch {
       return 0;
@@ -120,7 +119,7 @@ export default function HomePage() {
     storage.getAllProductsShallow().then((prods) => {
       setSqliteProducts(prods);
     }).catch((e) => {
-      logger.error('Failed to load SQLite products:', String(e));
+      console.error('Failed to load SQLite products:', String(e));
     });
   }, [storageMode, sqliteReady]);
 
@@ -134,7 +133,7 @@ export default function HomePage() {
         setLoadedProductContent((prev) => new Map(prev).set(selectedProductId, fullProduct));
       }
     }).catch((e) => {
-      logger.error('Failed to load product content:', String(e));
+      console.error('Failed to load product content:', String(e));
     });
   }, [storageMode, selectedProductId, loadedProductContent]);
 
@@ -189,7 +188,7 @@ export default function HomePage() {
           }
         })
         .catch((error) => {
-          logger.error('Failed to load SQLite search index:', String(error));
+          console.error('Failed to load SQLite search index:', String(error));
           if (!cancelled) {
             setSqliteSearchProducts([]);
             setDbPrepping(false);
@@ -221,7 +220,7 @@ export default function HomePage() {
       setSelectedProductId(id);
       setSelectedPageIndex(0);
       try {
-        scopedStorage.setItem(SELECTED_KEY, id);
+        localStorage.setItem(SELECTED_KEY, id);
       } catch {
         // ignore
       }
@@ -249,7 +248,7 @@ export default function HomePage() {
       if (selectedProductId === id) {
         setSelectedProductId(null);
         try {
-          scopedStorage.setItem(SELECTED_KEY, '');
+          localStorage.setItem(SELECTED_KEY, '');
         } catch {
           // ignore
         }
@@ -261,7 +260,7 @@ export default function HomePage() {
   const handlePageChange = useCallback((index: number) => {
     setSelectedPageIndex(index);
     try {
-      scopedStorage.setItem(PAGE_INDEX_KEY, String(index));
+      localStorage.setItem(PAGE_INDEX_KEY, String(index));
     } catch {
       // ignore
     }
@@ -277,9 +276,9 @@ export default function HomePage() {
       setOpenMindmapMode(result.isMindmap ? Date.now() : 0);
 
       try {
-        scopedStorage.setItem(SELECTED_KEY, result.productId);
-        scopedStorage.setItem(PAGE_INDEX_KEY, String(result.pageIndex ?? 0));
-        scopedStorage.setItem(ACTIVE_TAB_KEY, 'wikis');
+        localStorage.setItem(SELECTED_KEY, result.productId);
+        localStorage.setItem(PAGE_INDEX_KEY, String(result.pageIndex ?? 0));
+        localStorage.setItem(ACTIVE_TAB_KEY, 'wikis');
       } catch {
         // ignore
       }
@@ -300,7 +299,7 @@ export default function HomePage() {
         event.preventDefault();
         setActiveTab('supersearch');
         try {
-          scopedStorage.setItem(ACTIVE_TAB_KEY, 'supersearch');
+          localStorage.setItem(ACTIVE_TAB_KEY, 'supersearch');
         } catch {
           // ignore
         }
@@ -392,7 +391,7 @@ export default function HomePage() {
             const prods = await reloadSQLiteProducts();
             setSqliteProducts(prods);
           } catch (e) {
-            logger.error('SQLite add product failed:', String(e));
+            console.error('SQLite add product failed:', String(e));
           }
         })();
       } else {
@@ -401,7 +400,7 @@ export default function HomePage() {
 
       setSelectedProductId(newProduct.id);
       try {
-        scopedStorage.setItem(SELECTED_KEY, newProduct.id);
+        localStorage.setItem(SELECTED_KEY, newProduct.id);
       } catch {
         // ignore
       }
@@ -528,29 +527,10 @@ export default function HomePage() {
     exportSQLiteDB();
   }, [exportSQLiteDB]);
 
-  const handleSwitchMode = useCallback(async (mode: 'json' | 'sqlite', migrate?: boolean) => {
-    await switchMode(mode, migrate);
-  }, [switchMode]);
-
   const isLoadingContent = storageMode === 'sqlite' && selectedProductId !== null && !loadedProductContent.has(selectedProductId);
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'database':
-        return (
-          <DatabasePage
-            storageMode={storageMode}
-            sqliteInfo={sqliteInfo}
-            sqliteReady={sqliteReady}
-            onSwitchMode={handleSwitchMode}
-            onExportJSON={handleExportJSON}
-            onExportDB={handleExportDB}
-            onImportJSON={handleImportJSON}
-            onImportDB={handleImportDB}
-            products={products}
-          />
-        );
-
       case 'products':
         return (
           <ProductsPage
@@ -621,6 +601,13 @@ export default function HomePage() {
           <MindmapsPage
             products={products}
             onSelectProduct={handleSelectProductFromMindmap}
+            storageMode={storageMode}
+            sqliteInfo={sqliteInfo}
+            sqliteReady={sqliteReady}
+            onExportJSON={handleExportJSON}
+            onExportDB={handleExportDB}
+            onImportJSON={handleImportJSON}
+            onImportDB={handleImportDB}
           />
         );
 

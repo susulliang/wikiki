@@ -20,7 +20,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { logger } from '@lark-apaas/client-toolkit-lite';
 import {
   BookOpen,
   Plus,
@@ -228,7 +227,7 @@ export default function AppSidebar({
             toast.success(`Import completed: ${parts.join(', ')}`);
           }
         } catch (e) {
-          logger.error('Import failed:', String(e));
+          console.error('Import failed:', String(e));
           toast.error('Import failed');
         }
       };
@@ -255,7 +254,7 @@ export default function AppSidebar({
         await reloadSQLiteProducts();
         onProductsChanged?.();
       } catch (e) {
-        logger.error('DB import failed:', String(e));
+        console.error('DB import failed:', String(e));
         toast.error('Failed to import SQLite DB: Invalid or corrupted file');
       }
     },
@@ -339,7 +338,7 @@ export default function AppSidebar({
       await exportSQLiteDB();
       toast.success('SQLite DB file exported');
     } catch (e) {
-      logger.error('Export DB failed:', String(e));
+      console.error('Export DB failed:', String(e));
       toast.error('Export failed');
     }
   }, [storageMode, exportSQLiteDB]);
@@ -366,7 +365,7 @@ export default function AppSidebar({
         }
         setModeSwitchDialogOpen(false);
       } catch (e) {
-        logger.error('Mode switch failed:', String(e));
+        console.error('Mode switch failed:', String(e));
         toast.error(`Mode switch failed: ${String(e).slice(0, 60)}`);
       } finally {
         setModeSwitching(false);

@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect } from 'react';
-import { scopedStorage } from '@lark-apaas/client-toolkit-lite';
 
 const THEME_KEY = '__wikiki_theme';
 
@@ -20,7 +19,7 @@ export const THEME_OPTIONS = [
 export function useTheme() {
   const [theme, setThemeState] = useState<ThemeName>(() => {
     try {
-      const stored = scopedStorage.getItem(THEME_KEY) as ThemeName;
+      const stored = localStorage.getItem(THEME_KEY) as ThemeName;
       if (THEME_OPTIONS.some(t => t.value === stored)) return stored;
     } catch {
       // ignore
@@ -44,7 +43,7 @@ export function useTheme() {
     root.classList.toggle('dark', isDark);
     
     try {
-      scopedStorage.setItem(THEME_KEY, theme);
+      localStorage.setItem(THEME_KEY, theme);
     } catch {
       // ignore
     }

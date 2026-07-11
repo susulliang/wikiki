@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Database, Package, Search, BookOpen, Palette, Network } from 'lucide-react';
+import { Package, Search, BookOpen, Palette, Network } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export type TabId = 'database' | 'products' | 'supersearch' | 'wikis' | 'themes' | 'mindmaps';
+export type TabId = 'products' | 'supersearch' | 'wikis' | 'themes' | 'mindmaps';
 
 interface FloatingTabBarProps {
   activeTab: TabId;
@@ -14,7 +14,6 @@ interface FloatingTabBarProps {
 }
 
 const TABS: Array<{ id: TabId; label: string; icon: LucideIcon }> = [
-  { id: 'database', label: 'Database', icon: Database },
   { id: 'mindmaps', label: 'Mindmaps', icon: Network },
   { id: 'products', label: 'Products', icon: Package },
   { id: 'supersearch', label: 'Search', icon: Search },

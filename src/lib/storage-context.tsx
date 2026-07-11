@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
-import { scopedStorage, logger } from '@lark-apaas/client-toolkit-lite';
 import { toast } from 'sonner';
 import { getSQLiteStorage, resetSQLiteStorage, jsonProductsToSQLite, type StorageInfo } from '@/lib/sqlite-storage';
 import type { IProduct } from '@/data/products';
@@ -32,7 +31,7 @@ const MODE_KEY = '__wikiki_storage_mode';
 
 function loadMode(): StorageMode {
   try {
-    const saved = scopedStorage.getItem(MODE_KEY);
+    const saved = localStorage.getItem(MODE_KEY);
     if (saved === 'json') return 'json';
     if (saved === 'sqlite') return 'sqlite';
   } catch {
@@ -43,7 +42,7 @@ function loadMode(): StorageMode {
 
 function saveMode(mode: StorageMode): void {
   try {
-    scopedStorage.setItem(MODE_KEY, mode);
+    localStorage.setItem(MODE_KEY, mode);
   } catch {
     // 忽略
   }
@@ -92,7 +91,7 @@ export function StorageModeProvider({ children }: { children: ReactNode }) {
           setSqliteReady(true);
         }
       } catch (e) {
-        logger.error('SQLite initialization failed:', String(e));
+        console.error('SQLite initialization failed:', String(e));
         if (!cancelled) {
           setSqliteError(String(e));
           // Don't automatically downgrade, let the user see the error
@@ -123,7 +122,7 @@ export function StorageModeProvider({ children }: { children: ReactNode }) {
       if (newMode === 'sqlite') {
         // JSON → SQLite
         try {
-          const raw = scopedStorage.getItem('__wikiki_products');
+          const raw = localStorage.getItem('__wikiki_products');
           const storage = getSQLiteStorage();
           await storage.init();
           if (raw) {
@@ -135,7 +134,7 @@ export function StorageModeProvider({ children }: { children: ReactNode }) {
             }
           }
         } catch (e) {
-          logger.error('Migration to SQLite failed:', String(e));
+          console.error('Migration to SQLite failed:', String(e));
           toast.error(`Migration failed: ${String(e).slice(0, 80)}`);
           throw e;
         }
@@ -146,11 +145,11 @@ export function StorageModeProvider({ children }: { children: ReactNode }) {
           if (storage.initialized) {
             const products = await storage.getAllProducts();
             const exportData = products.map(denormalizeProduct);
-            scopedStorage.setItem('__wikiki_products', JSON.stringify(exportData));
-            scopedStorage.setItem('__wikiki_data_version', '2');
+            localStorage.setItem('__wikiki_products', JSON.stringify(exportData));
+            localStorage.setItem('__wikiki_data_version', '2');
           }
         } catch (e) {
-          logger.error('Migration to JSON failed:', String(e));
+          console.error('Migration to JSON failed:', String(e));
           toast.error(`Migration failed: ${String(e).slice(0, 80)}`);
           throw e;
         }
@@ -185,7 +184,7 @@ export function StorageModeProvider({ children }: { children: ReactNode }) {
       products = await storage.getAllProducts();
     } else {
       // JSON 模式下由调用方传入数据，这里只做兜底
-      const raw = scopedStorage.getItem('__wikiki_products');
+      const raw = localStorage.getItem('__wikiki_products');
       if (!raw) {
         toast.error('No data to export');
         return;
@@ -210,7 +209,7 @@ export function StorageModeProvider({ children }: { children: ReactNode }) {
     } else {
       // JSON 模式：将 JSON 数据转换为 SQLite 格式导出
       toast.info('Converting to SQLite format...');
-      const raw = scopedStorage.getItem('__wikiki_products');
+      const raw = localStorage.getItem('__wikiki_products');
       let products: IProduct[] = [];
       if (raw) {
         const { normalizeProduct } = await import('@/data/products');

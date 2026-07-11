@@ -1,5 +1,4 @@
 import initSqlJs, { type Database, type SqlJsStatic } from 'sql.js';
-import { logger } from '@lark-apaas/client-toolkit-lite';
 import wasmUrl from 'sql.js/dist/sql-wasm.wasm?url';
 import type { IProduct, IPage } from '@/data/products';
 import { normalizeProduct, denormalizeProduct } from '@/data/products';
@@ -21,15 +20,15 @@ async function tryLoadFromCDN(urls: string[]): Promise<SqlJsStatic> {
   let lastError: unknown = null;
   for (const baseUrl of urls) {
     try {
-      logger.info(`Trying to load sql.js WASM from CDN ${baseUrl}`);
+      console.info(`Trying to load sql.js WASM from CDN ${baseUrl}`);
       const result = await initSqlJs({
         locateFile: (file: string) => `${baseUrl}${file}`,
       });
-      logger.info(`Successfully loaded sql.js WASM from CDN ${baseUrl}`);
+      console.info(`Successfully loaded sql.js WASM from CDN ${baseUrl}`);
       return result;
     } catch (e) {
       lastError = e;
-      logger.warn(`Failed to load sql.js WASM from CDN ${baseUrl}: ${String(e)}`);
+      console.warn(`Failed to load sql.js WASM from CDN ${baseUrl}: ${String(e)}`);
     }
   }
   throw lastError ?? new Error('Failed to load sql.js WASM from all CDNs');
@@ -41,14 +40,14 @@ async function getSQL(): Promise<SqlJsStatic> {
     initPromise = (async () => {
       // 优先使用本地打包的 WASM
       try {
-        logger.info(`Trying to load from local WASM: ${wasmUrl}`);
+        console.info(`Trying to load from local WASM: ${wasmUrl}`);
         const result = await initSqlJs({
           locateFile: () => wasmUrl,
         });
-        logger.info('Successfully loaded sql.js from local WASM');
+        console.info('Successfully loaded sql.js from local WASM');
         return result;
       } catch (e) {
-        logger.warn(`Local WASM load failed, falling back to CDN: ${String(e)}`);
+        console.warn(`Local WASM load failed, falling back to CDN: ${String(e)}`);
         // 本地失败，回退到 CDN
         return await tryLoadFromCDN(CDN_FALLBACK_URLS);
       }
@@ -63,7 +62,7 @@ async function getOPFSHandle(): Promise<FileSystemFileHandle | null> {
     const root = await navigator.storage.getDirectory();
     return await root.getFileHandle(DB_FILENAME, { create: true });
   } catch {
-    logger.warn('OPFS not available, falling back to IndexedDB');
+    console.warn('OPFS not available, falling back to IndexedDB');
     return null;
   }
 }
