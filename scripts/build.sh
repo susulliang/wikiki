@@ -10,6 +10,12 @@ OUTPUT_STATIC="$ROOT/dist/output_static"
 #   MIAODA_APP_ID            → /app/<appId> 作为客户端 base path
 #   MIAODA_RESOURCE_CDN_PREFIX → assets (JS/CSS) 的 CDN 前缀
 # CLI 注入约定见 miaoda-cli src/services/deploy/modern/atoms/build.ts
+
+# EdgeOne builder 并不总是注入 MIAODA_APP_ID；从 .spark/meta.json 的 appUrl 中提取作为兜底
+if [ -z "${MIAODA_APP_ID:-}" ] && [ -f "$ROOT/.spark/meta.json" ]; then
+  MIAODA_APP_ID=$(node -e "const m=JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));const u=m.appUrl||'';const r=u.match(/\/app\/(app_[a-z0-9]+)/i);process.stdout.write(r?r[1]:'')" "$ROOT/.spark/meta.json" 2>/dev/null || echo "")
+fi
+
 export CLIENT_BASE_PATH="${MIAODA_APP_ID:+/app/$MIAODA_APP_ID}"
 export ASSETS_CDN_PATH="${MIAODA_RESOURCE_CDN_PREFIX:-/}"
 export STATIC_ASSETS_BASE_URL="${MIAODA_STATIC_CDN_PREFIX}"
@@ -21,12 +27,14 @@ rm -rf "$ROOT/dist"
 # 1. Vite 构建 → dist/client/（相对于项目根目录输出）
 npx vite build --outDir "$ROOT/dist/client" --emptyOutDir
 
-# 2. HTML → dist/output/
+# 2. HTML + 公共文件 → dist/output/（index.html, routes.json, app-icon.svg 等根级文件）
 mkdir -p "$OUTPUT"
-find "$ROOT/dist/client" -maxdepth 1 \( -name '*.html' -o -name 'routes.json' \) -exec cp {} "$OUTPUT/" \;
+find "$ROOT/dist/client" -maxdepth 1 -type f ! -name 'assets' -exec cp {} "$OUTPUT/" \;
 
-# 3. assets/ → dist/output_resource/（JS/CSS/字体，上传到 CDN）
+# 3. assets/ → dist/output/assets/ (随 HTML 一起在路由路径下提供服务)
+#           + dist/output_resource/ (CDN 上传统一目录，若配置了 CDN 前缀)
 if [ -d "$ROOT/dist/client/assets" ]; then
+  cp -r "$ROOT/dist/client/assets" "$OUTPUT/assets"
   mkdir -p "$OUTPUT_RESOURCE"
   cp -r "$ROOT/dist/client/assets" "$OUTPUT_RESOURCE/"
 fi
