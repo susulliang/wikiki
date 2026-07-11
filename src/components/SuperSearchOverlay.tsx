@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Search, Sparkles, CornerDownLeft, X, ArrowLeft, Map, FileText } from 'lucide-react';
+import { Search, Sparkles, CornerDownLeft, X, ArrowLeft, Network, FileText } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -67,8 +67,10 @@ function ParagraphBubble({
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           {isMindmap ? (
             <>
-              <Map className="size-3.5 text-primary" />
-              <span className="text-primary font-medium">Mindmap</span>
+              <span className="flex size-5 items-center justify-center rounded-md bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-sm">
+                <Network className="size-3" />
+              </span>
+              <span className="font-medium text-purple-600 dark:text-purple-400">Mindmap</span>
             </>
           ) : (
             <>
@@ -92,7 +94,7 @@ function ParagraphBubble({
         {highlightSearchText(paragraph.excerpt, query)}
       </p>
       {isMindmap && (
-        <p className="mt-2 text-xs text-primary/80">
+        <p className="mt-2 text-xs text-purple-600 dark:text-purple-400">
           Click to open in mindmap view
         </p>
       )}
@@ -116,50 +118,57 @@ function ExpandedResultPanel({
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
-      className="absolute inset-0 z-30 bg-background/95 backdrop-blur-xl"
+      className="absolute inset-0 z-30 flex h-full w-full flex-col rounded-2xl border border-border/80 bg-background/95 backdrop-blur-xl"
     >
-      <div className="flex h-full flex-col">
-        <div className="flex items-center gap-3 border-b p-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onBack}
-            className="h-8 w-8 rounded-full"
-          >
-            <ArrowLeft className="size-4" />
-          </Button>
-          <div className="min-w-0 flex-1">
+      <div className="flex items-center gap-3 border-b p-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onBack}
+          className="h-8 w-8 rounded-full"
+        >
+          <ArrowLeft className="size-4" />
+        </Button>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
             <p className="truncate text-sm font-semibold text-foreground">
               {highlightSearchText(result.productName, query)}
             </p>
-            {result.pageName && (
-              <p className="truncate text-xs text-muted-foreground">
-                {highlightSearchText(result.pageName, query)}
-              </p>
+            {result.isMindmap && (
+              <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-sm">
+                <Network className="size-3" />
+              </span>
             )}
           </div>
-          <div className="flex flex-wrap justify-end gap-1">
-            {result.productTags.slice(0, 2).map((tag, idx) => {
-              const color = getTagColor(tag);
-              return (
-                <span
-                  key={idx}
-                  className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-medium ${color.bg} ${color.text}`}
-                >
-                  {tag}
-                </span>
-              );
-            })}
-          </div>
-        </div>
-        
-        <ScrollArea className="flex-1">
-          <div className="space-y-3 p-4">
-            <p className="text-xs text-muted-foreground">
-              {result.matchingParagraphs.length} matching paragraph{result.matchingParagraphs.length !== 1 ? 's' : ''} found.
-              {result.isMindmap && ' Contains mindmap content.'}
+          {result.pageName && (
+            <p className="truncate text-xs text-muted-foreground">
+              {highlightSearchText(result.pageName, query)}
             </p>
-            
+          )}
+        </div>
+        <div className="flex flex-wrap justify-end gap-1">
+          {result.productTags.slice(0, 2).map((tag, idx) => {
+            const color = getTagColor(tag);
+            return (
+              <span
+                key={idx}
+                className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-medium ${color.bg} ${color.text}`}
+              >
+                {tag}
+              </span>
+            );
+          })}
+        </div>
+      </div>
+      
+      <ScrollArea className="flex-1">
+        <div className="p-4">
+          <p className="mb-3 text-xs text-muted-foreground">
+            {result.matchingParagraphs.length} matching paragraph{result.matchingParagraphs.length !== 1 ? 's' : ''} found.
+            {result.isMindmap && ' Contains mindmap content.'}
+          </p>
+          
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             {result.matchingParagraphs.map((paragraph, index) => (
               <ParagraphBubble
                 key={`${paragraph.matchStart}-${index}`}
@@ -171,8 +180,8 @@ function ExpandedResultPanel({
               />
             ))}
           </div>
-        </ScrollArea>
-      </div>
+        </div>
+      </ScrollArea>
     </motion.div>
   );
 }
@@ -292,9 +301,8 @@ export default function SuperSearchOverlay({
                           {highlightSearchText(result.productName, query)}
                         </p>
                         {result.isMindmap && (
-                          <span className="flex items-center gap-1 text-primary">
-                            <Map className="size-3.5 shrink-0" />
-                            <span className="sr-only">Mindmap</span>
+                          <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-sm" title="Mindmap">
+                            <Network className="size-3" />
                           </span>
                         )}
                       </div>
@@ -444,8 +452,8 @@ export default function SuperSearchOverlay({
                   layout
                   className="absolute left-1/2 top-1/2 z-30 -translate-x-1/2 -translate-y-1/2"
                   style={{ 
-                    width: 'min(92vw, 500px)', 
-                    height: 'min(80vh, 500px)',
+                    width: 'min(95vw, 1200px)', 
+                    height: 'min(90vh, 700px)',
                   }}
                 >
                   <ExpandedResultPanel
