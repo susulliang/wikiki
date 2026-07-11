@@ -329,10 +329,11 @@ export default function HomePage() {
             jsonAddProduct(p.name, p.tags);
           });
         }
+        handleTabChange('mindmaps');
       }
     };
     input.click();
-  }, [storageMode, jsonAddProduct, handleReloadSQLite]);
+  }, [storageMode, jsonAddProduct, handleReloadSQLite, handleTabChange]);
 
   const handleImportDB = useCallback(() => {
     const input = document.createElement('input');
@@ -344,9 +345,10 @@ export default function HomePage() {
       const buffer = await file.arrayBuffer();
       await importSQLiteDB(new Uint8Array(buffer));
       await handleReloadSQLite();
+      handleTabChange('mindmaps');
     };
     input.click();
-  }, [importSQLiteDB, handleReloadSQLite]);
+  }, [importSQLiteDB, handleReloadSQLite, handleTabChange]);
 
   const handleAddProductFromSidebar = useCallback(
     (name: string, tags: string[]): IProduct => {

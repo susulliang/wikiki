@@ -89,6 +89,17 @@
   --spacing: 0.25rem;
 }
 
+/* Graphite theme: subtle graphite-mosaic noise on the page background.
+   Layered fractal-noise SVG at very low opacity — adds material texture
+   without hurting readability. */
+:root.graphite body,
+:root:not(.warm-light):not(.clean-light):not(.soft-light):not(.sunset):not(.forest):not(.dark):not(.midnight) body {
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.045 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='360'><filter id='m'><feTurbulence type='turbulence' baseFrequency='0.012 0.012' numOctaves='1' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.03 0'/></filter><rect width='100%25' height='100%25' filter='url(%23m)'/></svg>");
+  background-attachment: fixed;
+}
+
 /* ── Warm Light: original warm paper/sage theme ── */
 :root.warm-light {
   --button-outline: rgba(0,0,0, .10);

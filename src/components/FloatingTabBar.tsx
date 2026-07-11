@@ -15,11 +15,11 @@ interface FloatingTabBarProps {
 
 const TABS: Array<{ id: TabId; label: string; icon: LucideIcon }> = [
   { id: 'database', label: 'Database', icon: Database },
+  { id: 'mindmaps', label: 'Mindmaps', icon: Network },
   { id: 'products', label: 'Products', icon: Package },
   { id: 'supersearch', label: 'Search', icon: Search },
   { id: 'wikis', label: 'Wikis', icon: BookOpen },
   { id: 'themes', label: 'Themes', icon: Palette },
-  { id: 'mindmaps', label: 'Mindmaps', icon: Network },
 ];
 
 const SWIPE_THRESHOLD = 60;
