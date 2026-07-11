@@ -1,4 +1,4 @@
-import { useState, useCallback, useLayoutEffect, useRef } from 'react';
+import { useState, useCallback, useLayoutEffect, useRef, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -62,7 +62,26 @@ export default function ProductDetail({
   const [headerHeight, setHeaderHeight] = useState(0);
 
   const currentPage = product.pages[pageIndex] ?? product.pages[0];
-  const mindmapPage = product.pages.find((p) => p.title.toLowerCase() === 'mindmap');
+  
+  // Detect mindmap content in a page (must match search.tsx detection logic)
+  const hasMindmapContent = (content: string): boolean => {
+    return content.includes('<div') && (
+      content.includes('mindmap') || 
+      content.includes('data-mindmap') ||
+      content.includes('Mermaid')
+    );
+  };
+  
+  // Find the mindmap page: prefer the current page if it has mindmap content,
+  // otherwise look for a page titled "mindmap" or with mindmap content
+  const mindmapPage = useMemo(() => {
+    if (currentPage && hasMindmapContent(currentPage.content)) {
+      return currentPage;
+    }
+    return product.pages.find((p) => 
+      p.title.toLowerCase() === 'mindmap' || hasMindmapContent(p.content)
+    );
+  }, [product.pages, currentPage]);
 
   // Auto-open mindmap view when openMindmap prop is true and mindmap page exists
   useLayoutEffect(() => {
