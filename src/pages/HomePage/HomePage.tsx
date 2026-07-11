@@ -638,7 +638,7 @@ export default function HomePage() {
 
       {/* Version footer */}
       <div className="pointer-events-none absolute bottom-2 right-4 z-40 select-none">
-        <span className="text-[9px] uppercase tracking-wider text-foreground/20">Wikiki Pro 0.1.4</span>
+        <span className="text-[9px] uppercase tracking-wider text-foreground/20">Wikiki Pro {__APP_VERSION__}</span>
       </div>
 
       {/* Product creation dialog */}
