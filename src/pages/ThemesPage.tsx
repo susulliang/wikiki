@@ -24,15 +24,6 @@ export default function ThemesPage({ currentTheme, onSetTheme }: ThemesPageProps
   return (
     <div className="h-full overflow-y-auto">
       <div className="mx-auto max-w-5xl px-6 py-10 md:px-10">
-        <header className="mb-10 border-b-2 border-border pb-6">
-          <h1 className="text-4xl font-bold uppercase tracking-tight text-foreground">
-            Themes
-          </h1>
-          <p className="mt-2 text-xs uppercase tracking-wider text-muted-foreground">
-            Choose your accent color
-          </p>
-        </header>
-
         <div className="flex flex-wrap items-center justify-center gap-8 py-6">
           {THEME_OPTIONS.map((t) => {
             const isActive = currentTheme === t.value;

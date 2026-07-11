@@ -32,15 +32,6 @@ export default function SuperSearchPage({
 
   return (
     <div className="flex h-full flex-col">
-      <header className="border-b-2 border-border px-6 py-6 md:px-10">
-        <h1 className="font-serif text-4xl font-bold uppercase tracking-tight text-foreground">
-          Super Search
-        </h1>
-        <p className="mt-2 font-mono text-xs uppercase tracking-wider text-muted-foreground">
-          Full-text search across all wikis
-        </p>
-      </header>
-
       <div className="mx-auto w-full max-w-2xl px-6 py-6">
         <div className="relative">
           <Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
