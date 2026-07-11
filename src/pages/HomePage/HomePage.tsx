@@ -625,11 +625,11 @@ export default function HomePage() {
         onMinimizedChange={handleMinimizedChange}
       />
 
-      <main
-        className="flex-1 min-h-0 overflow-hidden transition-[padding] duration-300 ease-in-out"
-        style={{ paddingTop: tabBarMinimized ? 0 : '5rem' }}
-      >
-        <div className="h-full overflow-y-auto">
+      <main className="flex-1 min-h-0 overflow-hidden">
+        <div
+          className="h-full overflow-y-auto transition-[padding] duration-300 ease-in-out"
+          style={{ paddingTop: tabBarMinimized ? 0 : '4.5rem' }}
+        >
           {renderTabContent()}
         </div>
       </main>

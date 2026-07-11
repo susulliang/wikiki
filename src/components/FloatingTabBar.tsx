@@ -136,7 +136,7 @@ export default function FloatingTabBar({
           <nav
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
-            className="pointer-events-auto flex items-center gap-1 rounded-full border border-foreground/15 bg-background/60 p-1.5 shadow-2xl backdrop-blur-2xl backdrop-saturate-150"
+            className="pointer-events-auto flex items-center gap-1 rounded-full border border-foreground/10 bg-background/40 p-1.5 shadow-2xl backdrop-blur-2xl backdrop-saturate-150"
           >
             {TABS.map((tab) => {
               const Icon = tab.icon;

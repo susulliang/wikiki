@@ -1,4 +1,4 @@
-import { Database, FileJson, Download, Upload, HardDrive, FileText, Tag } from 'lucide-react';
+import { Database, FileJson, Download, Upload, HardDrive, FileText, Tag, Check } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { IProduct } from '@/data/products';
 import { cn } from '@/lib/utils';
@@ -15,68 +15,6 @@ interface DatabasePageProps {
   onImportJSON: () => void;
   onImportDB: () => void;
   products: IProduct[];
-}
-
-interface StorageCardProps {
-  title: string;
-  description: string;
-  isActive: boolean;
-  icon: LucideIcon;
-  details: React.ReactNode;
-  onActivate: () => void;
-}
-
-function StorageCard({ title, description, isActive, icon: Icon, details, onActivate }: StorageCardProps) {
-  return (
-    <div
-      className={cn(
-        'flex flex-col bg-card p-6 transition-all',
-        isActive ? 'border-2 border-primary' : 'border border-border',
-      )}
-    >
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span
-            className={cn(
-              'flex size-10 items-center justify-center border-2',
-              isActive ? 'border-primary bg-primary/10' : 'border-border bg-background',
-            )}
-          >
-            <Icon className={cn('size-5', isActive ? 'text-primary' : 'text-muted-foreground')} />
-          </span>
-          <h3 className="font-serif text-xl font-bold uppercase tracking-wide text-foreground">
-            {title}
-          </h3>
-        </div>
-        <span
-          className={cn(
-            'border-2 px-2.5 py-0.5 font-mono text-xs font-semibold uppercase tracking-wider',
-            isActive
-              ? 'border-primary bg-primary text-primary-foreground'
-              : 'border-border text-muted-foreground',
-          )}
-        >
-          {isActive ? 'Active' : 'Inactive'}
-        </span>
-      </div>
-
-      <p className="mb-4 text-sm text-muted-foreground">{description}</p>
-
-      <div className="mb-5 border-l-2 border-border pl-3">{details}</div>
-
-      <Button
-        onClick={onActivate}
-        variant={isActive ? 'outline' : 'default'}
-        disabled={isActive}
-        className={cn(
-          'mt-auto w-full gap-2 uppercase tracking-wider',
-          isActive ? 'border-2' : '',
-        )}
-      >
-        {isActive ? 'Current Mode' : 'Switch to ' + title}
-      </Button>
-    </div>
-  );
 }
 
 export default function DatabasePage({
@@ -100,73 +38,159 @@ export default function DatabasePage({
     { label: 'Tags', value: allTags.size, icon: Tag },
   ];
 
+  const sqliteActive = storageMode === 'sqlite';
+
   return (
     <div className="h-full overflow-y-auto">
       <div className="mx-auto max-w-5xl px-6 py-10 md:px-10">
         <header className="mb-8 border-b-2 border-border pb-6">
-          <h1 className="font-serif text-4xl font-bold uppercase tracking-tight text-foreground">
+          <h1 className="text-4xl font-bold uppercase tracking-tight text-foreground">
             Database
           </h1>
-          <p className="mt-2 font-mono text-xs uppercase tracking-wider text-muted-foreground">
+          <p className="mt-2 text-xs uppercase tracking-wider text-muted-foreground">
             Storage mode &amp; data management
           </p>
         </header>
 
+        {/* Stats */}
         <section className="mb-8 grid grid-cols-3 gap-4">
           {stats.map((s) => {
             const Icon = s.icon;
             return (
               <div key={s.label} className="border-2 border-border bg-card p-4">
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+                  <span className="text-xs uppercase tracking-wider text-muted-foreground">
                     {s.label}
                   </span>
                   <Icon className="size-4 text-primary" />
                 </div>
-                <p className="mt-2 font-serif text-3xl font-bold text-foreground">{s.value}</p>
+                <p className="mt-2 text-3xl font-bold text-foreground">{s.value}</p>
               </div>
             );
           })}
         </section>
 
-        <section className="mb-8 grid gap-4 md:grid-cols-2">
-          <StorageCard
-            title="JSON Storage"
-            description="Browser localStorage. Lightweight, portable, no setup required."
-            isActive={storageMode === 'json'}
-            icon={FileJson}
-            onActivate={() => onSwitchMode('json', true)}
-            details={
-              <div className="space-y-1 font-mono text-xs text-muted-foreground">
-                <div>KEY: __wikiki_products</div>
-                <div>FORMAT: JSON serialized</div>
+        {/* Primary: SQLite storage */}
+        <section className="mb-6">
+          <div className="mb-3 flex items-center gap-2">
+            <span className="text-xs uppercase tracking-wider text-muted-foreground">
+              Primary Storage
+            </span>
+            <span className="h-px flex-1 bg-border" />
+          </div>
+          <div
+            className={cn(
+              'relative overflow-hidden border-2 bg-card p-6 transition-all',
+              sqliteActive ? 'border-primary' : 'border-border',
+            )}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <span
+                  className={cn(
+                    'flex size-12 shrink-0 items-center justify-center border-2',
+                    sqliteActive ? 'border-primary bg-primary/10' : 'border-border bg-background',
+                  )}
+                >
+                  <Database className={cn('size-6', sqliteActive ? 'text-primary' : 'text-muted-foreground')} />
+                </span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-xl font-bold uppercase tracking-wide text-foreground">
+                      SQLite Database
+                    </h2>
+                    {sqliteActive && (
+                      <span className="inline-flex items-center gap-1 border-2 border-primary bg-primary px-2 py-0.5 text-xs font-semibold uppercase tracking-wider text-primary-foreground">
+                        <Check className="size-3" /> Active
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1 max-w-md text-sm text-muted-foreground">
+                    In-browser SQL database via WASM. Structured queries, larger datasets, the
+                    recommended engine for Wikiki.
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground">
+                    <span>STATUS: {sqliteReady ? 'READY' : sqliteInfo ? 'INITIALIZING' : 'OFFLINE'}</span>
+                    {sqliteInfo && (
+                      <>
+                        <span>SIZE: {sqliteInfo.dbSizeFormatted}</span>
+                        <span>
+                          RECORDS: {sqliteInfo.productCount} products / {sqliteInfo.pageCount} pages
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
-            }
-          />
-          <StorageCard
-            title="SQLite Storage"
-            description="In-browser SQL database via WASM. Structured queries, larger datasets."
-            isActive={storageMode === 'sqlite'}
-            icon={Database}
-            onActivate={() => onSwitchMode('sqlite', true)}
-            details={
-              <div className="space-y-1 font-mono text-xs text-muted-foreground">
-                <div>STATUS: {sqliteReady ? 'READY' : sqliteInfo ? 'INITIALIZING' : 'OFFLINE'}</div>
-                {sqliteInfo && (
-                  <>
-                    <div>SIZE: {sqliteInfo.dbSizeFormatted}</div>
-                    <div>
-                      RECORDS: {sqliteInfo.productCount} products / {sqliteInfo.pageCount} pages
-                    </div>
-                  </>
-                )}
-              </div>
-            }
-          />
+              {!sqliteActive && (
+                <Button
+                  onClick={() => onSwitchMode('sqlite', true)}
+                  className="shrink-0 gap-2 uppercase tracking-wider"
+                >
+                  Activate SQLite
+                </Button>
+              )}
+            </div>
+          </div>
         </section>
 
+        {/* Secondary: JSON backup option */}
+        <section className="mb-8">
+          <div className="mb-3 flex items-center gap-2">
+            <span className="text-xs uppercase tracking-wider text-muted-foreground">
+              Backup / Portable
+            </span>
+            <span className="h-px flex-1 bg-border" />
+          </div>
+          <div
+            className={cn(
+              'flex items-center justify-between gap-4 border bg-card p-4 transition-all',
+              !sqliteActive ? 'border-primary' : 'border-border',
+            )}
+          >
+            <div className="flex items-center gap-3">
+              <span
+                className={cn(
+                  'flex size-9 items-center justify-center border',
+                  !sqliteActive ? 'border-primary bg-primary/10' : 'border-border bg-background',
+                )}
+              >
+                <FileJson className={cn('size-4', !sqliteActive ? 'text-primary' : 'text-muted-foreground')} />
+              </span>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-bold uppercase tracking-wide text-foreground">
+                    JSON Storage
+                  </h3>
+                  {!sqliteActive && (
+                    <span className="border border-primary bg-primary/10 px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wider text-primary">
+                      Active
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Browser localStorage. Lightweight fallback &amp; portable backup format.
+                </p>
+              </div>
+            </div>
+            {!sqliteActive ? (
+              <span className="text-xs uppercase tracking-wider text-muted-foreground">Current mode</span>
+            ) : (
+              <Button
+                onClick={() => onSwitchMode('json', true)}
+                variant="outline"
+                size="sm"
+                className="shrink-0 gap-2 border-2 uppercase tracking-wider"
+              >
+                Switch to JSON
+              </Button>
+            )}
+          </div>
+        </section>
+
+        {/* Import & Export */}
         <section className="border-2 border-border bg-card p-6">
-          <h2 className="mb-4 font-serif text-xl font-bold uppercase tracking-wide text-foreground">
+          <h2 className="mb-4 text-xl font-bold uppercase tracking-wide text-foreground">
             Import &amp; Export
           </h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

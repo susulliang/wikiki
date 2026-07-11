@@ -1,42 +1,38 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <linearGradient id="cyber-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0f172a" />
-      <stop offset="50%" stop-color="#1e1b4b" />
-      <stop offset="100%" stop-color="#030712" />
+    <linearGradient id="gs-base" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2a2a2a" />
+      <stop offset="50%" stop-color="#1a1a1a" />
+      <stop offset="100%" stop-color="#0d0d0d" />
     </linearGradient>
-    <linearGradient id="neon-grad" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#14b8a6" />
-      <stop offset="50%" stop-color="#6366f1" />
-      <stop offset="100%" stop-color="#f97316" />
+    <linearGradient id="gs-mark" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#d4d4d4" />
+      <stop offset="50%" stop-color="#e5e5e5" />
+      <stop offset="100%" stop-color="#f5f5f5" />
     </linearGradient>
-    <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="12" result="blur" />
+    <filter id="gs-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="10" result="blur" />
       <feMerge>
         <feMergeNode in="blur" />
         <feMergeNode in="SourceGraphic" />
       </feMerge>
     </filter>
   </defs>
-  <!-- Sleek rounded square base with dark gradient -->
-  <rect width="480" height="480" x="16" y="16" rx="128" fill="url(#cyber-grad)" stroke="#312e81" stroke-width="4" />
-  
-  <!-- Avant-garde geometric W-concept overlapping shapes -->
-  <g transform="translate(64, 80)" filter="url(#neon-glow)">
-    <!-- Background shard -->
-    <path d="M 64 280 L 144 80 L 192 180 L 144 280 Z" fill="#6366f1" opacity="0.15" />
-    
+  <!-- Rounded square base with dark greyscale gradient -->
+  <rect width="480" height="480" x="16" y="16" rx="128" fill="url(#gs-base)" stroke="#404040" stroke-width="4" />
+
+  <!-- Wikiki mark: two pillars + center diamond (scaled from 64×64 vector logo) -->
+  <g transform="translate(0, 0)" filter="url(#gs-glow)">
     <!-- Left diagonal pillar -->
-    <path d="M 32 280 L 128 40 L 168 40 L 72 280 Z" fill="url(#neon-grad)" />
-    
+    <path d="M 48 432 L 160 80 L 240 80 L 144 432 Z" fill="url(#gs-mark)" opacity="0.95" />
+
     <!-- Right diagonal pillar -->
-    <path d="M 352 280 L 256 40 L 216 40 L 312 280 Z" fill="url(#neon-grad)" />
-    
+    <path d="M 464 432 L 352 80 L 272 80 L 368 432 Z" fill="url(#gs-mark)" opacity="0.95" />
+
     <!-- Center connecting diamond shard -->
-    <polygon points="192,80 240,180 192,280 144,180" fill="#14b8a6" opacity="0.85" />
-    <polygon points="240,180 288,280 240,280 192,180" fill="#6366f1" opacity="0.95" />
-    
+    <path d="M 256 176 L 320 272 L 256 368 L 192 272 Z" fill="#a3a3a3" opacity="0.85" />
+
     <!-- Top avant-garde floating accent dot -->
-    <circle cx="192" cy="10" r="14" fill="#f97316" />
+    <circle cx="256" cy="48" r="10" fill="#ffffff" opacity="0.9" />
   </g>
 </svg>
