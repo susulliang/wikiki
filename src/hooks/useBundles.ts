@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import type { IBundle, IPage } from '@/data/bundles';
 import { normalizeBundle, denormalizeBundle } from '@/data/bundles';
 
-const STORAGE_KEY = '__wikiki_bundles';
+const STORAGE_KEY = '__wikiki_products';
 const VERSION_KEY = '__wikiki_data_version';
 const CURRENT_VERSION = 2;
 

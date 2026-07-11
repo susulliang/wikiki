@@ -14,7 +14,7 @@ import { getSQLiteStorage } from '@/lib/sqlite-storage';
 import type { IBundle, IPage } from '@/data/bundles';
 import { searchBundles, type ExtendedSearchResult } from '@/lib/search';
 
-const SELECTED_KEY = '__wikiki_selected_bundle_id';
+const SELECTED_KEY = '__wikiki_selected_product_id';
 const PAGE_INDEX_KEY = '__wikiki_selected_page_index';
 const ACTIVE_TAB_KEY = '__wikiki_active_tab';
 const TABBAR_MINIMIZED_KEY = '__wikiki_tabbar_minimized';

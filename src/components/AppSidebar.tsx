@@ -249,7 +249,7 @@ export default function AppSidebar({
         await importSQLiteDB(data);
         const info = sqliteInfo;
         toast.success(
-          `SQLite DB imported: ${info?.bundleCount ?? 0} bundles, ${info?.pageCount ?? 0} pages`,
+          `SQLite DB imported: ${info?.productCount ?? 0} bundles, ${info?.pageCount ?? 0} pages`,
         );
         await reloadSQLiteBundles();
         onBundlesChanged?.();

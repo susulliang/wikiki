@@ -122,7 +122,7 @@ export function StorageModeProvider({ children }: { children: ReactNode }) {
       if (newMode === 'sqlite') {
         // JSON → SQLite
         try {
-          const raw = localStorage.getItem('__wikiki_bundles');
+          const raw = localStorage.getItem('__wikiki_products');
           const storage = getSQLiteStorage();
           await storage.init();
           if (raw) {
@@ -145,7 +145,7 @@ export function StorageModeProvider({ children }: { children: ReactNode }) {
           if (storage.initialized) {
             const bundles = await storage.getAllBundles();
             const exportData = bundles.map(denormalizeBundle);
-            localStorage.setItem('__wikiki_bundles', JSON.stringify(exportData));
+            localStorage.setItem('__wikiki_products', JSON.stringify(exportData));
             localStorage.setItem('__wikiki_data_version', '2');
           }
         } catch (e) {
@@ -184,7 +184,7 @@ export function StorageModeProvider({ children }: { children: ReactNode }) {
       bundles = await storage.getAllBundles();
     } else {
       // JSON 模式下由调用方传入数据，这里只做兜底
-      const raw = localStorage.getItem('__wikiki_bundles');
+      const raw = localStorage.getItem('__wikiki_products');
       if (!raw) {
         toast.error('No data to export');
         return;
@@ -209,7 +209,7 @@ export function StorageModeProvider({ children }: { children: ReactNode }) {
     } else {
       // JSON 模式：将 JSON 数据转换为 SQLite 格式导出
       toast.info('Converting to SQLite format...');
-      const raw = localStorage.getItem('__wikiki_bundles');
+      const raw = localStorage.getItem('__wikiki_products');
       let bundles: IBundle[] = [];
       if (raw) {
         const { normalizeBundle } = await import('@/data/bundles');
