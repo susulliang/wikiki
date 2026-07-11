@@ -43,15 +43,6 @@ export default function DatabasePage({
   return (
     <div className="h-full overflow-y-auto">
       <div className="mx-auto max-w-5xl px-6 py-10 md:px-10">
-        <header className="mb-8 border-b-2 border-border pb-6">
-          <h1 className="text-4xl font-bold uppercase tracking-tight text-foreground">
-            Database
-          </h1>
-          <p className="mt-2 text-xs uppercase tracking-wider text-muted-foreground">
-            Storage mode &amp; data management
-          </p>
-        </header>
-
         {/* Stats */}
         <section className="mb-8 grid grid-cols-3 gap-4">
           {stats.map((s) => {

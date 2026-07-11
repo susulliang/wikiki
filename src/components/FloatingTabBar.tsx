@@ -22,8 +22,9 @@ const TABS: Array<{ id: TabId; label: string; icon: LucideIcon }> = [
   { id: 'themes', label: 'Themes', icon: Palette },
 ];
 
-const SWIPE_THRESHOLD = 60;
+const SWIPE_THRESHOLD = 50;
 const COLLAPSE_DELAY = 3000;
+const NARROW_BREAKPOINT = 640; // sm breakpoint
 
 /** Wikiki vector mark — two pillars + center diamond forming a stylized W. */
 function WikikiMark({ className }: { className?: string }) {
@@ -43,9 +44,21 @@ export default function FloatingTabBar({
   onMinimizedChange,
 }: FloatingTabBarProps) {
   const [showText, setShowText] = useState(false);
+  const [isNarrow, setIsNarrow] = useState(false);
   const collapseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startX = useRef<number | null>(null);
   const startY = useRef<number | null>(null);
+
+  // Track viewport width to suppress text on narrow devices
+  useEffect(() => {
+    const update = () => setIsNarrow(window.innerWidth < NARROW_BREAKPOINT);
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
+  // On narrow screens, never show text
+  const canShowText = showText && !isNarrow;
 
   const cancelCollapse = useCallback(() => {
     if (collapseTimer.current) {
@@ -78,7 +91,7 @@ export default function FloatingTabBar({
     [onTabChange, scheduleCollapse],
   );
 
-  // Swipe-right gesture to minimize
+  // Swipe-up gesture to minimize
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     startX.current = e.clientX;
     startY.current = e.clientY;
@@ -89,7 +102,8 @@ export default function FloatingTabBar({
       if (startX.current === null || startY.current === null) return;
       const dx = e.clientX - startX.current;
       const dy = e.clientY - startY.current;
-      if (dx > SWIPE_THRESHOLD && Math.abs(dy) < 40) {
+      // Upward swipe: negative dy, small horizontal drift
+      if (dy < -SWIPE_THRESHOLD && Math.abs(dx) < 60) {
         onMinimizedChange(true);
         startX.current = null;
         startY.current = null;
@@ -123,7 +137,7 @@ export default function FloatingTabBar({
         <motion.nav
           key="expanded"
           className="fixed left-1/2 top-4 z-50 flex -translate-x-1/2 items-center gap-1 rounded-full border border-foreground/10 bg-background/40 p-1.5 shadow-2xl backdrop-blur-2xl backdrop-saturate-150"
-          style={{ touchAction: 'pan-y' }}
+          style={{ touchAction: 'pan-x' }}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           onPointerDown={handlePointerDown}
@@ -155,7 +169,7 @@ export default function FloatingTabBar({
                 <span
                   className={cn(
                     'overflow-hidden whitespace-nowrap transition-all duration-300',
-                    showText ? 'ml-2 max-w-[120px] opacity-100' : 'ml-0 max-w-0 opacity-0',
+                    canShowText ? 'ml-2 max-w-[120px] opacity-100' : 'ml-0 max-w-0 opacity-0',
                   )}
                 >
                   {tab.label}

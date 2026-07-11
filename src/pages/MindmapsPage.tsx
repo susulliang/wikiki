@@ -18,10 +18,11 @@ interface Group {
   items: GroupItem[];
 }
 
+/** Color palette for root nodes. Uses CSS chart variables so it adapts to the
+ *  active theme (greyscale in Graphite / Graphite Night, colorful elsewhere). */
 const ROOT_COLORS = [
-  '#6366f1', '#14b8a6', '#f97316', '#a855f7',
-  '#eab308', '#ec4899', '#22c55e', '#3b82f6',
-  '#ef4444', '#8b5cf6',
+  'var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)',
+  'var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)',
 ];
 
 /** Group products by the first word of their name (e.g. "Apple iPhone" → root "Apple"). */
@@ -151,15 +152,6 @@ export default function MindmapsPage({ products, onSelectProduct }: MindmapsPage
 
   return (
     <div className="flex h-full flex-col">
-      <header className="border-b-2 border-border px-6 py-6 md:px-10">
-        <h1 className="text-4xl font-bold uppercase tracking-tight text-foreground">
-          Mindmaps
-        </h1>
-        <p className="mt-2 text-xs uppercase tracking-wider text-muted-foreground">
-          Visual grouping of your database — click a product to open its wiki
-        </p>
-      </header>
-
       <div className="relative flex-1 overflow-hidden">
         <div className="pointer-events-none absolute left-4 top-4 z-10 text-[10px] uppercase tracking-widest text-muted-foreground">
           Drag to move • Scroll to zoom • Click a node to open

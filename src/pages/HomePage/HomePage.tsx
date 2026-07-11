@@ -111,6 +111,7 @@ export default function HomePage() {
 
   const [sqliteProducts, setSqliteProducts] = useState<IProduct[]>([]);
   const [sqliteSearchProducts, setSqliteSearchProducts] = useState<IProduct[]>([]);
+  const [dbPrepping, setDbPrepping] = useState(false);
   const [loadedProductContent, setLoadedProductContent] = useState<Map<string, IProduct>>(new Map());
 
   useEffect(() => {
@@ -168,30 +169,39 @@ export default function HomePage() {
   useEffect(() => {
     if (storageMode !== 'sqlite' || !sqliteReady || activeTab !== 'supersearch') {
       setSqliteSearchProducts([]);
+      setDbPrepping(false);
       return;
     }
 
     let cancelled = false;
-    const storage = getSQLiteStorage();
+    setDbPrepping(true);
 
-    storage
-      .getAllProducts()
-      .then((allProducts) => {
-        if (!cancelled) {
-          setSqliteSearchProducts(allProducts);
-        }
-      })
-      .catch((error) => {
-        logger.error('Failed to load SQLite search index:', String(error));
-        if (!cancelled) {
-          setSqliteSearchProducts([]);
-        }
-      });
+    // Defer the heavy getAllProducts() call so the search page can render
+    // and the input can be focused first — the user sees the page immediately.
+    const timer = setTimeout(() => {
+      const storage = getSQLiteStorage();
+      storage
+        .getAllProducts()
+        .then((allProducts) => {
+          if (!cancelled) {
+            setSqliteSearchProducts(allProducts);
+            setDbPrepping(false);
+          }
+        })
+        .catch((error) => {
+          logger.error('Failed to load SQLite search index:', String(error));
+          if (!cancelled) {
+            setSqliteSearchProducts([]);
+            setDbPrepping(false);
+          }
+        });
+    }, 0);
 
     return () => {
       cancelled = true;
+      clearTimeout(timer);
     };
-  }, [storageMode, sqliteReady, activeTab, products]);
+  }, [storageMode, sqliteReady, activeTab]);
 
   const searchableProducts = useMemo(() => {
     if (storageMode !== 'sqlite') {
@@ -566,6 +576,7 @@ export default function HomePage() {
               sqliteProducts.length > 0 &&
               sqliteSearchProducts.length === 0
             }
+            dbPrepping={dbPrepping}
             onQueryChange={setSuperSearchQuery}
             onSelect={handleSearchResultSelect}
           />

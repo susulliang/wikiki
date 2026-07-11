@@ -112,18 +112,19 @@ export default function RichTextEditor({
               range.surroundContents(span);
               span.scrollIntoView({ behavior: 'smooth', block: 'center' });
               
-              // Apply styles directly for maximum reliability
-              span.style.backgroundColor = '#fef08a'; // yellow-200
-              span.style.color = '#1f2937'; // gray-800
+              // Apply styles directly for maximum reliability — use theme-aware CSS variables
+              span.style.backgroundColor = 'color-mix(in oklab, var(--primary) 25%, transparent)';
+              span.style.color = 'var(--foreground)';
               span.style.padding = '2px 4px';
               span.style.borderRadius = '4px';
-              span.style.boxShadow = '0 0 0 4px rgba(var(--primary-rgb, 133, 148, 107), 0.4)';
+              span.style.boxShadow = '0 0 0 4px color-mix(in oklab, var(--primary) 40%, transparent)';
               span.style.transition = 'all 0.5s ease-out';
-              
-              // Pulse effect
+
+              // Pulse effect — uses primary color for a theme-consistent glow
+              const pulseColor = 'var(--primary)';
               span.animate([
-                { boxShadow: '0 0 0 0px rgba(133, 148, 107, 0.7)' },
-                { boxShadow: '0 0 0 12px rgba(133, 148, 107, 0)' }
+                { boxShadow: `0 0 0 0px color-mix(in oklab, ${pulseColor} 70%, transparent)` },
+                { boxShadow: `0 0 0 12px color-mix(in oklab, ${pulseColor} 0%, transparent)` }
               ], {
                 duration: 1000,
                 iterations: 3
