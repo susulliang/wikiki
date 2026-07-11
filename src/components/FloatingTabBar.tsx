@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Database, Package, Search, BookOpen, Palette, Network } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -102,64 +103,72 @@ export default function FloatingTabBar({
     startY.current = null;
   }, []);
 
-  // ---- Minimized state: floating logo bubble (no page height taken) ----
-  if (isMinimized) {
-    return (
-      <button
-        type="button"
-        onClick={() => onMinimizedChange(false)}
-        aria-label="Expand tab bar"
-        className="fixed right-4 top-4 z-50 flex size-12 items-center justify-center rounded-full border border-foreground/15 bg-background/60 shadow-xl backdrop-blur-2xl backdrop-saturate-150 transition-all duration-200 hover:scale-110 hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary animate-in fade-in zoom-in-95 duration-200"
-      >
-        <WikikiMark className="size-7 text-primary" />
-      </button>
-    );
-  }
-
-  // ---- Expanded state: frosted-glass floating pill ----
   return (
-    <div
-      className="fixed left-1/2 top-4 z-50 -translate-x-1/2 animate-in fade-in slide-in-from-top-2 duration-300"
-      style={{ touchAction: 'pan-y' }}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerEnd}
-      onPointerCancel={handlePointerEnd}
-    >
-      <nav
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        className="flex items-center gap-1 rounded-full border border-foreground/15 bg-background/60 p-1.5 shadow-2xl backdrop-blur-2xl backdrop-saturate-150"
-      >
-        {TABS.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => handleTabClick(tab.id)}
-              aria-current={isActive ? 'page' : undefined}
-              className={cn(
-                'flex items-center rounded-full px-3 py-2 font-mono text-xs uppercase tracking-wider transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                isActive
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'text-foreground hover:bg-foreground/10',
-              )}
-            >
-              <Icon className="size-4 shrink-0" />
-              <span
-                className={cn(
-                  'overflow-hidden whitespace-nowrap transition-all duration-300',
-                  showText ? 'ml-2 max-w-[120px] opacity-100' : 'ml-0 max-w-0 opacity-0',
-                )}
-              >
-                {tab.label}
-              </span>
-            </button>
-          );
-        })}
-      </nav>
-    </div>
+    <AnimatePresence>
+      {isMinimized ? (
+        <motion.button
+          key="minimized"
+          type="button"
+          onClick={() => onMinimizedChange(false)}
+          aria-label="Expand tab bar"
+          className="pointer-events-auto fixed right-4 top-4 z-50 flex size-12 items-center justify-center rounded-full border border-foreground/15 bg-background/60 shadow-xl backdrop-blur-2xl backdrop-saturate-150 transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          initial={{ opacity: 0, scale: 0.4 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.4 }}
+          transition={{ duration: 0.3, ease: 'easeInOut' }}
+        >
+          <WikikiMark className="size-7 text-primary" />
+        </motion.button>
+      ) : (
+        <motion.div
+          key="expanded"
+          className="pointer-events-none fixed top-4 z-50"
+          style={{ left: '50%', x: '-50%', touchAction: 'pan-y' }}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerEnd}
+          onPointerCancel={handlePointerEnd}
+          initial={{ opacity: 0, y: -16 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -16 }}
+          transition={{ duration: 0.3, ease: 'easeInOut' }}
+        >
+          <nav
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            className="pointer-events-auto flex items-center gap-1 rounded-full border border-foreground/15 bg-background/60 p-1.5 shadow-2xl backdrop-blur-2xl backdrop-saturate-150"
+          >
+            {TABS.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => handleTabClick(tab.id)}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={cn(
+                    'flex items-center rounded-full px-3 py-2 font-mono text-xs uppercase tracking-wider transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                    isActive
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-foreground hover:bg-foreground/10',
+                  )}
+                >
+                  <Icon className="size-4 shrink-0" />
+                  <span
+                    className={cn(
+                      'overflow-hidden whitespace-nowrap transition-all duration-300',
+                      showText ? 'ml-2 max-w-[120px] opacity-100' : 'ml-0 max-w-0 opacity-0',
+                    )}
+                  >
+                    {tab.label}
+                  </span>
+                </button>
+              );
+            })}
+          </nav>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
