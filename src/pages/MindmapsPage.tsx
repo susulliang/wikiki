@@ -84,7 +84,7 @@ export default function MindmapsPage({
         name: group.root,
         symbolSize: 44,
         itemStyle: { color: rootColor, borderColor: rootColor },
-        label: { show: true, color: '#ffffff', fontWeight: 'bold', fontSize: 13 },
+        label: { show: true, color: isDark ? '#0a0a0a' : '#ffffff', fontWeight: 'bold', fontSize: 13 },
         category: 0,
       });
       group.items.forEach((item) => {
@@ -94,13 +94,13 @@ export default function MindmapsPage({
           name: item.label,
           symbolSize: 26,
           itemStyle: {
-            color: isDark ? '#3f3f46' : '#e4e4e7',
+            color: isDark ? '#1a1a1a' : '#e4e4e7',
             borderColor: rootColor,
             borderWidth: 2,
           },
           label: {
             show: true,
-            color: isDark ? '#e4e4e7' : '#27272a',
+            color: isDark ? '#e4e4e7' : '#1a1a1a',
             fontSize: 11,
           },
           category: 1,
@@ -115,7 +115,13 @@ export default function MindmapsPage({
     });
 
     const option = {
-      tooltip: { trigger: 'item' },
+      backgroundColor: 'transparent',
+      tooltip: {
+        trigger: 'item',
+        backgroundColor: 'var(--popover)',
+        borderColor: 'var(--border)',
+        textStyle: { color: 'var(--popover-foreground)' },
+      },
       series: [
         {
           type: 'graph',
@@ -265,7 +271,6 @@ export default function MindmapsPage({
             option={option}
             onEvents={onEvents}
             style={{ height: '100%', width: '100%' }}
-            theme={isDark ? 'dark' : 'light'}
           />
         </div>
       )}

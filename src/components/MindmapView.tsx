@@ -152,9 +152,13 @@ export default function MindmapView({ content }: MindmapViewProps) {
   }, [treeData]);
 
   const option = {
+    backgroundColor: 'transparent',
     tooltip: {
       trigger: 'item',
-      triggerOn: 'mousemove'
+      triggerOn: 'mousemove',
+      backgroundColor: 'var(--popover)',
+      borderColor: 'var(--border)',
+      textStyle: { color: 'var(--popover-foreground)' },
     },
     series: [
       {
@@ -193,10 +197,9 @@ export default function MindmapView({ content }: MindmapViewProps) {
       <div className="absolute top-4 left-4 z-10 text-[10px] text-muted-foreground uppercase tracking-widest pointer-events-none">
         Drag to move • Scroll to zoom
       </div>
-      <ReactECharts 
-        option={option} 
+      <ReactECharts
+        option={option}
         style={{ height: '100%', width: '100%' }}
-        theme={isDark ? 'dark' : 'light'}
       />
     </div>
   );

@@ -67,10 +67,10 @@ function ParagraphBubble({
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           {isMindmap ? (
             <>
-              <span className="flex size-5 items-center justify-center rounded-md bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-sm">
+              <span className="flex size-5 items-center justify-center rounded-md bg-primary/15 text-primary shadow-sm">
                 <Network className="size-3" />
               </span>
-              <span className="font-medium text-purple-600 dark:text-purple-400">Mindmap</span>
+              <span className="font-medium text-primary">Mindmap</span>
             </>
           ) : (
             <>
@@ -94,7 +94,7 @@ function ParagraphBubble({
         {highlightSearchText(paragraph.excerpt, query)}
       </p>
       {isMindmap && (
-        <p className="mt-2 text-xs text-purple-600 dark:text-purple-400">
+        <p className="mt-2 text-xs text-primary">
           Click to open in mindmap view
         </p>
       )}
@@ -135,7 +135,7 @@ function ExpandedResultPanel({
               {highlightSearchText(result.productName, query)}
             </p>
             {result.isMindmap && (
-              <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-sm">
+              <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-primary/15 text-primary shadow-sm">
                 <Network className="size-3" />
               </span>
             )}

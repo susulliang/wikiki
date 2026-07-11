@@ -103,7 +103,7 @@ function ResultCard({ result, query, onSelect }: ResultCardProps) {
             {result.productName}
           </span>
           {result.isMindmap && (
-            <span className="flex shrink-0 items-center gap-1 rounded-full bg-purple-500/15 px-2 py-0.5 font-mono text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400">
+            <span className="flex shrink-0 items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 font-mono text-xs uppercase tracking-wider text-primary">
               <Network className="size-3" />
               Mindmap
             </span>

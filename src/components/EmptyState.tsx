@@ -13,7 +13,7 @@ export default function EmptyState({ onCreateProduct, onImportJSON, onImportDB }
       <div className="mb-6 flex size-20 items-center justify-center rounded-2xl bg-primary/10">
         <BookOpen className="size-10 text-primary" />
       </div>
-      <h1 className="mb-2 text-3xl font-bold tracking-tight">Wikiki</h1>
+      <h1 className="mb-2 text-3xl font-bold tracking-tight text-foreground">Wikiki</h1>
       <p className="mb-8 max-w-md text-base text-muted-foreground">
         Your personal wiki knowledge base
       </p>

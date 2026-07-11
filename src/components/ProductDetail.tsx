@@ -177,7 +177,7 @@ export default function ProductDetail({
       >
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0 flex-1 flex items-center gap-3">
-            <h1 className="truncate text-xl font-bold tracking-tight">{product.name}</h1>
+            <h1 className="truncate text-xl font-bold tracking-tight text-foreground">{product.name}</h1>
             {product.tags.length > 0 && (
               <div className="flex flex-wrap gap-1.5 shrink-0">
                 {product.tags.map((tag) => {
@@ -294,7 +294,7 @@ export default function ProductDetail({
           <div className="flex items-center justify-between border-b px-6 py-3 shrink-0">
             <div className="flex items-center gap-2">
               <Network className="size-5 text-primary" />
-              <h2 className="text-lg font-bold">{product.name} - Mindmap</h2>
+              <h2 className="text-lg font-bold text-foreground">{product.name} - Mindmap</h2>
             </div>
             <Button variant="ghost" size="icon" onClick={() => setShowMindmap(false)}>
               <Minimize2 className="size-5" />
