@@ -65,11 +65,11 @@ export default function HomePage() {
   const [activeHighlightQuery, setActiveHighlightQuery] = useState('');
   const [openMindmapMode, setOpenMindmapMode] = useState(false);
 
-  // Debounce Super Search Query
+  // Debounce Super Search Query (800ms for better typing experience)
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSuperSearchQuery(superSearchQuery);
-    }, 300); // 300ms delay
+    }, 800); // 800ms delay
 
     return () => clearTimeout(timer);
   }, [superSearchQuery]);
