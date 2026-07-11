@@ -87,17 +87,100 @@
   --shadow-2xl: 0px 2px 12px 0px hsl(0 0% 0% / 0.05);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
+
+  /* Reusable graphite-mosaic noise tiles (layered fractal noise, very low opacity).
+     Applied to body + surfaces via .graphite-texture utility below. */
+  --graphite-noise-fine: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  --graphite-noise-mosaic: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='360'><filter id='m'><feTurbulence type='turbulence' baseFrequency='0.012 0.012' numOctaves='1' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.035 0'/></filter><rect width='100%25' height='100%25' filter='url(%23m)'/></svg>");
 }
 
-/* Graphite theme: subtle graphite-mosaic noise on the page background.
-   Layered fractal-noise SVG at very low opacity — adds material texture
-   without hurting readability. */
+/* ── Graphite Night: dark greyscale companion to Graphite ── */
+:root.graphite-night {
+  --button-outline: rgba(255,255,255, .12);
+  --badge-outline: rgba(255,255,255, .06);
+  --opaque-button-border-intensity: 6;
+  --elevate-1: rgba(255,255,255, .04);
+  --elevate-2: rgba(255,255,255, .08);
+
+  --background: hsl(0 0% 9%);
+  --foreground: hsl(40 5% 93%);
+  --card: hsl(0 0% 12%);
+  --card-foreground: hsl(40 5% 93%);
+  --popover: hsl(0 0% 12%);
+  --popover-foreground: hsl(40 5% 93%);
+  --primary: hsl(40 5% 92%);
+  --primary-foreground: hsl(0 0% 9%);
+  --secondary: hsl(0 0% 18%);
+  --secondary-foreground: hsl(40 5% 88%);
+  --muted: hsl(0 0% 14%);
+  --muted-foreground: hsl(40 3% 62%);
+  --accent: hsl(0 0% 20%);
+  --accent-foreground: hsl(40 5% 90%);
+  --info: hsl(0 0% 70%);
+  --info-foreground: hsl(0 0% 9%);
+  --destructive: hsl(0 65% 55%);
+  --destructive-foreground: hsl(40 5% 97%);
+  --success: hsl(0 0% 72%);
+  --success-foreground: hsl(0 0% 9%);
+  --warning: hsl(45 65% 60%);
+  --warning-foreground: hsl(0 0% 9%);
+  --border: hsl(0 0% 22%);
+  --input: hsl(0 0% 22%);
+  --ring: hsl(40 5% 92%);
+  --chart-1: hsl(0 0% 85%);
+  --chart-2: hsl(0 0% 65%);
+  --chart-3: hsl(0 0% 50%);
+  --chart-4: hsl(0 0% 35%);
+  --chart-5: hsl(0 0% 20%);
+  --sidebar: hsl(0 0% 11%);
+  --sidebar-foreground: hsl(40 5% 90%);
+  --sidebar-primary: hsl(40 5% 92%);
+  --sidebar-primary-foreground: hsl(0 0% 9%);
+  --sidebar-accent: hsl(0 0% 18%);
+  --sidebar-accent-foreground: hsl(40 5% 90%);
+  --sidebar-border: hsl(0 0% 20%);
+  --sidebar-ring: hsl(40 5% 92%);
+
+  --primary-border: hsl(from hsl(40 5% 92%) h s calc(l + var(--opaque-button-border-intensity)));
+  --secondary-border: hsl(from hsl(0 0% 18%) h s calc(l + var(--opaque-button-border-intensity)));
+  --destructive-border: hsl(from hsl(0 65% 55%) h s calc(l + var(--opaque-button-border-intensity)));
+  --accent-border: hsl(from hsl(0 0% 20%) h s calc(l + var(--opaque-button-border-intensity)));
+  --muted-border: hsl(from hsl(0 0% 14%) h s calc(l + var(--opaque-button-border-intensity)));
+
+  /* Darker noise for night theme (white noise on dark bg) */
+  --graphite-noise-fine: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.04 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  --graphite-noise-mosaic: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='360'><filter id='m'><feTurbulence type='turbulence' baseFrequency='0.012 0.012' numOctaves='1' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.028 0'/></filter><rect width='100%25' height='100%25' filter='url(%23m)'/></svg>");
+}
+
+/* Graphite texture utility — applied to body + all major surface areas.
+   Only active for graphite / graphite-night themes. */
 :root.graphite body,
-:root:not(.warm-light):not(.clean-light):not(.soft-light):not(.sunset):not(.forest):not(.dark):not(.midnight) body {
-  background-image:
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.045 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"),
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='360'><filter id='m'><feTurbulence type='turbulence' baseFrequency='0.012 0.012' numOctaves='1' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.03 0'/></filter><rect width='100%25' height='100%25' filter='url(%23m)'/></svg>");
+:root.graphite-night body {
+  background-image: var(--graphite-noise-fine), var(--graphite-noise-mosaic);
   background-attachment: fixed;
+  background-repeat: repeat, repeat;
+}
+
+:root.graphite .bg-background,
+:root.graphite-night .bg-background,
+:root.graphite .bg-card,
+:root.graphite-night .bg-card {
+  background-image: var(--graphite-noise-fine), var(--graphite-noise-mosaic);
+  background-repeat: repeat, repeat;
+}
+
+/* Default (no theme class) also gets the light graphite noise,
+   since :root defaults to graphite. */
+:root:not(.warm-light):not(.clean-light):not(.soft-light):not(.sunset):not(.forest):not(.dark):not(.midnight):not(.graphite-night) body {
+  background-image: var(--graphite-noise-fine), var(--graphite-noise-mosaic);
+  background-attachment: fixed;
+  background-repeat: repeat, repeat;
+}
+
+:root:not(.warm-light):not(.clean-light):not(.soft-light):not(.sunset):not(.forest):not(.dark):not(.midnight):not(.graphite-night) .bg-background,
+:root:not(.warm-light):not(.clean-light):not(.soft-light):not(.sunset):not(.forest):not(.dark):not(.midnight):not(.graphite-night) .bg-card {
+  background-image: var(--graphite-noise-fine), var(--graphite-noise-mosaic);
+  background-repeat: repeat, repeat;
 }
 
 /* ── Warm Light: original warm paper/sage theme ── */

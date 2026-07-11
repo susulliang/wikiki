@@ -3,10 +3,11 @@ import { scopedStorage } from '@lark-apaas/client-toolkit-lite';
 
 const THEME_KEY = '__wikiki_theme';
 
-export type ThemeName = 'graphite' | 'warm-light' | 'clean-light' | 'soft-light' | 'sunset' | 'forest' | 'dark' | 'midnight';
+export type ThemeName = 'graphite' | 'graphite-night' | 'warm-light' | 'clean-light' | 'soft-light' | 'sunset' | 'forest' | 'dark' | 'midnight';
 
 export const THEME_OPTIONS = [
   { value: 'graphite' as const, label: 'Graphite', isDark: false },
+  { value: 'graphite-night' as const, label: 'Graphite Night', isDark: true },
   { value: 'warm-light' as const, label: 'Warm Light', isDark: false },
   { value: 'clean-light' as const, label: 'Clean Light', isDark: false },
   { value: 'soft-light' as const, label: 'Soft Lavender', isDark: false },
