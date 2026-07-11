@@ -1,3 +1,4 @@
+import { useRef, useEffect } from 'react';
 import { Search, Network, FileText, Loader2 } from 'lucide-react';
 import type { ExtendedSearchResult } from '@/lib/search';
 import { highlightSearchText } from '@/lib/search';
@@ -8,6 +9,7 @@ interface SuperSearchPageProps {
   query: string;
   results: ExtendedSearchResult[];
   loading: boolean;
+  dbPrepping: boolean;
   onQueryChange: (query: string) => void;
   onSelect: (result: ExtendedSearchResult, paragraphIndex?: number) => void;
 }
@@ -16,9 +18,18 @@ export default function SuperSearchPage({
   query,
   results,
   loading,
+  dbPrepping,
   onQueryChange,
   onSelect,
 }: SuperSearchPageProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-focus the search input as soon as the page mounts — the input is
+  // interactive immediately even while the database is being prepped async.
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
   return (
     <div className="flex h-full flex-col">
       <header className="border-b-2 border-border px-6 py-6 md:px-10">
@@ -34,16 +45,22 @@ export default function SuperSearchPage({
         <div className="relative">
           <Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
           <input
+            ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
             placeholder="Search products, pages, tags..."
             className="w-full border-2 border-border bg-card py-4 pl-12 pr-4 font-serif text-lg text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
-          {loading && (
+          {(loading || dbPrepping) && (
             <Loader2 className="absolute right-4 top-1/2 size-5 -translate-y-1/2 animate-spin text-muted-foreground" />
           )}
         </div>
+        {dbPrepping && !query && (
+          <p className="mt-2 text-center font-mono text-xs uppercase tracking-wider text-muted-foreground">
+            Preparing search index…
+          </p>
+        )}
       </div>
 
       <div className="mx-auto flex h-full w-full max-w-2xl flex-1 flex-col overflow-y-auto px-6 pb-10">

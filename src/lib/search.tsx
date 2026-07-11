@@ -377,7 +377,7 @@ export function highlightSearchText(text: string, query: string): ReactNode {
     parts.push(
       <mark
         key={`${match.index}-${match[2]}`}
-        className="search-highlight rounded-sm bg-yellow-200 px-0.5 text-foreground dark:bg-yellow-500/30"
+        className="search-highlight rounded-sm bg-primary/20 px-0.5 text-foreground"
       >
         {match[2]}
       </mark>

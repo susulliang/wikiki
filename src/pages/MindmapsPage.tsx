@@ -18,10 +18,11 @@ interface Group {
   items: GroupItem[];
 }
 
+/** Color palette for root nodes. Uses CSS chart variables so it adapts to the
+ *  active theme (greyscale in Graphite / Graphite Night, colorful elsewhere). */
 const ROOT_COLORS = [
-  '#6366f1', '#14b8a6', '#f97316', '#a855f7',
-  '#eab308', '#ec4899', '#22c55e', '#3b82f6',
-  '#ef4444', '#8b5cf6',
+  'var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)',
+  'var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)',
 ];
 
 /** Group products by the first word of their name (e.g. "Apple iPhone" → root "Apple"). */

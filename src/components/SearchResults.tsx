@@ -21,7 +21,7 @@ function highlightText(text: string, query: string): React.ReactNode {
       parts.push(text.slice(lastIdx, idx));
     }
     parts.push(
-      <mark key={idx} className="rounded-sm bg-yellow-200 px-0.5 text-foreground dark:bg-yellow-500/30">
+      <mark key={idx} className="rounded-sm bg-primary/20 px-0.5 text-foreground">
         {text.slice(idx, idx + q.length)}
       </mark>,
     );

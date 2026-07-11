@@ -14,16 +14,16 @@ interface MindmapNode {
   lineStyle?: any;
 }
 
-const COLORS = [
-  '#FF9CEE', // Pink
-  '#B2FF59', // Light Green
-  '#FFFF8D', // Yellow
-  '#FFCC80', // Orange
-  '#CE93D8', // Purple
-  '#80DEEA', // Cyan
-  '#A5D6A7', // Green
-  '#90CAF9', // Blue
-  '#FFAB91', // Coral
+/** Color palette for child nodes. In dark themes uses a greyscale ramp that
+ *  aligns with the Graphite chart tokens; in light themes uses the original
+ *  soft pastel palette for readability on light backgrounds. */
+const COLORS_LIGHT = [
+  '#FF9CEE', '#B2FF59', '#FFFF8D', '#FFCC80', '#CE93D8',
+  '#80DEEA', '#A5D6A7', '#90CAF9', '#FFAB91',
+];
+const COLORS_DARK = [
+  '#d9d9d9', '#a6a6a6', '#808080', '#595959', '#333333',
+  '#bdbdbd', '#8c8c8c', '#666666', '#404040',
 ];
 
 export default function MindmapView({ content }: MindmapViewProps) {
@@ -116,9 +116,9 @@ export default function MindmapView({ content }: MindmapViewProps) {
     if (!treeData) return null;
 
     const processNode = (node: MindmapNode, level: number, colorIdx: number): MindmapNode => {
-      const color = level === 0 ? (isDark ? '#4F46E5' : '#0000FF') : COLORS[colorIdx % COLORS.length];
-      // For level > 0, we use the bright COLORS, so we should always use dark text for readability
-      const textColor = level === 0 ? '#FFFFFF' : '#333333';
+      const COLORS = isDark ? COLORS_DARK : COLORS_LIGHT;
+      const color = level === 0 ? (isDark ? '#999999' : '#333333') : COLORS[colorIdx % COLORS.length];
+      const textColor = level === 0 ? '#FFFFFF' : (isDark ? '#1a1a1a' : '#333333');
       
       return {
         ...node,
