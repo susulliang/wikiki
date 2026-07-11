@@ -111,7 +111,7 @@ export default function FloatingTabBar({
           type="button"
           onClick={() => onMinimizedChange(false)}
           aria-label="Expand tab bar"
-          className="pointer-events-auto fixed right-4 top-4 z-50 flex size-12 items-center justify-center rounded-full border border-foreground/15 bg-background/60 shadow-xl backdrop-blur-2xl backdrop-saturate-150 transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          className="fixed right-4 top-4 z-50 flex size-12 items-center justify-center rounded-full border border-foreground/15 bg-background/60 shadow-xl backdrop-blur-2xl backdrop-saturate-150 transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           initial={{ opacity: 0, scale: 0.4 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.4 }}
@@ -120,10 +120,12 @@ export default function FloatingTabBar({
           <WikikiMark className="size-7 text-primary" />
         </motion.button>
       ) : (
-        <motion.div
+        <motion.nav
           key="expanded"
-          className="pointer-events-none fixed top-4 z-50"
-          style={{ left: '50%', x: '-50%', touchAction: 'pan-y' }}
+          className="fixed left-1/2 top-4 z-50 flex -translate-x-1/2 items-center gap-1 rounded-full border border-foreground/10 bg-background/40 p-1.5 shadow-2xl backdrop-blur-2xl backdrop-saturate-150"
+          style={{ touchAction: 'pan-y' }}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerEnd}
@@ -133,41 +135,35 @@ export default function FloatingTabBar({
           exit={{ opacity: 0, y: -16 }}
           transition={{ duration: 0.3, ease: 'easeInOut' }}
         >
-          <nav
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-            className="pointer-events-auto flex items-center gap-1 rounded-full border border-foreground/10 bg-background/40 p-1.5 shadow-2xl backdrop-blur-2xl backdrop-saturate-150"
-          >
-            {TABS.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => handleTabClick(tab.id)}
-                  aria-current={isActive ? 'page' : undefined}
+          {TABS.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => handleTabClick(tab.id)}
+                aria-current={isActive ? 'page' : undefined}
+                className={cn(
+                  'flex items-center rounded-full px-3 py-2 font-mono text-xs uppercase tracking-wider transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                  isActive
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-foreground hover:bg-foreground/10',
+                )}
+              >
+                <Icon className="size-4 shrink-0" />
+                <span
                   className={cn(
-                    'flex items-center rounded-full px-3 py-2 font-mono text-xs uppercase tracking-wider transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                    isActive
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-foreground hover:bg-foreground/10',
+                    'overflow-hidden whitespace-nowrap transition-all duration-300',
+                    showText ? 'ml-2 max-w-[120px] opacity-100' : 'ml-0 max-w-0 opacity-0',
                   )}
                 >
-                  <Icon className="size-4 shrink-0" />
-                  <span
-                    className={cn(
-                      'overflow-hidden whitespace-nowrap transition-all duration-300',
-                      showText ? 'ml-2 max-w-[120px] opacity-100' : 'ml-0 max-w-0 opacity-0',
-                    )}
-                  >
-                    {tab.label}
-                  </span>
-                </button>
-              );
-            })}
-          </nav>
-        </motion.div>
+                  {tab.label}
+                </span>
+              </button>
+            );
+          })}
+        </motion.nav>
       )}
     </AnimatePresence>
   );

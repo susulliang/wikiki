@@ -198,7 +198,7 @@ export default function DatabasePage({
               <Download className="size-4" />
               Export JSON
             </Button>
-            <Button onClick={onExportDB} variant="outline" className="gap-2 border-2 uppercase tracking-wider">
+            <Button onClick={onExportDB} className="gap-2 uppercase tracking-wider">
               <HardDrive className="size-4" />
               Export SQLite
             </Button>
@@ -206,7 +206,7 @@ export default function DatabasePage({
               <Upload className="size-4" />
               Import JSON
             </Button>
-            <Button onClick={onImportDB} variant="outline" className="gap-2 border-2 uppercase tracking-wider">
+            <Button onClick={onImportDB} className="gap-2 uppercase tracking-wider">
               <Upload className="size-4" />
               Import SQLite
             </Button>
