@@ -1,0 +1,422 @@
+export type LanguageCode = 'en' | 'zh' | 'jp' | 'de' | 'it' | 'es';
+
+export interface LanguageOption {
+  code: LanguageCode;
+  label: string;
+  nativeLabel: string;
+  flag: string;
+}
+
+export const LANGUAGE_OPTIONS: LanguageOption[] = [
+  { code: 'en', label: 'English', nativeLabel: 'English', flag: 'EN' },
+  { code: 'zh', label: 'Chinese', nativeLabel: '中文', flag: 'ZH' },
+  { code: 'jp', label: 'Japanese', nativeLabel: '日本語', flag: 'JP' },
+  { code: 'de', label: 'German', nativeLabel: 'Deutsch', flag: 'DE' },
+  { code: 'it', label: 'Italian', nativeLabel: 'Italiano', flag: 'IT' },
+  { code: 'es', label: 'Spanish', nativeLabel: 'Español', flag: 'ES' },
+];
+
+/** Translation keys — keep keys flat and descriptive. */
+export type TranslationKey =
+  | 'tab.mindmaps'
+  | 'tab.bundles'
+  | 'tab.search'
+  | 'tab.wikis'
+  | 'tab.themes'
+  | 'action.createBundle'
+  | 'action.uploadSQLite'
+  | 'action.createBundleLong'
+  | 'action.import'
+  | 'action.export'
+  | 'action.delete'
+  | 'action.cancel'
+  | 'action.save'
+  | 'action.edit'
+  | 'action.addPage'
+  | 'action.upload'
+  | 'common.bundles'
+  | 'common.pages'
+  | 'common.tags'
+  | 'common.language'
+  | 'common.theme'
+  | 'empty.noBundles'
+  | 'empty.noBundlesDesc'
+  | 'empty.selectBundle'
+  | 'empty.selectBundleDesc'
+  | 'empty.goToBundles'
+  | 'mindmap.dragHint'
+  | 'wiki.editBundle'
+  | 'wiki.deleteBundle'
+  | 'wiki.deletePage'
+  | 'wiki.addPage'
+  | 'wiki.toggleToolbar'
+  | 'wiki.toggleMindmap'
+  | 'wiki.deleteBundleConfirm'
+  | 'wiki.deletePageConfirm'
+  | 'dialog.createBundle'
+  | 'dialog.editBundle'
+  | 'dialog.bundleName'
+  | 'dialog.bundleTags'
+  | 'dialog.pageName'
+  | 'theme.graphite'
+  | 'theme.graphiteNight'
+  | 'theme.warmLight'
+  | 'theme.cleanLight'
+  | 'theme.softLavender'
+  | 'theme.sunsetGlow'
+  | 'theme.forestMoss'
+  | 'theme.charcoalDark'
+  | 'theme.midnightBlue'
+  | 'search.placeholder'
+  | 'search.noResults'
+  | 'search.results'
+  | 'bookmark.bookmarked'
+  | 'bookmark.selectFirst';
+
+type TranslationDict = Record<TranslationKey, string>;
+
+const en: TranslationDict = {
+  'tab.mindmaps': 'Mindmaps',
+  'tab.bundles': 'Bundles',
+  'tab.search': 'Search',
+  'tab.wikis': 'Wikis',
+  'tab.themes': 'Themes',
+  'action.createBundle': 'Create Bundle',
+  'action.uploadSQLite': 'Upload SQLite DB',
+  'action.createBundleLong': 'Create New Bundle',
+  'action.import': 'Import',
+  'action.export': 'Export',
+  'action.delete': 'Delete',
+  'action.cancel': 'Cancel',
+  'action.save': 'Save',
+  'action.edit': 'Edit',
+  'action.addPage': 'Add Page',
+  'action.upload': 'Upload',
+  'common.bundles': 'bundles',
+  'common.pages': 'pages',
+  'common.tags': 'tags',
+  'common.language': 'Language',
+  'common.theme': 'Theme',
+  'empty.noBundles': 'No Bundles Yet',
+  'empty.noBundlesDesc': 'Import a database or add bundles to see a visual grouping here.',
+  'empty.selectBundle': 'Select a Bundle',
+  'empty.selectBundleDesc': 'Choose a bundle from the Bundles page to view and edit its wiki pages.',
+  'empty.goToBundles': 'Go to Bundles',
+  'mindmap.dragHint': 'Drag to move • Scroll to zoom • Click a node to open',
+  'wiki.editBundle': 'Edit Bundle Info',
+  'wiki.deleteBundle': 'Delete Bundle',
+  'wiki.deletePage': 'Delete Page',
+  'wiki.addPage': 'Add Page',
+  'wiki.toggleToolbar': 'Hide Toolbar',
+  'wiki.toggleMindmap': 'Toggle Mindmap',
+  'wiki.deleteBundleConfirm': 'Are you sure you want to delete this bundle? All page data will be permanently deleted.',
+  'wiki.deletePageConfirm': 'Are you sure you want to delete this page? Page content will be permanently deleted.',
+  'dialog.createBundle': 'Create Bundle',
+  'dialog.editBundle': 'Edit Bundle Info',
+  'dialog.bundleName': 'Bundle Name',
+  'dialog.bundleTags': 'Tags (comma separated)',
+  'dialog.pageName': 'Page Name',
+  'theme.graphite': 'Graphite',
+  'theme.graphiteNight': 'Graphite Night',
+  'theme.warmLight': 'Warm Light',
+  'theme.cleanLight': 'Clean Light',
+  'theme.softLavender': 'Soft Lavender',
+  'theme.sunsetGlow': 'Sunset Glow',
+  'theme.forestMoss': 'Forest Moss',
+  'theme.charcoalDark': 'Charcoal Dark',
+  'theme.midnightBlue': 'Midnight Blue',
+  'search.placeholder': 'Search across all bundles...',
+  'search.noResults': 'No results found',
+  'search.results': 'results',
+  'bookmark.bookmarked': 'Bookmarked',
+  'bookmark.selectFirst': 'Select text first to bookmark it',
+};
+
+const zh: TranslationDict = {
+  'tab.mindmaps': '思维导图',
+  'tab.bundles': '知识包',
+  'tab.search': '搜索',
+  'tab.wikis': '维基',
+  'tab.themes': '主题',
+  'action.createBundle': '创建知识包',
+  'action.uploadSQLite': '上传 SQLite 数据库',
+  'action.createBundleLong': '创建新知识包',
+  'action.import': '导入',
+  'action.export': '导出',
+  'action.delete': '删除',
+  'action.cancel': '取消',
+  'action.save': '保存',
+  'action.edit': '编辑',
+  'action.addPage': '添加页面',
+  'action.upload': '上传',
+  'common.bundles': '知识包',
+  'common.pages': '页面',
+  'common.tags': '标签',
+  'common.language': '语言',
+  'common.theme': '主题',
+  'empty.noBundles': '暂无知识包',
+  'empty.noBundlesDesc': '导入数据库或添加知识包以在此查看可视化分组。',
+  'empty.selectBundle': '选择知识包',
+  'empty.selectBundleDesc': '从知识包页面选择一个知识包以查看和编辑其维基页面。',
+  'empty.goToBundles': '前往知识包',
+  'mindmap.dragHint': '拖动移动 • 滚轮缩放 • 点击节点打开',
+  'wiki.editBundle': '编辑知识包信息',
+  'wiki.deleteBundle': '删除知识包',
+  'wiki.deletePage': '删除页面',
+  'wiki.addPage': '添加页面',
+  'wiki.toggleToolbar': '隐藏工具栏',
+  'wiki.toggleMindmap': '切换思维导图',
+  'wiki.deleteBundleConfirm': '确定要删除此知识包吗？所有页面数据将被永久删除。',
+  'wiki.deletePageConfirm': '确定要删除此页面吗？页面内容将被永久删除。',
+  'dialog.createBundle': '创建知识包',
+  'dialog.editBundle': '编辑知识包信息',
+  'dialog.bundleName': '知识包名称',
+  'dialog.bundleTags': '标签（逗号分隔）',
+  'dialog.pageName': '页面名称',
+  'theme.graphite': '石墨',
+  'theme.graphiteNight': '石墨夜',
+  'theme.warmLight': '暖光',
+  'theme.cleanLight': '清新',
+  'theme.softLavender': '柔和薰衣草',
+  'theme.sunsetGlow': '日落余晖',
+  'theme.forestMoss': '森林苔藓',
+  'theme.charcoalDark': '炭灰暗',
+  'theme.midnightBlue': '午夜蓝',
+  'search.placeholder': '搜索所有知识包...',
+  'search.noResults': '未找到结果',
+  'search.results': '条结果',
+  'bookmark.bookmarked': '已添加书签',
+  'bookmark.selectFirst': '请先选择文本以添加书签',
+};
+
+const jp: TranslationDict = {
+  'tab.mindmaps': 'マインドマップ',
+  'tab.bundles': 'バンドル',
+  'tab.search': '検索',
+  'tab.wikis': 'ウィキ',
+  'tab.themes': 'テーマ',
+  'action.createBundle': 'バンドル作成',
+  'action.uploadSQLite': 'SQLite DB アップロード',
+  'action.createBundleLong': '新規バンドル作成',
+  'action.import': 'インポート',
+  'action.export': 'エクスポート',
+  'action.delete': '削除',
+  'action.cancel': 'キャンセル',
+  'action.save': '保存',
+  'action.edit': '編集',
+  'action.addPage': 'ページ追加',
+  'action.upload': 'アップロード',
+  'common.bundles': 'バンドル',
+  'common.pages': 'ページ',
+  'common.tags': 'タグ',
+  'common.language': '言語',
+  'common.theme': 'テーマ',
+  'empty.noBundles': 'バンドルがありません',
+  'empty.noBundlesDesc': 'データベースをインポートするかバンドルを追加して、ここに視覚的なグループ化を表示してください。',
+  'empty.selectBundle': 'バンドルを選択',
+  'empty.selectBundleDesc': 'バンドルページからバンドルを選択して、ウィキページを表示・編集してください。',
+  'empty.goToBundles': 'バンドルへ移動',
+  'mindmap.dragHint': 'ドラッグで移動 • スクロールでズーム • ノードをクリックで開く',
+  'wiki.editBundle': 'バンドル情報を編集',
+  'wiki.deleteBundle': 'バンドルを削除',
+  'wiki.deletePage': 'ページを削除',
+  'wiki.addPage': 'ページ追加',
+  'wiki.toggleToolbar': 'ツールバーを隠す',
+  'wiki.toggleMindmap': 'マインドマップ切替',
+  'wiki.deleteBundleConfirm': 'このバンドルを削除しますか？すべてのページデータが完全に削除されます。',
+  'wiki.deletePageConfirm': 'このページを削除しますか？ページの内容が完全に削除されます。',
+  'dialog.createBundle': 'バンドル作成',
+  'dialog.editBundle': 'バンドル情報を編集',
+  'dialog.bundleName': 'バンドル名',
+  'dialog.bundleTags': 'タグ（カンマ区切り）',
+  'dialog.pageName': 'ページ名',
+  'theme.graphite': 'グラファイト',
+  'theme.graphiteNight': 'グラファイトナイト',
+  'theme.warmLight': 'ウォームライト',
+  'theme.cleanLight': 'クリーンライト',
+  'theme.softLavender': 'ソフトラベンダー',
+  'theme.sunsetGlow': 'サンセットグロー',
+  'theme.forestMoss': 'フォレストモス',
+  'theme.charcoalDark': 'チャコールダーク',
+  'theme.midnightBlue': 'ミッドナイトブルー',
+  'search.placeholder': 'すべてのバンドルを検索...',
+  'search.noResults': '結果が見つかりません',
+  'search.results': '件の結果',
+  'bookmark.bookmarked': 'ブックマーク済み',
+  'bookmark.selectFirst': 'ブックマークするテキストを選択してください',
+};
+
+const de: TranslationDict = {
+  'tab.mindmaps': 'Mindmaps',
+  'tab.bundles': 'Bundles',
+  'tab.search': 'Suche',
+  'tab.wikis': 'Wikis',
+  'tab.themes': 'Themes',
+  'action.createBundle': 'Bundle erstellen',
+  'action.uploadSQLite': 'SQLite DB hochladen',
+  'action.createBundleLong': 'Neues Bundle erstellen',
+  'action.import': 'Importieren',
+  'action.export': 'Exportieren',
+  'action.delete': 'Löschen',
+  'action.cancel': 'Abbrechen',
+  'action.save': 'Speichern',
+  'action.edit': 'Bearbeiten',
+  'action.addPage': 'Seite hinzufügen',
+  'action.upload': 'Hochladen',
+  'common.bundles': 'Bundles',
+  'common.pages': 'Seiten',
+  'common.tags': 'Tags',
+  'common.language': 'Sprache',
+  'common.theme': 'Theme',
+  'empty.noBundles': 'Noch keine Bundles',
+  'empty.noBundlesDesc': 'Importieren Sie eine Datenbank oder fügen Sie Bundles hinzu, um hier eine visuelle Gruppierung zu sehen.',
+  'empty.selectBundle': 'Bundle auswählen',
+  'empty.selectBundleDesc': 'Wählen Sie ein Bundle von der Bundles-Seite, um dessen Wiki-Seiten anzuzeigen und zu bearbeiten.',
+  'empty.goToBundles': 'Zu Bundles',
+  'mindmap.dragHint': 'Ziehen zum Bewegen • Scrollen zum Zoomen • Klicken zum Öffnen',
+  'wiki.editBundle': 'Bundle-Info bearbeiten',
+  'wiki.deleteBundle': 'Bundle löschen',
+  'wiki.deletePage': 'Seite löschen',
+  'wiki.addPage': 'Seite hinzufügen',
+  'wiki.toggleToolbar': 'Symbolleiste ausblenden',
+  'wiki.toggleMindmap': 'Mindmap umschalten',
+  'wiki.deleteBundleConfirm': 'Möchten Sie dieses Bundle wirklich löschen? Alle Seitendaten werden dauerhaft gelöscht.',
+  'wiki.deletePageConfirm': 'Möchten Sie diese Seite wirklich löschen? Der Seiteninhalt wird dauerhaft gelöscht.',
+  'dialog.createBundle': 'Bundle erstellen',
+  'dialog.editBundle': 'Bundle-Info bearbeiten',
+  'dialog.bundleName': 'Bundle-Name',
+  'dialog.bundleTags': 'Tags (kommagetrennt)',
+  'dialog.pageName': 'Seitenname',
+  'theme.graphite': 'Graphit',
+  'theme.graphiteNight': 'Graphit Nacht',
+  'theme.warmLight': 'Warmes Licht',
+  'theme.cleanLight': 'Klares Licht',
+  'theme.softLavender': 'Sanftes Lavendel',
+  'theme.sunsetGlow': 'Sonnenuntergang',
+  'theme.forestMoss': 'Waldmoos',
+  'theme.charcoalDark': 'Kohle Dunkel',
+  'theme.midnightBlue': 'Mitternachtsblau',
+  'search.placeholder': 'Alle Bundles durchsuchen...',
+  'search.noResults': 'Keine Ergebnisse gefunden',
+  'search.results': 'Ergebnisse',
+  'bookmark.bookmarked': 'Lesezeichen gesetzt',
+  'bookmark.selectFirst': 'Wählen Sie zuerst Text aus, um ein Lesezeichen zu setzen',
+};
+
+const it: TranslationDict = {
+  'tab.mindmaps': 'Mappa mentale',
+  'tab.bundles': 'Bundle',
+  'tab.search': 'Ricerca',
+  'tab.wikis': 'Wiki',
+  'tab.themes': 'Temi',
+  'action.createBundle': 'Crea bundle',
+  'action.uploadSQLite': 'Carica DB SQLite',
+  'action.createBundleLong': 'Crea nuovo bundle',
+  'action.import': 'Importa',
+  'action.export': 'Esporta',
+  'action.delete': 'Elimina',
+  'action.cancel': 'Annulla',
+  'action.save': 'Salva',
+  'action.edit': 'Modifica',
+  'action.addPage': 'Aggiungi pagina',
+  'action.upload': 'Carica',
+  'common.bundles': 'bundle',
+  'common.pages': 'pagine',
+  'common.tags': 'tag',
+  'common.language': 'Lingua',
+  'common.theme': 'Tema',
+  'empty.noBundles': 'Nessun bundle',
+  'empty.noBundlesDesc': 'Importa un database o aggiungi bundle per vedere qui un raggruppamento visivo.',
+  'empty.selectBundle': 'Seleziona un bundle',
+  'empty.selectBundleDesc': 'Scegli un bundle dalla pagina Bundle per visualizzare e modificare le sue pagine wiki.',
+  'empty.goToBundles': 'Vai ai bundle',
+  'mindmap.dragHint': 'Trascina per muovere • Scorri per zoom • Clicca un nodo per aprire',
+  'wiki.editBundle': 'Modifica info bundle',
+  'wiki.deleteBundle': 'Elimina bundle',
+  'wiki.deletePage': 'Elimina pagina',
+  'wiki.addPage': 'Aggiungi pagina',
+  'wiki.toggleToolbar': 'Nascondi barra strumenti',
+  'wiki.toggleMindmap': 'Attiva mappa mentale',
+  'wiki.deleteBundleConfirm': 'Sei sicuro di voler eliminare questo bundle? Tutti i dati delle pagine verranno eliminati definitivamente.',
+  'wiki.deletePageConfirm': 'Sei sicuro di voler eliminare questa pagina? Il contenuto della pagina verrà eliminato definitivamente.',
+  'dialog.createBundle': 'Crea bundle',
+  'dialog.editBundle': 'Modifica info bundle',
+  'dialog.bundleName': 'Nome bundle',
+  'dialog.bundleTags': 'Tag (separati da virgola)',
+  'dialog.pageName': 'Nome pagina',
+  'theme.graphite': 'Grafite',
+  'theme.graphiteNight': 'Grafite notte',
+  'theme.warmLight': 'Luce calda',
+  'theme.cleanLight': 'Luce pulita',
+  'theme.softLavender': 'Lavanda morbida',
+  'theme.sunsetGlow': 'Tramonto',
+  'theme.forestMoss': 'Muschio forestale',
+  'theme.charcoalDark': 'Carbone scuro',
+  'theme.midnightBlue': 'Blu mezzanotte',
+  'search.placeholder': 'Cerca in tutti i bundle...',
+  'search.noResults': 'Nessun risultato trovato',
+  'search.results': 'risultati',
+  'bookmark.bookmarked': 'Segnalibro aggiunto',
+  'bookmark.selectFirst': 'Seleziona prima il testo per aggiungere un segnalibro',
+};
+
+const es: TranslationDict = {
+  'tab.mindmaps': 'Mapas mentales',
+  'tab.bundles': 'Bundles',
+  'tab.search': 'Buscar',
+  'tab.wikis': 'Wikis',
+  'tab.themes': 'Temas',
+  'action.createBundle': 'Crear bundle',
+  'action.uploadSQLite': 'Subir DB SQLite',
+  'action.createBundleLong': 'Crear nuevo bundle',
+  'action.import': 'Importar',
+  'action.export': 'Exportar',
+  'action.delete': 'Eliminar',
+  'action.cancel': 'Cancelar',
+  'action.save': 'Guardar',
+  'action.edit': 'Editar',
+  'action.addPage': 'Añadir página',
+  'action.upload': 'Subir',
+  'common.bundles': 'bundles',
+  'common.pages': 'páginas',
+  'common.tags': 'etiquetas',
+  'common.language': 'Idioma',
+  'common.theme': 'Tema',
+  'empty.noBundles': 'Sin bundles aún',
+  'empty.noBundlesDesc': 'Importa una base de datos o añade bundles para ver una agrupación visual aquí.',
+  'empty.selectBundle': 'Selecciona un bundle',
+  'empty.selectBundleDesc': 'Elige un bundle desde la página de Bundles para ver y editar sus páginas wiki.',
+  'empty.goToBundles': 'Ir a bundles',
+  'mindmap.dragHint': 'Arrastra para mover • Scroll para zoom • Clic en un nodo para abrir',
+  'wiki.editBundle': 'Editar info del bundle',
+  'wiki.deleteBundle': 'Eliminar bundle',
+  'wiki.deletePage': 'Eliminar página',
+  'wiki.addPage': 'Añadir página',
+  'wiki.toggleToolbar': 'Ocultar barra de herramientas',
+  'wiki.toggleMindmap': 'Alternar mapa mental',
+  'wiki.deleteBundleConfirm': '¿Estás seguro de que quieres eliminar este bundle? Todos los datos de las páginas se eliminarán permanentemente.',
+  'wiki.deletePageConfirm': '¿Estás seguro de que quieres eliminar esta página? El contenido de la página se eliminará permanentemente.',
+  'dialog.createBundle': 'Crear bundle',
+  'dialog.editBundle': 'Editar info del bundle',
+  'dialog.bundleName': 'Nombre del bundle',
+  'dialog.bundleTags': 'Etiquetas (separadas por comas)',
+  'dialog.pageName': 'Nombre de la página',
+  'theme.graphite': 'Grafito',
+  'theme.graphiteNight': 'Grafito noche',
+  'theme.warmLight': 'Luz cálida',
+  'theme.cleanLight': 'Luz limpia',
+  'theme.softLavender': 'Lavanda suave',
+  'theme.sunsetGlow': 'Resplandor atardecer',
+  'theme.forestMoss': 'Musgo de bosque',
+  'theme.charcoalDark': 'Carbón oscuro',
+  'theme.midnightBlue': 'Azul medianoche',
+  'search.placeholder': 'Buscar en todos los bundles...',
+  'search.noResults': 'No se encontraron resultados',
+  'search.results': 'resultados',
+  'bookmark.bookmarked': 'Marcador añadido',
+  'bookmark.selectFirst': 'Selecciona primero el texto para añadir un marcador',
+};
+
+export const TRANSLATIONS: Record<LanguageCode, TranslationDict> = {
+  en, zh, jp, de, it, es,
+};

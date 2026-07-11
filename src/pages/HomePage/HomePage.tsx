@@ -608,6 +608,7 @@ export default function HomePage() {
             onExportDB={handleExportDB}
             onImportJSON={handleImportJSON}
             onImportDB={handleImportDB}
+            onCreateBundle={handleCreateBundle}
           />
         );
 

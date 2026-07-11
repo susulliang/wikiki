@@ -3,6 +3,7 @@ import { Search, Network, FileText, Loader2 } from 'lucide-react';
 import type { ExtendedSearchResult } from '@/lib/search';
 import { highlightSearchText } from '@/lib/search';
 import { getTagColor } from '@/data/bundles';
+import { useLanguage } from '@/hooks/useLanguage';
 import { cn } from '@/lib/utils';
 
 interface SuperSearchPageProps {
@@ -22,6 +23,7 @@ export default function SuperSearchPage({
   onQueryChange,
   onSelect,
 }: SuperSearchPageProps) {
+  const { t } = useLanguage();
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Auto-focus the search input as soon as the page mounts — the input is
@@ -40,7 +42,7 @@ export default function SuperSearchPage({
             type="text"
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
-            placeholder="Search bundles, pages, tags..."
+            placeholder={t('search.placeholder')}
             className="w-full border-2 border-border bg-card py-4 pl-12 pr-4 font-serif text-lg text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
           {(loading || dbPrepping) && (
@@ -65,7 +67,7 @@ export default function SuperSearchPage({
         {!loading && query && results.length === 0 && (
           <div className="flex flex-1 flex-col items-center justify-center text-center text-muted-foreground">
             <Search className="mb-3 size-8 opacity-40" />
-            <p className="text-sm">No results found for &ldquo;{query}&rdquo;.</p>
+            <p className="text-sm">{t('search.noResults')}</p>
           </div>
         )}
 

@@ -2,6 +2,7 @@ import { useRef, useCallback, useEffect, useState, type KeyboardEvent, type Clip
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
+import { useLanguage } from '@/hooks/useLanguage';
 import {
   Bold,
   Italic,
@@ -69,6 +70,7 @@ export default function RichTextEditor({
   const isComposing = useRef(false);
   const [activeHeading, setActiveHeading] = useState<'p' | 'h1' | 'h2' | 'h3'>('p');
   const saveTimerRef = useRef<number | null>(null);
+  const { t } = useLanguage();
 
   // Auto-highlight and scroll when highlightQuery changes
   useEffect(() => {
@@ -371,7 +373,7 @@ export default function RichTextEditor({
       e.preventDefault();
       const selection = window.getSelection();
       if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
-        toast.info('Select text first to bookmark it');
+        toast.info(t('bookmark.selectFirst'));
         return;
       }
 
@@ -392,9 +394,9 @@ export default function RichTextEditor({
       selection.removeAllRanges();
       editorRef.current?.focus();
       syncContent();
-      toast.success('Bookmarked');
+      toast.success(t('bookmark.bookmarked'));
     },
-    [syncContent],
+    [syncContent, t],
   );
 
   return (

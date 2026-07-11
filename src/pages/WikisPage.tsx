@@ -2,6 +2,7 @@ import { BookOpen, ArrowRight } from 'lucide-react';
 import type { IBundle, IPage } from '@/data/bundles';
 import BundleDetail from '@/components/BundleDetail';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/hooks/useLanguage';
 
 interface WikisPageProps {
   bundle: IBundle | null;
@@ -32,6 +33,8 @@ export default function WikisPage({
   openMindmap,
   onNoBundle,
 }: WikisPageProps) {
+  const { t } = useLanguage();
+
   if (!bundle) {
     return (
       <div className="flex h-full flex-col items-center justify-center px-6 text-center">
@@ -39,13 +42,13 @@ export default function WikisPage({
           <BookOpen className="size-10 text-muted-foreground" />
         </div>
         <h2 className="font-serif text-3xl font-bold uppercase tracking-tight text-foreground">
-          Select a Bundle
+          {t('empty.selectBundle')}
         </h2>
         <p className="mb-8 mt-2 max-w-sm text-sm text-muted-foreground">
-          Choose a bundle from the Bundles page to view and edit its wiki pages.
+          {t('empty.selectBundleDesc')}
         </p>
         <Button onClick={onNoBundle} className="gap-2 uppercase tracking-wider">
-          Go to Bundles
+          {t('empty.goToBundles')}
           <ArrowRight className="size-4" />
         </Button>
       </div>

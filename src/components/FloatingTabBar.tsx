@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Package, Search, BookOpen, Palette, Network } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/hooks/useLanguage';
+import type { TranslationKey } from '@/i18n/translations';
 
 export type TabId = 'bundles' | 'supersearch' | 'wikis' | 'themes' | 'mindmaps';
 
@@ -13,12 +15,12 @@ interface FloatingTabBarProps {
   onMinimizedChange: (minimized: boolean) => void;
 }
 
-const TABS: Array<{ id: TabId; label: string; icon: LucideIcon }> = [
-  { id: 'mindmaps', label: 'Mindmaps', icon: Network },
-  { id: 'bundles', label: 'Bundles', icon: Package },
-  { id: 'supersearch', label: 'Search', icon: Search },
-  { id: 'wikis', label: 'Wikis', icon: BookOpen },
-  { id: 'themes', label: 'Themes', icon: Palette },
+const TABS: Array<{ id: TabId; labelKey: TranslationKey; icon: LucideIcon }> = [
+  { id: 'mindmaps', labelKey: 'tab.mindmaps', icon: Network },
+  { id: 'bundles', labelKey: 'tab.bundles', icon: Package },
+  { id: 'supersearch', labelKey: 'tab.search', icon: Search },
+  { id: 'wikis', labelKey: 'tab.wikis', icon: BookOpen },
+  { id: 'themes', labelKey: 'tab.themes', icon: Palette },
 ];
 
 const SWIPE_THRESHOLD = 50;
@@ -42,6 +44,7 @@ export default function FloatingTabBar({
   isMinimized,
   onMinimizedChange,
 }: FloatingTabBarProps) {
+  const { t } = useLanguage();
   const [showText, setShowText] = useState(false);
   const [isNarrow, setIsNarrow] = useState(false);
   const collapseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -151,6 +154,7 @@ export default function FloatingTabBar({
           {TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
+            const label = t(tab.labelKey);
             return (
               <button
                 key={tab.id}
@@ -171,7 +175,7 @@ export default function FloatingTabBar({
                     canShowText ? 'ml-2 max-w-[120px] opacity-100' : 'ml-0 max-w-0 opacity-0',
                   )}
                 >
-                  {tab.label}
+                  {label}
                 </span>
               </button>
             );

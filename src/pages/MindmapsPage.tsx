@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
-import { Network, Database, FileJson, Download, Upload, HardDrive } from 'lucide-react';
+import { Network, Database, FileJson, Download, Upload, HardDrive, Plus } from 'lucide-react';
 import type { IBundle } from '@/data/bundles';
 import { useTheme, THEME_OPTIONS } from '@/hooks/useTheme';
+import { useLanguage } from '@/hooks/useLanguage';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
@@ -17,6 +18,7 @@ interface MindmapsPageProps {
   onExportDB: () => void;
   onImportJSON: () => void;
   onImportDB: () => void;
+  onCreateBundle: () => void;
 }
 
 interface GroupItem {
@@ -56,8 +58,10 @@ export default function MindmapsPage({
   onExportDB,
   onImportJSON,
   onImportDB,
+  onCreateBundle,
 }: MindmapsPageProps) {
   const { theme: currentTheme } = useTheme();
+  const { t } = useLanguage();
   const isDark = useMemo(
     () => THEME_OPTIONS.find((t) => t.value === currentTheme)?.isDark ?? false,
     [currentTheme],
@@ -256,11 +260,30 @@ export default function MindmapsPage({
             <Network className="size-10 text-muted-foreground" />
           </div>
           <h2 className="text-2xl font-bold uppercase tracking-tight text-foreground">
-            No Bundles Yet
+            {t('empty.noBundles')}
           </h2>
           <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-            Import a database or add bundles to see a visual grouping here.
+            {t('empty.noBundlesDesc')}
           </p>
+          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row">
+            <Button
+              onClick={onImportDB}
+              size="lg"
+              className="h-12 gap-2.5 px-8 text-base"
+            >
+              <Database className="size-5" />
+              {t('action.uploadSQLite')}
+            </Button>
+            <Button
+              onClick={onCreateBundle}
+              size="lg"
+              variant="outline"
+              className="h-12 gap-2.5 px-8 text-base"
+            >
+              <Plus className="size-5" />
+              {t('action.createBundleLong')}
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="relative flex-1 overflow-hidden">

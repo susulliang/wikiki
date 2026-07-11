@@ -1,6 +1,7 @@
 import { Plus, Trash2, FileText, Package } from 'lucide-react';
 import type { IBundle } from '@/data/bundles';
 import { getTagColor } from '@/data/bundles';
+import { useLanguage } from '@/hooks/useLanguage';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
@@ -19,6 +20,8 @@ export default function BundlesPage({
   onCreateBundle,
   onDeleteBundle,
 }: BundlesPageProps) {
+  const { t } = useLanguage();
+
   if (bundles.length === 0) {
     return (
       <div className="flex h-full flex-col items-center justify-center px-6 text-center">
@@ -26,14 +29,14 @@ export default function BundlesPage({
           <Package className="size-10 text-muted-foreground" />
         </div>
         <h2 className="font-serif text-2xl font-bold uppercase tracking-tight text-foreground">
-          No Bundles Yet
+          {t('empty.noBundles')}
         </h2>
         <p className="mb-6 mt-2 max-w-sm text-sm text-muted-foreground">
-          Create your first bundle to start building a wiki knowledge base.
+          {t('empty.noBundlesDesc')}
         </p>
         <Button onClick={onCreateBundle} className="gap-2 uppercase tracking-wider">
           <Plus className="size-4" />
-          Create Bundle
+          {t('action.createBundle')}
         </Button>
       </div>
     );
@@ -45,15 +48,15 @@ export default function BundlesPage({
         <header className="mb-8 flex items-center justify-between border-b-2 border-border pb-6">
           <div>
             <h1 className="font-serif text-4xl font-bold uppercase tracking-tight text-foreground">
-              Bundles
+              {t('tab.bundles')}
             </h1>
             <p className="mt-2 font-mono text-xs uppercase tracking-wider text-muted-foreground">
-              {bundles.length} {bundles.length === 1 ? 'bundle' : 'bundles'} in your library
+              {bundles.length} {t('common.bundles')}
             </p>
           </div>
           <Button onClick={onCreateBundle} className="gap-2 uppercase tracking-wider">
             <Plus className="size-4" />
-            Create
+            {t('action.createBundle')}
           </Button>
         </header>
 
