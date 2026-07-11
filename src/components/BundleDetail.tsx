@@ -151,9 +151,9 @@ export default function BundleDetail({
 
   return (
     <div className="flex-1 overflow-auto min-h-0 relative" id="bundle-detail-container">
-      {/* Bundle Header - sticky, blurred transparent */}
+      {/* Bundle Header - sticky, fully transparent so global bg shows */}
       <div
-        className="sticky top-0 z-30 border-b border-border/70 px-6 py-2.5 flex flex-col gap-2 bg-background/45 backdrop-blur-xl supports-[backdrop-filter]:bg-background/35"
+        className="sticky top-0 z-30 px-6 py-2.5 flex flex-col gap-2"
       >
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0 flex-1 flex items-center gap-3">

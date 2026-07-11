@@ -14,17 +14,51 @@ interface MindmapNode {
   lineStyle?: any;
 }
 
-/** Color palette for child nodes. In dark themes uses a greyscale ramp that
- *  aligns with the Graphite chart tokens; in light themes uses the original
- *  soft pastel palette for readability on light backgrounds. */
-const COLORS_LIGHT = [
-  '#FF9CEE', '#B2FF59', '#FFFF8D', '#FFCC80', '#CE93D8',
-  '#80DEEA', '#A5D6A7', '#90CAF9', '#FFAB91',
+interface NodeColor {
+  bg: string;
+  text: string;
+  border: string;
+}
+
+/** Curated palette for light themes — muted, harmonious, editorial tones
+ *  that complement the Warm Editorial Minimal design system. */
+const COLORS_LIGHT: NodeColor[] = [
+  { bg: '#7a9e7e', text: '#ffffff', border: '#5e8262' }, // sage
+  { bg: '#c9867a', text: '#ffffff', border: '#a86b60' }, // terracotta
+  { bg: '#d4a85a', text: '#3d2e0a', border: '#b88a3e' }, // mustard
+  { bg: '#8e7a98', text: '#ffffff', border: '#735c80' }, // plum
+  { bg: '#6ba3a8', text: '#ffffff', border: '#52858a' }, // teal
+  { bg: '#c89aa8', text: '#3d1a28', border: '#a87a88' }, // rose
+  { bg: '#7a8ba0', text: '#ffffff', border: '#5e6f85' }, // slate
+  { bg: '#a8a06a', text: '#2d2810', border: '#888050' }, // olive
 ];
-const COLORS_DARK = [
-  '#d9d9d9', '#a6a6a6', '#808080', '#595959', '#333333',
-  '#bdbdbd', '#8c8c8c', '#666666', '#404040',
+
+/** Curated palette for dark themes — muted with subtle warm/cool tints
+ *  that maintain readability on dark backgrounds without clashing. */
+const COLORS_DARK: NodeColor[] = [
+  { bg: '#6b7a6e', text: '#f0f5f0', border: '#8a9a8e' }, // sage
+  { bg: '#9a6b62', text: '#f5ece8', border: '#b88a7e' }, // terracotta
+  { bg: '#8a7240', text: '#f5eed8', border: '#aa9258' }, // mustard
+  { bg: '#6b5e78', text: '#ece8f0', border: '#8a7e98' }, // plum
+  { bg: '#557074', text: '#e8f0f0', border: '#728a8e' }, // teal
+  { bg: '#8a6874', text: '#f5e8ec', border: '#a88494' }, // rose
+  { bg: '#5e6e82', text: '#e8ecf0', border: '#7a8aa0' }, // slate
+  { bg: '#6e6850', text: '#f0ece0', border: '#8a8470' }, // olive
 ];
+
+/** Mix a hex color toward a target (white for light themes, dark for dark themes).
+ *  Used to create progressively lighter tints for deeper-level nodes. */
+function tint(hex: string, factor: number, isDark: boolean): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const target = isDark ? 35 : 255;
+  const f = Math.min(0.5, factor);
+  const nr = Math.round(r + (target - r) * f);
+  const ng = Math.round(g + (target - g) * f);
+  const nb = Math.round(b + (target - b) * f);
+  return `#${nr.toString(16).padStart(2, '0')}${ng.toString(16).padStart(2, '0')}${nb.toString(16).padStart(2, '0')}`;
+}
 
 export default function MindmapView({ content }: MindmapViewProps) {
   const { theme: currentTheme } = useTheme();
@@ -34,7 +68,7 @@ export default function MindmapView({ content }: MindmapViewProps) {
     // 1. Strip HTML tags to get plain text
     const parser = new DOMParser();
     const doc = parser.parseFromString(content, 'text/html');
-    
+
     // Check if it's a list-based content first (fallback)
     const rootList = doc.querySelector('ul, ol');
     if (rootList) {
@@ -67,7 +101,7 @@ export default function MindmapView({ content }: MindmapViewProps) {
     // 2. Parse indented text (Mermaid-like mindmap syntax)
     const rawText = doc.body.textContent || '';
     const lines = rawText.split('\n').filter(l => l.trim().length > 0);
-    
+
     if (lines.length === 0) return { name: 'Empty' };
 
     // Remove 'mindmap' header if present
@@ -98,7 +132,7 @@ export default function MindmapView({ content }: MindmapViewProps) {
         while (stack.length > 0 && stack[stack.length - 1].depth >= indent) {
           stack.pop();
         }
-        
+
         if (stack.length > 0) {
           const parent = stack[stack.length - 1].node;
           if (!parent.children) parent.children = [];
@@ -111,54 +145,107 @@ export default function MindmapView({ content }: MindmapViewProps) {
     return rootNode || { name: 'Wikiki' };
   }, [content]);
 
-  // Apply colors and styles recursively
+  // Apply colors and styles recursively — each top-level branch gets a
+  // distinctive color from the palette, and descendants inherit progressively
+  // lighter tints of that branch color for visual hierarchy.
   const styledData = useMemo(() => {
     if (!treeData) return null;
 
-    const processNode = (node: MindmapNode, level: number, colorIdx: number): MindmapNode => {
-      const COLORS = isDark ? COLORS_DARK : COLORS_LIGHT;
-      const color = level === 0 ? (isDark ? '#999999' : '#333333') : COLORS[colorIdx % COLORS.length];
-      const textColor = level === 0 ? '#FFFFFF' : (isDark ? '#1a1a1a' : '#333333');
-      
+    const palette = isDark ? COLORS_DARK : COLORS_LIGHT;
+
+    // Root node: prominent, neutral, anchors the composition
+    const rootColor: NodeColor = isDark
+      ? { bg: '#9a9a9a', text: '#1a1a1a', border: '#bababa' }
+      : { bg: '#3a3a3a', text: '#ffffff', border: '#1a1a1a' };
+
+    const processNode = (
+      node: MindmapNode,
+      level: number,
+      branchColor: NodeColor | null,
+    ): MindmapNode => {
+      let color: NodeColor;
+      let lineColor: string;
+
+      if (level === 0) {
+        color = rootColor;
+        lineColor = isDark ? '#666666' : '#cccccc';
+      } else if (level === 1) {
+        // Branch root: full palette color
+        color = branchColor || palette[0];
+        lineColor = color.border;
+      } else {
+        // Deeper levels: tint the branch color toward white/dark
+        const base = branchColor || palette[0];
+        const tintFactor = (level - 1) * 0.18;
+        color = {
+          bg: tint(base.bg, tintFactor, isDark),
+          text: base.text,
+          border: tint(base.border, tintFactor, isDark),
+        };
+        lineColor = tint(base.border, tintFactor * 0.5, isDark);
+      }
+
+      // Composition: size, weight, padding, radius all scale with level
+      const fontSize = level === 0 ? 16 : level === 1 ? 13 : 12;
+      const fontWeight: number | string = level === 0 ? 'bold' : level === 1 ? 500 : 'normal';
+      const padding: [number, number] = level === 0 ? [10, 16] : [7, 12];
+      const borderRadius = level === 0 ? 14 : 8;
+      const shadowBlur = level === 0 ? 12 : 8;
+      const shadowOpacity = isDark ? 0.4 : 0.12;
+      const shadowOffsetY = level === 0 ? 3 : 2;
+
       return {
         ...node,
         label: {
-          backgroundColor: color,
-          color: textColor,
-          padding: [6, 10],
-          borderRadius: 4,
-          fontSize: level === 0 ? 16 : 12,
-          fontWeight: level === 0 ? 'bold' : 'normal',
-          shadowBlur: 4,
-          shadowColor: 'rgba(0,0,0,0.2)',
-          shadowOffsetX: 2,
-          shadowOffsetY: 2,
+          backgroundColor: color.bg,
+          color: color.text,
+          borderColor: color.border,
+          borderWidth: 1,
+          padding,
+          borderRadius,
+          fontSize,
+          fontWeight,
+          shadowBlur,
+          shadowColor: `rgba(0,0,0,${shadowOpacity})`,
+          shadowOffsetX: 0,
+          shadowOffsetY,
         },
         itemStyle: {
-          color: color,
-          borderColor: color,
+          color: color.bg,
+          borderColor: color.border,
         },
         lineStyle: {
-          color: color,
-          width: Math.max(1, 4 - level),
+          color: lineColor,
+          width: Math.max(1, 3 - level * 0.5),
+          opacity: Math.max(0.35, 1 - level * 0.15),
         },
-        children: node.children?.map((child, idx) => 
-          processNode(child, level + 1, level === 0 ? idx : colorIdx)
-        )
+        children: node.children?.map((child, idx) => {
+          if (level === 0) {
+            // Assign a palette color to each top-level branch
+            return processNode(child, 1, palette[idx % palette.length]);
+          }
+          // Descendants inherit the branch color
+          return processNode(child, level + 1, branchColor);
+        }),
       };
     };
 
-    return processNode(treeData, 0, 0);
-  }, [treeData]);
+    return processNode(treeData, 0, null);
+  }, [treeData, isDark]);
 
   const option = {
     backgroundColor: 'transparent',
     tooltip: {
       trigger: 'item',
       triggerOn: 'mousemove',
-      backgroundColor: 'var(--popover)',
-      borderColor: 'var(--border)',
-      textStyle: { color: 'var(--popover-foreground)' },
+      backgroundColor: isDark ? 'rgba(20,20,20,0.92)' : 'rgba(255,255,255,0.92)',
+      borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
+      borderWidth: 1,
+      textStyle: {
+        color: isDark ? '#e0e0e0' : '#333333',
+        fontSize: 12,
+      },
+      padding: [8, 12],
     },
     series: [
       {
@@ -166,9 +253,9 @@ export default function MindmapView({ content }: MindmapViewProps) {
         data: [styledData],
         layout: 'radial',
         symbol: 'circle',
-        symbolSize: 1, // Hide the default circles
-        nodePadding: 20,
-        roam: true, // Enable drag and zoom
+        symbolSize: 1, // Hide the default circles — labels act as nodes
+        nodePadding: 22,
+        roam: true,
         expandAndCollapse: true,
         initialTreeDepth: 2,
         animationDuration: 550,
@@ -182,7 +269,17 @@ export default function MindmapView({ content }: MindmapViewProps) {
         leaves: {
           label: {
             position: 'inside',
-            rotate: 0, // Keep text horizontal
+            rotate: 0,
+          }
+        },
+        emphasis: {
+          label: {
+            shadowBlur: 20,
+            shadowColor: 'rgba(0,0,0,0.25)',
+          },
+          lineStyle: {
+            width: 3,
+            opacity: 1,
           }
         },
         lineStyle: {
