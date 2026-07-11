@@ -1,25 +1,29 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { Loader2, BookOpen } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useProducts } from '@/hooks/useProducts';
 import { useTheme } from '@/hooks/useTheme';
 import { scopedStorage, logger } from '@lark-apaas/client-toolkit-lite';
-import AppSidebar from '@/components/AppSidebar';
-import EmptyState from '@/components/EmptyState';
-import ProductDetail from '@/components/ProductDetail';
-import SuperSearchOverlay from '@/components/SuperSearchOverlay';
+import FloatingTabBar, { type TabId } from '@/components/FloatingTabBar';
+import ProductDialog from '@/components/ProductDialog';
+import DatabasePage from '@/pages/DatabasePage';
+import ProductsPage from '@/pages/ProductsPage';
+import WikisPage from '@/pages/WikisPage';
+import ThemesPage from '@/pages/ThemesPage';
+import MindmapsPage from '@/pages/MindmapsPage';
+import SuperSearchPage from '@/pages/SuperSearchPage';
 import { useStorageMode } from '@/lib/storage-context';
 import { getSQLiteStorage } from '@/lib/sqlite-storage';
 import type { IProduct, IPage } from '@/data/products';
 import { searchProducts, type ExtendedSearchResult } from '@/lib/search';
 
-const SIDEBAR_KEY = '__wikiki_sidebar_collapsed';
 const SELECTED_KEY = '__wikiki_selected_product_id';
 const PAGE_INDEX_KEY = '__wikiki_selected_page_index';
+const ACTIVE_TAB_KEY = '__wikiki_active_tab';
+const TABBAR_MINIMIZED_KEY = '__wikiki_tabbar_minimized';
 
 export default function HomePage() {
-  const { mode: storageMode, sqliteReady, reloadSQLiteProducts } = useStorageMode();
+  const { mode: storageMode, sqliteReady, reloadSQLiteProducts, switchMode, exportProductsJSON, exportSQLiteDB, importSQLiteDB, sqliteInfo } = useStorageMode();
 
-  // JSON 模式 hook
   const {
     products: jsonProducts,
     addProduct: jsonAddProduct,
@@ -29,17 +33,50 @@ export default function HomePage() {
     deletePage: jsonDeletePage,
     updatePageContent: jsonUpdatePageContent,
     reorderPages: jsonReorderPages,
-    importProducts: jsonImportProducts,
-    exportProducts: jsonExportProducts,
   } = useProducts();
 
   useEffect(() => {
     document.title = 'Wikiki';
   }, []);
 
-  const [sidebarHidden, setSidebarHidden] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabId>(() => {
+    try {
+      const stored = scopedStorage.getItem(ACTIVE_TAB_KEY) as TabId;
+      if (stored && ['database', 'products', 'supersearch', 'wikis', 'themes', 'mindmaps'].includes(stored)) {
+        return stored;
+      }
+    } catch {
+      // ignore
+    }
+    return 'products';
+  });
 
-  // SQLite 模式状态
+  const handleTabChange = useCallback((tab: TabId) => {
+    setActiveTab(tab);
+    try {
+      scopedStorage.setItem(ACTIVE_TAB_KEY, tab);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const [tabBarMinimized, setTabBarMinimized] = useState<boolean>(() => {
+    try {
+      return scopedStorage.getItem(TABBAR_MINIMIZED_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const handleMinimizedChange = useCallback((minimized: boolean) => {
+    setTabBarMinimized(minimized);
+    try {
+      scopedStorage.setItem(TABBAR_MINIMIZED_KEY, String(minimized));
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const [selectedProductId, setSelectedProductId] = useState<string | null>(() => {
     try {
       return scopedStorage.getItem(SELECTED_KEY) || null;
@@ -57,32 +94,20 @@ export default function HomePage() {
     }
   });
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterTags, setFilterTags] = useState<string[]>([]);
-  const [superSearchOpen, setSuperSearchOpen] = useState(false);
   const [superSearchQuery, setSuperSearchQuery] = useState('');
   const [debouncedSuperSearchQuery, setDebouncedSuperSearchQuery] = useState('');
   const [activeHighlightQuery, setActiveHighlightQuery] = useState('');
   const [openMindmapMode, setOpenMindmapMode] = useState(0);
 
-  // Debounce Super Search Query (800ms for better typing experience)
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSuperSearchQuery(superSearchQuery);
-    }, 800); // 800ms delay
+    }, 800);
 
     return () => clearTimeout(timer);
   }, [superSearchQuery]);
 
-  const { theme, toggleTheme, setTheme } = useTheme();
-
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    try {
-      return scopedStorage.getItem(SIDEBAR_KEY) === 'true';
-    } catch {
-      return false;
-    }
-  });
+  const { theme, setTheme } = useTheme();
 
   const [sqliteProducts, setSqliteProducts] = useState<IProduct[]>([]);
   const [sqliteSearchProducts, setSqliteSearchProducts] = useState<IProduct[]>([]);
@@ -94,7 +119,7 @@ export default function HomePage() {
     storage.getAllProductsShallow().then((prods) => {
       setSqliteProducts(prods);
     }).catch((e) => {
-      logger.error('加载 SQLite 产品失败:', String(e));
+      logger.error('Failed to load SQLite products:', String(e));
     });
   }, [storageMode, sqliteReady]);
 
@@ -108,7 +133,7 @@ export default function HomePage() {
         setLoadedProductContent((prev) => new Map(prev).set(selectedProductId, fullProduct));
       }
     }).catch((e) => {
-      logger.error('加载产品内容失败:', String(e));
+      logger.error('Failed to load product content:', String(e));
     });
   }, [storageMode, selectedProductId, loadedProductContent]);
 
@@ -141,7 +166,7 @@ export default function HomePage() {
   );
 
   useEffect(() => {
-    if (storageMode !== 'sqlite' || !sqliteReady || !superSearchOpen) {
+    if (storageMode !== 'sqlite' || !sqliteReady || activeTab !== 'supersearch') {
       setSqliteSearchProducts([]);
       return;
     }
@@ -157,7 +182,7 @@ export default function HomePage() {
         }
       })
       .catch((error) => {
-        logger.error('加载 SQLite 搜索索引失败:', String(error));
+        logger.error('Failed to load SQLite search index:', String(error));
         if (!cancelled) {
           setSqliteSearchProducts([]);
         }
@@ -166,7 +191,7 @@ export default function HomePage() {
     return () => {
       cancelled = true;
     };
-  }, [storageMode, sqliteReady, superSearchOpen, products]);
+  }, [storageMode, sqliteReady, activeTab, products]);
 
   const searchableProducts = useMemo(() => {
     if (storageMode !== 'sqlite') {
@@ -184,16 +209,22 @@ export default function HomePage() {
   const handleSelectProduct = useCallback(
     (id: string) => {
       setSelectedProductId(id);
-      setSuperSearchOpen(false);
-      setSuperSearchQuery('');
       setSelectedPageIndex(0);
       try {
         scopedStorage.setItem(SELECTED_KEY, id);
       } catch {
-        // 忽略
+        // ignore
       }
     },
     [],
+  );
+
+  const handleSelectProductFromMindmap = useCallback(
+    (id: string) => {
+      handleSelectProduct(id);
+      handleTabChange('wikis');
+    },
+    [handleSelectProduct, handleTabChange],
   );
 
   const handleDeleteProduct = useCallback(
@@ -210,7 +241,7 @@ export default function HomePage() {
         try {
           scopedStorage.setItem(SELECTED_KEY, '');
         } catch {
-          // 忽略
+          // ignore
         }
       }
     },
@@ -222,55 +253,29 @@ export default function HomePage() {
     try {
       scopedStorage.setItem(PAGE_INDEX_KEY, String(index));
     } catch {
-      // 忽略
+      // ignore
     }
-  }, []);
-
-  const handleToggleCollapse = useCallback(() => {
-    setSidebarCollapsed((prev) => {
-      const next = !prev;
-      try {
-        scopedStorage.setItem(SIDEBAR_KEY, String(next));
-      } catch {
-        // 忽略
-      }
-      return next;
-    });
-  }, []);
-
-  const handleTagToggle = useCallback((tag: string) => {
-    setFilterTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
-    );
-  }, []);
-
-  const handleSearchChange = useCallback((query: string) => {
-    setSearchQuery(query);
   }, []);
 
   const handleSearchResultSelect = useCallback(
     (result: ExtendedSearchResult, paragraphIndex?: number) => {
       setSelectedProductId(result.productId);
       setSelectedPageIndex(result.pageIndex ?? 0);
-      setSuperSearchOpen(false);
-      
-      // Use the actual search query for highlighting in the editor
+      setActiveTab('wikis');
+
       setActiveHighlightQuery(superSearchQuery);
-      
-      // Set mindmap mode if result is a mindmap (use timestamp as trigger so effect always re-runs)
       setOpenMindmapMode(result.isMindmap ? Date.now() : 0);
-      
+
       try {
         scopedStorage.setItem(SELECTED_KEY, result.productId);
         scopedStorage.setItem(PAGE_INDEX_KEY, String(result.pageIndex ?? 0));
+        scopedStorage.setItem(ACTIVE_TAB_KEY, 'wikis');
       } catch {
-        // 忽略
+        // ignore
       }
 
-      // Clear the query after selection
       setSuperSearchQuery('');
 
-      // Clear highlight and mindmap mode after some time
       setTimeout(() => {
         setActiveHighlightQuery('');
         setOpenMindmapMode(0);
@@ -279,20 +284,16 @@ export default function HomePage() {
     [superSearchQuery],
   );
 
-  const handleOpenSuperSearch = useCallback(() => {
-    setSuperSearchOpen(true);
-  }, []);
-
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault();
-        setSuperSearchOpen(true);
-        return;
-      }
-
-      if (event.key === 'Escape') {
-        setSuperSearchOpen(false);
+        setActiveTab('supersearch');
+        try {
+          scopedStorage.setItem(ACTIVE_TAB_KEY, 'supersearch');
+        } catch {
+          // ignore
+        }
       }
     };
 
@@ -300,35 +301,55 @@ export default function HomePage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  useEffect(() => {
-    if (!superSearchOpen) {
-      document.body.style.removeProperty('overflow');
-      return;
-    }
-
-    document.body.style.setProperty('overflow', 'hidden');
-    return () => {
-      document.body.style.removeProperty('overflow');
-    };
-  }, [superSearchOpen]);
+  const [triggerAddDialog, setTriggerAddDialog] = useState(false);
 
   const handleCreateProduct = useCallback(() => {
     setTriggerAddDialog(true);
   }, []);
 
   const handleImportJSON = useCallback(() => {
-    setTriggerImportJSON(true);
-  }, []);
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      const text = await file.text();
+      const data = JSON.parse(text);
+      if (Array.isArray(data)) {
+        const { normalizeProduct } = await import('@/data/products');
+        const products = data.map((item: Record<string, unknown>) => normalizeProduct(item));
+        if (storageMode === 'sqlite') {
+          const storage = getSQLiteStorage();
+          if (!storage.initialized) await storage.init();
+          await storage.importProducts(products);
+          await handleReloadSQLite();
+        } else {
+          products.forEach((p: IProduct) => {
+            jsonAddProduct(p.name, p.tags);
+          });
+        }
+        handleTabChange('mindmaps');
+      }
+    };
+    input.click();
+  }, [storageMode, jsonAddProduct, handleReloadSQLite, handleTabChange]);
 
   const handleImportDB = useCallback(() => {
-    setTriggerImportDB(true);
-  }, []);
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.db';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      const buffer = await file.arrayBuffer();
+      await importSQLiteDB(new Uint8Array(buffer));
+      await handleReloadSQLite();
+      handleTabChange('mindmaps');
+    };
+    input.click();
+  }, [importSQLiteDB, handleReloadSQLite, handleTabChange]);
 
-  const [triggerAddDialog, setTriggerAddDialog] = useState(false);
-  const [triggerImportJSON, setTriggerImportJSON] = useState(false);
-  const [triggerImportDB, setTriggerImportDB] = useState(false);
-
-  // 添加产品（同步返回 IProduct）
   const handleAddProductFromSidebar = useCallback(
     (name: string, tags: string[]): IProduct => {
       const now = new Date().toISOString();
@@ -339,8 +360,8 @@ export default function HomePage() {
         pages: [
           {
             id: `page-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-            title: '主页',
-            name: '主页',
+            title: 'Main',
+            name: 'Main',
             content: '',
             order: 0,
             createdAt: now,
@@ -353,7 +374,6 @@ export default function HomePage() {
       };
 
       if (storageMode === 'sqlite') {
-        // 异步执行但不等待（保持同步返回签名）
         (async () => {
           try {
             const storage = getSQLiteStorage();
@@ -362,7 +382,7 @@ export default function HomePage() {
             const prods = await reloadSQLiteProducts();
             setSqliteProducts(prods);
           } catch (e) {
-            logger.error('SQLite 添加产品失败:', String(e));
+            logger.error('SQLite add product failed:', String(e));
           }
         })();
       } else {
@@ -373,7 +393,7 @@ export default function HomePage() {
       try {
         scopedStorage.setItem(SELECTED_KEY, newProduct.id);
       } catch {
-        // 忽略
+        // ignore
       }
       setTriggerAddDialog(false);
       return newProduct;
@@ -455,9 +475,7 @@ export default function HomePage() {
     async (productId: string, pageId: string, content: string) => {
       if (storageMode === 'sqlite') {
         const storage = getSQLiteStorage();
-        // Use optimized updatePageContent method
         await storage.updatePageContent(productId, pageId, content);
-        // Update the in-memory cache so we don't lose the edits
         setLoadedProductContent((prev) => {
           const cached = prev.get(productId);
           if (!cached) return prev;
@@ -492,118 +510,146 @@ export default function HomePage() {
     [storageMode, jsonReorderPages, handleReloadSQLite],
   );
 
-  const handleImportProductsJSON = useCallback(
-    (incoming: IProduct[]) => {
-      return jsonImportProducts(incoming);
-    },
-    [jsonImportProducts],
-  );
+  const handleExportJSON = useCallback(() => {
+    exportProductsJSON();
+  }, [exportProductsJSON]);
 
-  const handleExportProductsJSON = useCallback(() => {
-    jsonExportProducts();
-  }, [jsonExportProducts]);
+  const handleExportDB = useCallback(() => {
+    exportSQLiteDB();
+  }, [exportSQLiteDB]);
+
+  const handleSwitchMode = useCallback(async (mode: 'json' | 'sqlite', migrate?: boolean) => {
+    await switchMode(mode, migrate);
+  }, [switchMode]);
 
   const isLoadingContent = storageMode === 'sqlite' && selectedProductId !== null && !loadedProductContent.has(selectedProductId);
 
-  const renderMainContent = () => {
-    if (!selectedProduct) {
-      return (
-        <EmptyState
-          onCreateProduct={handleCreateProduct}
-          onImportJSON={handleImportJSON}
-          onImportDB={handleImportDB}
-        />
-      );
-    }
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'database':
+        return (
+          <DatabasePage
+            storageMode={storageMode}
+            sqliteInfo={sqliteInfo}
+            sqliteReady={sqliteReady}
+            onSwitchMode={handleSwitchMode}
+            onExportJSON={handleExportJSON}
+            onExportDB={handleExportDB}
+            onImportJSON={handleImportJSON}
+            onImportDB={handleImportDB}
+            products={products}
+          />
+        );
 
-    if (isLoadingContent) {
-      return (
-        <div className="flex h-[50vh] flex-col items-center justify-center gap-4 p-8 text-center">
-          <Loader2 className="size-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground italic">Loading content...</p>
-        </div>
-      );
-    }
+      case 'products':
+        return (
+          <ProductsPage
+            products={products}
+            selectedProductId={selectedProductId}
+            onSelectProduct={(id) => {
+              handleSelectProduct(id);
+              handleTabChange('wikis');
+            }}
+            onCreateProduct={handleCreateProduct}
+            onDeleteProduct={handleDeleteProduct}
+          />
+        );
 
-    return (
-      <ProductDetail
-        product={selectedProduct}
-        pageIndex={selectedPageIndex}
-        onPageChange={handlePageChange}
-        onUpdateProduct={handleUpdateProduct}
-        onDeleteProduct={handleDeleteProduct}
-        onAddPage={handleAddPage}
-        onDeletePage={handleDeletePage}
-        onUpdatePageContent={handleUpdatePageContent}
-        onReorderPages={handleReorderPages}
-        highlightQuery={activeHighlightQuery}
-        openMindmap={openMindmapMode}
-      />
-    );
+      case 'supersearch':
+        return (
+          <SuperSearchPage
+            query={superSearchQuery}
+            results={searchResults}
+            loading={
+              storageMode === 'sqlite' &&
+              superSearchQuery.trim().length > 0 &&
+              sqliteProducts.length > 0 &&
+              sqliteSearchProducts.length === 0
+            }
+            onQueryChange={setSuperSearchQuery}
+            onSelect={handleSearchResultSelect}
+          />
+        );
+
+      case 'wikis':
+        if (isLoadingContent) {
+          return (
+            <div className="flex h-[50vh] flex-col items-center justify-center gap-4 p-8 text-center">
+              <Loader2 className="size-8 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground italic">Loading content...</p>
+            </div>
+          );
+        }
+        return (
+          <WikisPage
+            product={selectedProduct}
+            pageIndex={selectedPageIndex}
+            onPageChange={handlePageChange}
+            onUpdateProduct={handleUpdateProduct}
+            onDeleteProduct={handleDeleteProduct}
+            onAddPage={handleAddPage}
+            onDeletePage={handleDeletePage}
+            onUpdatePageContent={handleUpdatePageContent}
+            onReorderPages={handleReorderPages}
+            highlightQuery={activeHighlightQuery}
+            openMindmap={openMindmapMode}
+            onNoProduct={() => handleTabChange('products')}
+          />
+        );
+
+      case 'themes':
+        return (
+          <ThemesPage
+            currentTheme={theme}
+            onSetTheme={setTheme}
+          />
+        );
+
+      case 'mindmaps':
+        return (
+          <MindmapsPage
+            products={products}
+            onSelectProduct={handleSelectProductFromMindmap}
+          />
+        );
+
+      default:
+        return null;
+    }
   };
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden relative">
-      {!sidebarHidden ? (
-        <AppSidebar
-          products={products}
-          selectedProductId={selectedProductId}
-          collapsed={sidebarCollapsed}
-          theme={theme}
-          searchQuery={searchQuery}
-          filterTags={filterTags}
-          triggerAdd={triggerAddDialog}
-          triggerImportJSON={triggerImportJSON}
-          triggerImportDB={triggerImportDB}
-          onSelectProduct={handleSelectProduct}
-          onAddProduct={handleAddProductFromSidebar}
-          onImportProductsJSON={handleImportProductsJSON}
-          onExportProductsJSON={handleExportProductsJSON}
-          onToggleCollapse={handleToggleCollapse}
-          onToggleTheme={toggleTheme}
-          onSetTheme={setTheme}
-          onSearchChange={handleSearchChange}
-          onOpenSuperSearch={handleOpenSuperSearch}
-          onTagToggle={handleTagToggle}
-          onTriggerAddHandled={() => setTriggerAddDialog(false)}
-          onTriggerImportJSONHandled={() => setTriggerImportJSON(false)}
-          onTriggerImportDBHandled={() => setTriggerImportDB(false)}
-          onProductsChanged={handleReloadSQLite}
-          onHideSidebar={() => setSidebarHidden(true)}
-        />
-      ) : (
-        <button
-          onClick={() => setSidebarHidden(false)}
-          className="fixed bottom-6 left-6 z-[60] flex size-12 items-center justify-center rounded-full bg-primary shadow-lg transition-all hover:scale-110 hover:shadow-xl active:scale-95"
-          title="显示侧边栏"
+    <div className="flex h-screen flex-col bg-background overflow-hidden">
+      <FloatingTabBar
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        isMinimized={tabBarMinimized}
+        onMinimizedChange={handleMinimizedChange}
+      />
+
+      <main className="flex-1 min-h-0 overflow-hidden">
+        <div
+          className="h-full overflow-y-auto transition-[padding] duration-300 ease-in-out"
+          style={{ paddingTop: tabBarMinimized ? 0 : '4.5rem' }}
         >
-          <BookOpen className="size-6 text-primary-foreground" />
-        </button>
-      )}
-      <main className="flex-1 min-w-0 bg-background flex flex-col overflow-hidden relative">
-        <div className="flex-1 flex flex-col min-h-0">
-          {renderMainContent()}
-        </div>
-        
-        {/* Transparent version footer overlaying content area */}
-        <div className="absolute bottom-2 right-4 pointer-events-none select-none z-40">
-          <span className="text-[9px] text-foreground/20 font-mono">Wikiki Pro 0.1.3</span>
+          {renderTabContent()}
         </div>
       </main>
-      <SuperSearchOverlay
-        open={superSearchOpen}
-        query={superSearchQuery}
-        results={searchResults}
-        loading={
-          storageMode === 'sqlite' &&
-          superSearchOpen &&
-          superSearchQuery.trim().length > 0 &&
-          sqliteProducts.length > 0 &&
-          sqliteSearchProducts.length === 0
-        }
-        onQueryChange={setSuperSearchQuery}
-        onClose={() => setSuperSearchOpen(false)}
-        onSelect={handleSearchResultSelect}
+
+      {/* Version footer */}
+      <div className="pointer-events-none absolute bottom-2 right-4 z-40 select-none">
+        <span className="text-[9px] uppercase tracking-wider text-foreground/20">Wikiki Pro {__APP_VERSION__}</span>
+      </div>
+
+      {/* Product creation dialog */}
+      <ProductDialog
+        open={triggerAddDialog}
+        onOpenChange={setTriggerAddDialog}
+        title="Create Product"
+        onSave={(name, tags) => {
+          handleAddProductFromSidebar(name, tags);
+          handleTabChange('wikis');
+        }}
       />
     </div>
   );

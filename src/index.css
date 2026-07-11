@@ -11,6 +11,12 @@
     --scrollbar-thumb-hover: color-mix(in oklab, var(--foreground) 28%, transparent);
   }
 
+  /* Global heading font policy: use the body sans font everywhere in app chrome.
+     Editor (contenteditable) headings keep their serif via more-specific rules below. */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-sans) !important;
+  }
+
   html {
     scrollbar-width: thin;
     scrollbar-color: var(--scrollbar-thumb) transparent;

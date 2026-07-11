@@ -33,11 +33,12 @@ const MODE_KEY = '__wikiki_storage_mode';
 function loadMode(): StorageMode {
   try {
     const saved = scopedStorage.getItem(MODE_KEY);
+    if (saved === 'json') return 'json';
     if (saved === 'sqlite') return 'sqlite';
   } catch {
     // 忽略
   }
-  return 'json';
+  return 'sqlite';
 }
 
 function saveMode(mode: StorageMode): void {

@@ -46,6 +46,8 @@ import { useStorageMode, type StorageMode } from '@/lib/storage-context';
 import { type ThemeName, THEME_OPTIONS } from '@/hooks/useTheme';
 
 const THEME_PALETTE: Record<ThemeName, string> = {
+  'graphite': 'linear-gradient(135deg, #f5f5f4 0%, #1c1c1c 100%)',
+  'graphite-night': 'linear-gradient(135deg, #1c1c1c 0%, #0a0a0a 100%)',
   'warm-light': 'linear-gradient(135deg, #fbfaf7 0%, #85946b 100%)',
   'clean-light': 'linear-gradient(135deg, #f8fafc 0%, #3b82f6 100%)',
   'soft-light': 'linear-gradient(135deg, #FAF5FF 0%, #a855f7 100%)',
