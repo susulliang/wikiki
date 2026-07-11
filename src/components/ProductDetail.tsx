@@ -33,6 +33,8 @@ interface ProductDetailProps {
   onUpdatePageContent: (productId: string, pageId: string, content: string) => void | Promise<void>;
   onReorderPages: (productId: string, pages: IPage[]) => void | Promise<void>;
   highlightQuery?: string;
+  /** If true, automatically open mindmap view (if available) */
+  openMindmap?: boolean;
 }
 
 export default function ProductDetail({
@@ -46,6 +48,7 @@ export default function ProductDetail({
   onUpdatePageContent,
   onReorderPages,
   highlightQuery = '',
+  openMindmap = false,
 }: ProductDetailProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [addPageDialogOpen, setAddPageDialogOpen] = useState(false);
@@ -60,6 +63,13 @@ export default function ProductDetail({
 
   const currentPage = product.pages[pageIndex] ?? product.pages[0];
   const mindmapPage = product.pages.find((p) => p.title.toLowerCase() === 'mindmap');
+
+  // Auto-open mindmap view when openMindmap prop is true and mindmap page exists
+  useLayoutEffect(() => {
+    if (openMindmap && mindmapPage) {
+      setShowMindmap(true);
+    }
+  }, [openMindmap, mindmapPage]);
 
   useLayoutEffect(() => {
     const el = headerRef.current;

@@ -9,8 +9,8 @@ import ProductDetail from '@/components/ProductDetail';
 import SuperSearchOverlay from '@/components/SuperSearchOverlay';
 import { useStorageMode } from '@/lib/storage-context';
 import { getSQLiteStorage } from '@/lib/sqlite-storage';
-import type { IProduct, IPage, SearchResult } from '@/data/products';
-import { searchProducts } from '@/lib/search';
+import type { IProduct, IPage } from '@/data/products';
+import { searchProducts, type ExtendedSearchResult } from '@/lib/search';
 
 const SIDEBAR_KEY = '__wikiki_sidebar_collapsed';
 const SELECTED_KEY = '__wikiki_selected_product_id';
@@ -63,6 +63,7 @@ export default function HomePage() {
   const [superSearchQuery, setSuperSearchQuery] = useState('');
   const [debouncedSuperSearchQuery, setDebouncedSuperSearchQuery] = useState('');
   const [activeHighlightQuery, setActiveHighlightQuery] = useState('');
+  const [openMindmapMode, setOpenMindmapMode] = useState(false);
 
   // Debounce Super Search Query
   useEffect(() => {
@@ -175,7 +176,7 @@ export default function HomePage() {
     return sqliteSearchProducts.length > 0 ? sqliteSearchProducts : products;
   }, [storageMode, sqliteSearchProducts, products]);
 
-  const searchResults = useMemo(
+  const searchResults = useMemo<ExtendedSearchResult[]>(
     () => (debouncedSuperSearchQuery.trim() ? searchProducts(searchableProducts, debouncedSuperSearchQuery.trim()) : []),
     [searchableProducts, debouncedSuperSearchQuery],
   );
@@ -248,13 +249,16 @@ export default function HomePage() {
   }, []);
 
   const handleSearchResultSelect = useCallback(
-    (result: SearchResult) => {
+    (result: ExtendedSearchResult, paragraphIndex?: number) => {
       setSelectedProductId(result.productId);
       setSelectedPageIndex(result.pageIndex ?? 0);
       setSuperSearchOpen(false);
       
       // Use the actual search query for highlighting in the editor
       setActiveHighlightQuery(superSearchQuery);
+      
+      // Set mindmap mode if result is a mindmap
+      setOpenMindmapMode(result.isMindmap ?? false);
       
       try {
         scopedStorage.setItem(SELECTED_KEY, result.productId);
@@ -266,9 +270,10 @@ export default function HomePage() {
       // Clear the query after selection
       setSuperSearchQuery('');
 
-      // Clear highlight after some time
+      // Clear highlight and mindmap mode after some time
       setTimeout(() => {
         setActiveHighlightQuery('');
+        setOpenMindmapMode(false);
       }, 5000);
     },
     [superSearchQuery],
@@ -532,6 +537,7 @@ export default function HomePage() {
         onUpdatePageContent={handleUpdatePageContent}
         onReorderPages={handleReorderPages}
         highlightQuery={activeHighlightQuery}
+        openMindmap={openMindmapMode}
       />
     );
   };
