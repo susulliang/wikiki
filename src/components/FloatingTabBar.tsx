@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Database, Package, Search, BookOpen, Palette, Network } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -7,6 +8,8 @@ export type TabId = 'database' | 'products' | 'supersearch' | 'wikis' | 'themes'
 interface FloatingTabBarProps {
   activeTab: TabId;
   onTabChange: (tab: TabId) => void;
+  isMinimized: boolean;
+  onMinimizedChange: (minimized: boolean) => void;
 }
 
 const TABS: Array<{ id: TabId; label: string; icon: LucideIcon }> = [
@@ -18,10 +21,116 @@ const TABS: Array<{ id: TabId; label: string; icon: LucideIcon }> = [
   { id: 'mindmaps', label: 'Mindmaps', icon: Network },
 ];
 
-export default function FloatingTabBar({ activeTab, onTabChange }: FloatingTabBarProps) {
+const SWIPE_THRESHOLD = 60;
+const COLLAPSE_DELAY = 3000;
+
+/** Wikiki vector mark — two pillars + center diamond forming a stylized W. */
+function WikikiMark({ className }: { className?: string }) {
   return (
-    <div className="fixed left-1/2 top-4 z-50 -translate-x-1/2">
-      <nav className="flex items-center gap-1 rounded-full bg-foreground p-1.5 shadow-lg">
+    <svg viewBox="0 0 64 64" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M6 54 L20 10 L30 10 L18 54 Z" fill="currentColor" opacity="0.95" />
+      <path d="M58 54 L44 10 L34 10 L46 54 Z" fill="currentColor" opacity="0.95" />
+      <path d="M32 22 L40 34 L32 46 L24 34 Z" fill="currentColor" opacity="0.65" />
+    </svg>
+  );
+}
+
+export default function FloatingTabBar({
+  activeTab,
+  onTabChange,
+  isMinimized,
+  onMinimizedChange,
+}: FloatingTabBarProps) {
+  const [showText, setShowText] = useState(false);
+  const collapseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const startX = useRef<number | null>(null);
+  const startY = useRef<number | null>(null);
+
+  const cancelCollapse = useCallback(() => {
+    if (collapseTimer.current) {
+      clearTimeout(collapseTimer.current);
+      collapseTimer.current = null;
+    }
+  }, []);
+
+  const scheduleCollapse = useCallback(() => {
+    cancelCollapse();
+    collapseTimer.current = setTimeout(() => setShowText(false), COLLAPSE_DELAY);
+  }, [cancelCollapse]);
+
+  useEffect(() => () => cancelCollapse(), [cancelCollapse]);
+
+  const handleMouseEnter = useCallback(() => {
+    cancelCollapse();
+    setShowText(true);
+  }, [cancelCollapse]);
+
+  const handleMouseLeave = useCallback(() => {
+    scheduleCollapse();
+  }, [scheduleCollapse]);
+
+  const handleTabClick = useCallback(
+    (tab: TabId) => {
+      onTabChange(tab);
+      scheduleCollapse();
+    },
+    [onTabChange, scheduleCollapse],
+  );
+
+  // Swipe-right gesture to minimize
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    startX.current = e.clientX;
+    startY.current = e.clientY;
+  }, []);
+
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      if (startX.current === null || startY.current === null) return;
+      const dx = e.clientX - startX.current;
+      const dy = e.clientY - startY.current;
+      if (dx > SWIPE_THRESHOLD && Math.abs(dy) < 40) {
+        onMinimizedChange(true);
+        startX.current = null;
+        startY.current = null;
+      }
+    },
+    [onMinimizedChange],
+  );
+
+  const handlePointerEnd = useCallback(() => {
+    startX.current = null;
+    startY.current = null;
+  }, []);
+
+  // ---- Minimized state: floating logo bubble (no page height taken) ----
+  if (isMinimized) {
+    return (
+      <button
+        type="button"
+        onClick={() => onMinimizedChange(false)}
+        aria-label="Expand tab bar"
+        className="fixed right-4 top-4 z-50 flex size-12 items-center justify-center rounded-full border border-foreground/15 bg-background/60 shadow-xl backdrop-blur-2xl backdrop-saturate-150 transition-all duration-200 hover:scale-110 hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary animate-in fade-in zoom-in-95 duration-200"
+      >
+        <WikikiMark className="size-7 text-primary" />
+      </button>
+    );
+  }
+
+  // ---- Expanded state: frosted-glass floating pill ----
+  return (
+    <div
+      className="fixed left-1/2 top-4 z-50 -translate-x-1/2 animate-in fade-in slide-in-from-top-2 duration-300"
+      style={{ touchAction: 'pan-y' }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerEnd}
+      onPointerCancel={handlePointerEnd}
+    >
+      <nav
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        className="flex items-center gap-1 rounded-full border border-foreground/15 bg-background/60 p-1.5 shadow-2xl backdrop-blur-2xl backdrop-saturate-150"
+      >
         {TABS.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -29,17 +138,24 @@ export default function FloatingTabBar({ activeTab, onTabChange }: FloatingTabBa
             <button
               key={tab.id}
               type="button"
-              onClick={() => onTabChange(tab.id)}
+              onClick={() => handleTabClick(tab.id)}
               aria-current={isActive ? 'page' : undefined}
               className={cn(
-                'flex items-center gap-2 rounded-full px-4 py-2 font-mono text-xs uppercase tracking-wider transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                'flex items-center rounded-full px-3 py-2 font-mono text-xs uppercase tracking-wider transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
                 isActive
                   ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'text-background hover:bg-background/10',
+                  : 'text-foreground hover:bg-foreground/10',
               )}
             >
               <Icon className="size-4 shrink-0" />
-              <span className="hidden sm:inline">{tab.label}</span>
+              <span
+                className={cn(
+                  'overflow-hidden whitespace-nowrap transition-all duration-300',
+                  showText ? 'ml-2 max-w-[120px] opacity-100' : 'ml-0 max-w-0 opacity-0',
+                )}
+              >
+                {tab.label}
+              </span>
             </button>
           );
         })}

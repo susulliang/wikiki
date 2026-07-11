@@ -3,6 +3,7 @@ import { Loader2 } from 'lucide-react';
 import { useProducts } from '@/hooks/useProducts';
 import { useTheme } from '@/hooks/useTheme';
 import { scopedStorage, logger } from '@lark-apaas/client-toolkit-lite';
+import { cn } from '@/lib/utils';
 import FloatingTabBar, { type TabId } from '@/components/FloatingTabBar';
 import ProductDialog from '@/components/ProductDialog';
 import DatabasePage from '@/pages/DatabasePage';
@@ -19,6 +20,7 @@ import { searchProducts, type ExtendedSearchResult } from '@/lib/search';
 const SELECTED_KEY = '__wikiki_selected_product_id';
 const PAGE_INDEX_KEY = '__wikiki_selected_page_index';
 const ACTIVE_TAB_KEY = '__wikiki_active_tab';
+const TABBAR_MINIMIZED_KEY = '__wikiki_tabbar_minimized';
 
 export default function HomePage() {
   const { mode: storageMode, sqliteReady, reloadSQLiteProducts, switchMode, exportProductsJSON, exportSQLiteDB, importSQLiteDB, sqliteInfo } = useStorageMode();
@@ -54,6 +56,23 @@ export default function HomePage() {
     setActiveTab(tab);
     try {
       scopedStorage.setItem(ACTIVE_TAB_KEY, tab);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const [tabBarMinimized, setTabBarMinimized] = useState<boolean>(() => {
+    try {
+      return scopedStorage.getItem(TABBAR_MINIMIZED_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const handleMinimizedChange = useCallback((minimized: boolean) => {
+    setTabBarMinimized(minimized);
+    try {
+      scopedStorage.setItem(TABBAR_MINIMIZED_KEY, String(minimized));
     } catch {
       // ignore
     }
@@ -591,9 +610,14 @@ export default function HomePage() {
 
   return (
     <div className="flex h-screen flex-col bg-background overflow-hidden">
-      <FloatingTabBar activeTab={activeTab} onTabChange={handleTabChange} />
+      <FloatingTabBar
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        isMinimized={tabBarMinimized}
+        onMinimizedChange={handleMinimizedChange}
+      />
 
-      <main className="flex-1 min-h-0 overflow-hidden pt-20">
+      <main className={cn('flex-1 min-h-0 overflow-hidden', !tabBarMinimized && 'pt-20')}>
         <div className="h-full overflow-y-auto">
           {renderTabContent()}
         </div>
