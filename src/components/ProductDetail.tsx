@@ -33,8 +33,8 @@ interface ProductDetailProps {
   onUpdatePageContent: (productId: string, pageId: string, content: string) => void | Promise<void>;
   onReorderPages: (productId: string, pages: IPage[]) => void | Promise<void>;
   highlightQuery?: string;
-  /** If true, automatically open mindmap view (if available) */
-  openMindmap?: boolean;
+  /** Mindmap trigger - non-zero value triggers mindmap view (timestamp for uniqueness) */
+  openMindmap?: number;
 }
 
 export default function ProductDetail({
@@ -48,7 +48,7 @@ export default function ProductDetail({
   onUpdatePageContent,
   onReorderPages,
   highlightQuery = '',
-  openMindmap = false,
+  openMindmap = 0,
 }: ProductDetailProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [addPageDialogOpen, setAddPageDialogOpen] = useState(false);
@@ -83,9 +83,9 @@ export default function ProductDetail({
     );
   }, [product.pages, currentPage]);
 
-  // Auto-open mindmap view when openMindmap prop is true and mindmap page exists
+  // Auto-open mindmap view when triggered (timestamp ensures effect re-runs each click)
   useLayoutEffect(() => {
-    if (openMindmap && mindmapPage) {
+    if (openMindmap > 0 && mindmapPage) {
       setShowMindmap(true);
     }
   }, [openMindmap, mindmapPage]);

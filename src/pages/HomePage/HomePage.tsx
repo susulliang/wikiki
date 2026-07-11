@@ -63,7 +63,7 @@ export default function HomePage() {
   const [superSearchQuery, setSuperSearchQuery] = useState('');
   const [debouncedSuperSearchQuery, setDebouncedSuperSearchQuery] = useState('');
   const [activeHighlightQuery, setActiveHighlightQuery] = useState('');
-  const [openMindmapMode, setOpenMindmapMode] = useState(false);
+  const [openMindmapMode, setOpenMindmapMode] = useState(0);
 
   // Debounce Super Search Query (800ms for better typing experience)
   useEffect(() => {
@@ -257,8 +257,8 @@ export default function HomePage() {
       // Use the actual search query for highlighting in the editor
       setActiveHighlightQuery(superSearchQuery);
       
-      // Set mindmap mode if result is a mindmap
-      setOpenMindmapMode(result.isMindmap ?? false);
+      // Set mindmap mode if result is a mindmap (use timestamp as trigger so effect always re-runs)
+      setOpenMindmapMode(result.isMindmap ? Date.now() : 0);
       
       try {
         scopedStorage.setItem(SELECTED_KEY, result.productId);
@@ -273,7 +273,7 @@ export default function HomePage() {
       // Clear highlight and mindmap mode after some time
       setTimeout(() => {
         setActiveHighlightQuery('');
-        setOpenMindmapMode(false);
+        setOpenMindmapMode(0);
       }, 5000);
     },
     [superSearchQuery],
