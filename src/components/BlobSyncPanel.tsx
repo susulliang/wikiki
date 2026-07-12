@@ -22,11 +22,6 @@ import {
   clearBlobCreds as clearEdgeoneCreds,
 } from '@/lib/edgeone-blob';
 import {
-  getVercelCreds,
-  saveVercelCreds,
-  clearVercelCreds,
-} from '@/lib/vercel-blob';
-import {
   getD1Creds,
   saveD1Creds,
   clearD1Creds,
@@ -50,16 +45,13 @@ function formatBytes(n: number): string {
 export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBundles }: BlobSyncPanelProps) {
   const { t } = useLanguage();
 
-  // Active cloud provider (edgeone | vercel), persisted to localStorage.
+  // Active cloud provider (edgeone | d1), persisted to localStorage.
   const [providerId, setProviderId] = useState<ProviderId>(() => getActiveProviderId());
 
   // EdgeOne credential form state
   const [eoProjectId, setEoProjectId] = useState('');
   const [eoToken, setEoToken] = useState('');
   const [eoStoreName, setEoStoreName] = useState('wikiki-db-sync');
-
-  // Vercel credential form state
-  const [vercelToken, setVercelToken] = useState('');
 
   // D1 credential form state
   const [cfAccountId, setCfAccountId] = useState('');
@@ -83,15 +75,6 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
         setEoProjectId(creds.projectId);
         setEoToken(creds.token);
         setEoStoreName(creds.storeName);
-        setHasCreds(true);
-      } else {
-        setHasCreds(false);
-        setRemote([]);
-      }
-    } else if (id === 'vercel') {
-      const creds = getVercelCreds();
-      if (creds) {
-        setVercelToken(creds.token);
         setHasCreds(true);
       } else {
         setHasCreds(false);
@@ -143,14 +126,6 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
         } else {
           setHasCreds(false);
         }
-      } else if (id === 'vercel') {
-        const creds = getVercelCreds();
-        if (creds) {
-          setVercelToken(creds.token);
-          setHasCreds(true);
-        } else {
-          setHasCreds(false);
-        }
       } else {
         const creds = getD1Creds();
         if (creds) {
@@ -177,11 +152,6 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
       });
       return null;
     }
-    if (providerId === 'vercel') {
-      if (!vercelToken.trim()) return 'Vercel Blob token is required';
-      saveVercelCreds({ token: vercelToken.trim() });
-      return null;
-    }
     if (!cfAccountId.trim() || !cfApiToken.trim()) return 'Cloudflare Account ID and API Token are required';
     try {
       saveD1Creds({ accountId: cfAccountId.trim(), token: cfApiToken.trim() });
@@ -189,7 +159,7 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
     } catch (e) {
       return e instanceof Error ? e.message : String(e);
     }
-  }, [providerId, eoProjectId, eoToken, eoStoreName, vercelToken, cfAccountId, cfApiToken]);
+  }, [providerId, eoProjectId, eoToken, eoStoreName, cfAccountId, cfApiToken]);
 
   const handleSaveCreds = useCallback(() => {
     const error = persistCreds();
@@ -208,9 +178,6 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
       setEoProjectId('');
       setEoToken('');
       setEoStoreName('wikiki-db-sync');
-    } else if (providerId === 'vercel') {
-      clearVercelCreds();
-      setVercelToken('');
     } else {
       clearD1Creds();
       setCfAccountId('');
@@ -353,7 +320,7 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
       <div className="flex-1 overflow-y-auto px-4 py-3">
         {/* Provider selector */}
         <div className="mb-3 flex gap-1 rounded-lg border border-border/60 bg-foreground/5 p-0.5">
-          {(['edgeone', 'vercel', 'd1'] as const).map((id) => (
+          {(['edgeone', 'd1'] as const).map((id) => (
             <button
               key={id}
               type="button"
@@ -364,7 +331,7 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              {id === 'edgeone' ? t('blob.providerEdgeone') : id === 'vercel' ? t('blob.providerVercel') : t('blob.providerD1')}
+              {id === 'edgeone' ? t('blob.providerEdgeone') : t('blob.providerD1')}
             </button>
           ))}
         </div>
@@ -389,20 +356,6 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
               <div>
                 <Label className="text-[11px] text-muted-foreground">{t('blob.storeName')}</Label>
                 <Input value={eoStoreName} onChange={(e) => setEoStoreName(e.target.value)} placeholder="wikiki-db-sync" className="h-8 text-xs" />
-              </div>
-            </div>
-          ) : providerId === 'vercel' ? (
-            <div className="space-y-2">
-              <div>
-                <Label className="text-[11px] text-muted-foreground">{t('blob.vercelToken')}</Label>
-                <Input
-                  value={vercelToken}
-                  onChange={(e) => setVercelToken(e.target.value)}
-                  type="password"
-                  placeholder="vercel_blob_rw_..."
-                  className="h-8 text-xs"
-                />
-                <p className="mt-1 text-[10px] text-muted-foreground">{t('blob.vercelTokenHint')}</p>
               </div>
             </div>
           ) : (

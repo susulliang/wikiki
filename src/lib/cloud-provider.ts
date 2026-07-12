@@ -4,7 +4,7 @@
  * Two backends are supported, both operating in "user-supplied token" mode so
  * the browser talks directly to the storage API without a server:
  *   - EdgeOne Pages Blob  (@edgeone/pages-blob, external API-token mode)
- *   - Vercel Blob         (@vercel/blob, token option)
+ *   - Cloudflare D1       (SQLite edge DB, accessed via REST API proxy)
  *
  * Both backends are simple key/value blob stores, so the collection-level
  * logic (a manifest at `__wikiki_index.json` + one SQLite DB per collection
@@ -16,7 +16,7 @@
  */
 import type { IBundle } from '@/data/bundles';
 
-export type ProviderId = 'edgeone' | 'vercel' | 'd1';
+export type ProviderId = 'edgeone' | 'd1';
 
 /** Metadata for one uploaded collection, stored in the manifest. */
 export interface CollectionEntry {

@@ -100,9 +100,6 @@ export type TranslationKey =
   | 'blob.confirmDelete'
   | 'blob.deleted'
   | 'blob.providerEdgeone'
-  | 'blob.providerVercel'
-  | 'blob.vercelToken'
-  | 'blob.vercelTokenHint'
   | 'blob.providerD1'
   | 'blob.cfAccountId'
   | 'blob.cfApiToken'
@@ -203,9 +200,6 @@ const en: TranslationDict = {
   'blob.confirmDelete': 'Delete this remote collection?',
   'blob.deleted': 'Remote collection deleted',
   'blob.providerEdgeone': 'EdgeOne',
-  'blob.providerVercel': 'Vercel',
-  'blob.vercelToken': 'Read/Write Token',
-  'blob.vercelTokenHint': 'Link your Blob store to the Vercel project first (Dashboard → Storage → Connect to Project). Enter any token below to unlock sync — the server uses env vars for auth.',
   'blob.providerD1': 'D1',
   'blob.cfAccountId': 'Cloudflare Account ID',
   'blob.cfApiToken': 'D1 API Token',
@@ -305,9 +299,6 @@ const zh: TranslationDict = {
   'blob.confirmDelete': '确定删除该远端合集？',
   'blob.deleted': '远端合集已删除',
   'blob.providerEdgeone': 'EdgeOne',
-  'blob.providerVercel': 'Vercel',
-  'blob.vercelToken': '读写 Token',
-  'blob.vercelTokenHint': '请先将 Blob 存储连接到 Vercel 项目（控制台 → Storage → Connect to Project）。下方输入任意 token 即可解锁同步——服务器使用环境变量进行认证。',
   'blob.providerD1': 'D1',
   'blob.cfAccountId': 'Cloudflare 账户 ID',
   'blob.cfApiToken': 'D1 API Token',
@@ -407,9 +398,6 @@ const jp: TranslationDict = {
   'blob.confirmDelete': 'このリモートコレクションを削除しますか？',
   'blob.deleted': 'リモートコレクションを削除しました',
   'blob.providerEdgeone': 'EdgeOne',
-  'blob.providerVercel': 'Vercel',
-  'blob.vercelToken': '読み取り/書き込みトークン',
-  'blob.vercelTokenHint': 'まず Blob ストアを Vercel プロジェクトに連携してください（ダッシュボード → Storage → Connect to Project）。下のトークン欄は同期のロック解除用です——サーバーは環境変数で認証します。',
   'blob.providerD1': 'D1',
   'blob.cfAccountId': 'Cloudflare アカウント ID',
   'blob.cfApiToken': 'D1 API トークン',
@@ -509,9 +497,6 @@ const de: TranslationDict = {
   'blob.confirmDelete': 'Diese Remote-Sammlung löschen?',
   'blob.deleted': 'Remote-Sammlung gelöscht',
   'blob.providerEdgeone': 'EdgeOne',
-  'blob.providerVercel': 'Vercel',
-  'blob.vercelToken': 'Lese-/Schreib-Token',
-  'blob.vercelTokenHint': 'Verknüpfen Sie zuerst den Blob-Store mit dem Vercel-Projekt (Dashboard → Storage → Connect to Project). Geben Sie unten ein beliebiges Token ein, um die Synchronisierung zu entsperren — der Server verwendet Umgebungsvariablen für die Authentifizierung.',
   'blob.providerD1': 'D1',
   'blob.cfAccountId': 'Cloudflare-Konto-ID',
   'blob.cfApiToken': 'D1 API-Token',
@@ -611,9 +596,6 @@ const it: TranslationDict = {
   'blob.confirmDelete': 'Eliminare questa raccolta remota?',
   'blob.deleted': 'Raccolta remota eliminata',
   'blob.providerEdgeone': 'EdgeOne',
-  'blob.providerVercel': 'Vercel',
-  'blob.vercelToken': 'Token di lettura/scrittura',
-  'blob.vercelTokenHint': 'Collega prima il Blob store al progetto Vercel (Dashboard → Storage → Connect to Project). Inserisci un token qualsiasi sotto per sbloccare la sincronizzazione — il server usa variabili d\'ambiente per l\'autenticazione.',
   'blob.providerD1': 'D1',
   'blob.cfAccountId': 'ID account Cloudflare',
   'blob.cfApiToken': 'D1 API Token',
@@ -713,9 +695,6 @@ const es: TranslationDict = {
   'blob.confirmDelete': '¿Eliminar esta colección remota?',
   'blob.deleted': 'Colección remota eliminada',
   'blob.providerEdgeone': 'EdgeOne',
-  'blob.providerVercel': 'Vercel',
-  'blob.vercelToken': 'Token de lectura/escritura',
-  'blob.vercelTokenHint': 'Conecta primero el Blob store al proyecto de Vercel (Panel → Storage → Connect to Project). Ingresa cualquier token abajo para desbloquear la sincronización — el servidor usa variables de entorno para la autenticación.',
   'blob.providerD1': 'D1',
   'blob.cfAccountId': 'ID de cuenta de Cloudflare',
   'blob.cfApiToken': 'D1 API Token',
