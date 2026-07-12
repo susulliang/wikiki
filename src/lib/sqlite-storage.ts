@@ -702,3 +702,18 @@ export async function jsonBundlesToSQLite(bundles: IBundle[]): Promise<Uint8Arra
   db.close();
   return data;
 }
+
+// 从 SQLite DB 二进制读取所有 bundles（用于下载合并，不影响当前数据库）
+export async function bundlesFromDbBytes(data: Uint8Array): Promise<IBundle[]> {
+  const sql = await getSQL();
+  const db = new sql.Database(data);
+  createSchema(db);
+  migrateSchema(db);
+  const tempStorage = new SQLiteStorage();
+  (tempStorage as unknown as { db: Database | null }).db = db;
+  (tempStorage as unknown as { _initialized: boolean })._initialized = true;
+  const bundles = await tempStorage.getAllBundles();
+  db.close();
+  return bundles;
+}
+

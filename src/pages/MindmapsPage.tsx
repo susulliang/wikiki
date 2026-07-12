@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
-import { Network, Database, FileJson, Download, Upload, HardDrive, Plus } from 'lucide-react';
+import { Network, Database, Download, Upload, HardDrive, Plus } from 'lucide-react';
 import type { IBundle } from '@/data/bundles';
 import { useTheme, THEME_OPTIONS } from '@/hooks/useTheme';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 interface MindmapsPageProps {
   bundles: IBundle[];
   onSelectBundle: (id: string) => void;
-  storageMode: 'json' | 'sqlite';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   sqliteInfo: any;
   sqliteReady: boolean;
@@ -51,7 +50,6 @@ function buildGroups(bundles: IBundle[]): Map<string, Group> {
 export default function MindmapsPage({
   bundles,
   onSelectBundle,
-  storageMode,
   sqliteInfo,
   sqliteReady,
   onExportJSON,
@@ -70,7 +68,6 @@ export default function MindmapsPage({
   const totalPages = bundles.reduce((sum, p) => sum + p.pages.length, 0);
   const allTags = new Set<string>();
   bundles.forEach((p) => p.tags.forEach((t) => allTags.add(t)));
-  const sqliteActive = storageMode === 'sqlite';
 
   const { option, nodeIdToBundleId } = useMemo(() => {
     const groups = buildGroups(bundles);
@@ -172,22 +169,16 @@ export default function MindmapsPage({
       <div className="flex items-center gap-3 border-b border-border bg-card/50 px-4 py-2 backdrop-blur-sm">
         {/* Storage mode indicator */}
         <div className="flex items-center gap-1.5">
-          {sqliteActive ? (
-            <Database className="size-3.5 text-primary" />
-          ) : (
-            <FileJson className="size-3.5 text-muted-foreground" />
-          )}
+          <Database className="size-3.5 text-primary" />
           <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-            {sqliteActive ? 'SQLite' : 'JSON'}
+            SQLite
           </span>
-          {sqliteActive && (
-            <span
-              className={cn(
-                'size-1.5 rounded-full',
-                sqliteReady ? 'bg-primary' : 'bg-muted-foreground animate-pulse',
-              )}
-            />
-          )}
+          <span
+            className={cn(
+              'size-1.5 rounded-full',
+              sqliteReady ? 'bg-primary' : 'bg-muted-foreground animate-pulse',
+            )}
+          />
         </div>
 
         {/* Stats */}
@@ -215,18 +206,16 @@ export default function MindmapsPage({
             <Upload className="size-3" />
             <span className="hidden sm:inline">JSON</span>
           </Button>
-          {sqliteActive && (
-            <Button
-              onClick={onImportDB}
-              variant="ghost"
-              size="sm"
-              className="h-7 gap-1.5 px-2 font-mono text-[10px] uppercase tracking-wider"
-              title="Import SQLite"
-            >
-              <Upload className="size-3" />
-              <span className="hidden sm:inline">DB</span>
-            </Button>
-          )}
+          <Button
+            onClick={onImportDB}
+            variant="ghost"
+            size="sm"
+            className="h-7 gap-1.5 px-2 font-mono text-[10px] uppercase tracking-wider"
+            title="Import SQLite"
+          >
+            <Upload className="size-3" />
+            <span className="hidden sm:inline">DB</span>
+          </Button>
           <div className="mx-1 h-4 w-px bg-border" />
           <Button
             onClick={onExportJSON}
@@ -238,18 +227,16 @@ export default function MindmapsPage({
             <Download className="size-3" />
             <span className="hidden sm:inline">JSON</span>
           </Button>
-          {sqliteActive && (
-            <Button
-              onClick={onExportDB}
-              variant="ghost"
-              size="sm"
-              className="h-7 gap-1.5 px-2 font-mono text-[10px] uppercase tracking-wider"
-              title="Export SQLite"
-            >
-              <HardDrive className="size-3" />
-              <span className="hidden sm:inline">DB</span>
-            </Button>
-          )}
+          <Button
+            onClick={onExportDB}
+            variant="ghost"
+            size="sm"
+            className="h-7 gap-1.5 px-2 font-mono text-[10px] uppercase tracking-wider"
+            title="Export SQLite"
+          >
+            <HardDrive className="size-3" />
+            <span className="hidden sm:inline">DB</span>
+          </Button>
         </div>
       </div>
 

@@ -1,6 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
-import { useBundles } from '@/hooks/useBundles';
 import { useTheme } from '@/hooks/useTheme';
 import FloatingTabBar, { type TabId } from '@/components/FloatingTabBar';
 import BundleDialog from '@/components/BundleDialog';
@@ -9,6 +8,7 @@ import WikisPage from '@/pages/WikisPage';
 import ThemesPage from '@/pages/ThemesPage';
 import MindmapsPage from '@/pages/MindmapsPage';
 import SuperSearchPage from '@/pages/SuperSearchPage';
+import BlobSyncPanel from '@/components/BlobSyncPanel';
 import { useStorageMode } from '@/lib/storage-context';
 import { getSQLiteStorage } from '@/lib/sqlite-storage';
 import type { IBundle, IPage } from '@/data/bundles';
@@ -20,18 +20,7 @@ const ACTIVE_TAB_KEY = '__wikiki_active_tab';
 const TABBAR_MINIMIZED_KEY = '__wikiki_tabbar_minimized';
 
 export default function HomePage() {
-  const { mode: storageMode, sqliteReady, reloadSQLiteBundles, exportBundlesJSON, exportSQLiteDB, importSQLiteDB, sqliteInfo } = useStorageMode();
-
-  const {
-    bundles: jsonBundles,
-    addBundle: jsonAddBundle,
-    updateBundle: jsonUpdateBundle,
-    deleteBundle: jsonDeleteBundle,
-    addPage: jsonAddPage,
-    deletePage: jsonDeletePage,
-    updatePageContent: jsonUpdatePageContent,
-    reorderPages: jsonReorderPages,
-  } = useBundles();
+  const { sqliteReady, reloadSQLiteBundles, exportBundlesJSON, exportSQLiteDB, importSQLiteDB, sqliteInfo, importBundles } = useStorageMode();
 
   useEffect(() => {
     document.title = 'Wikiki';
@@ -112,19 +101,20 @@ export default function HomePage() {
   const [sqliteSearchBundles, setSqliteSearchBundles] = useState<IBundle[]>([]);
   const [dbPrepping, setDbPrepping] = useState(false);
   const [loadedBundleContent, setLoadedBundleContent] = useState<Map<string, IBundle>>(new Map());
+  const [blobPanelOpen, setBlobPanelOpen] = useState(false);
 
   useEffect(() => {
-    if (storageMode !== 'sqlite' || !sqliteReady) return;
+    if (!sqliteReady) return;
     const storage = getSQLiteStorage();
     storage.getAllBundlesShallow().then((prods) => {
       setSqliteBundles(prods);
     }).catch((e) => {
       console.error('Failed to load SQLite bundles:', String(e));
     });
-  }, [storageMode, sqliteReady]);
+  }, [sqliteReady]);
 
   useEffect(() => {
-    if (storageMode !== 'sqlite' || !selectedBundleId) return;
+    if (!selectedBundleId) return;
     if (loadedBundleContent.has(selectedBundleId)) return;
 
     const storage = getSQLiteStorage();
@@ -135,30 +125,22 @@ export default function HomePage() {
     }).catch((e) => {
       console.error('Failed to load bundle content:', String(e));
     });
-  }, [storageMode, selectedBundleId, loadedBundleContent]);
-
-  useEffect(() => {
-    if (storageMode === 'json') {
-      setLoadedBundleContent(new Map());
-    }
-  }, [storageMode]);
+  }, [selectedBundleId, loadedBundleContent]);
 
   const handleReloadSQLite = useCallback(async () => {
-    if (storageMode !== 'sqlite') return;
     const prods = await reloadSQLiteBundles();
     setSqliteBundles(prods);
     setLoadedBundleContent(new Map());
-  }, [storageMode, reloadSQLiteBundles]);
+  }, [reloadSQLiteBundles]);
 
   const bundles = useMemo(() => {
-    if (storageMode === 'json') return jsonBundles;
     return sqliteBundles.map((p) => {
       if (p.id === selectedBundleId && loadedBundleContent.has(p.id)) {
         return loadedBundleContent.get(p.id)!;
       }
       return p;
     });
-  }, [storageMode, jsonBundles, sqliteBundles, selectedBundleId, loadedBundleContent]);
+  }, [sqliteBundles, selectedBundleId, loadedBundleContent]);
 
   const selectedBundle = useMemo(
     () => bundles.find((p) => p.id === selectedBundleId) ?? null,
@@ -166,7 +148,7 @@ export default function HomePage() {
   );
 
   useEffect(() => {
-    if (storageMode !== 'sqlite' || !sqliteReady || activeTab !== 'supersearch') {
+    if (!sqliteReady || activeTab !== 'supersearch') {
       setSqliteSearchBundles([]);
       setDbPrepping(false);
       return;
@@ -200,15 +182,11 @@ export default function HomePage() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [storageMode, sqliteReady, activeTab]);
+  }, [sqliteReady, activeTab]);
 
   const searchableBundles = useMemo(() => {
-    if (storageMode !== 'sqlite') {
-      return bundles;
-    }
-
     return sqliteSearchBundles.length > 0 ? sqliteSearchBundles : bundles;
-  }, [storageMode, sqliteSearchBundles, bundles]);
+  }, [sqliteSearchBundles, bundles]);
 
   const searchResults = useMemo<ExtendedSearchResult[]>(
     () => (debouncedSuperSearchQuery.trim() ? searchBundles(searchableBundles, debouncedSuperSearchQuery.trim()) : []),
@@ -238,13 +216,9 @@ export default function HomePage() {
 
   const handleDeleteBundle = useCallback(
     async (id: string) => {
-      if (storageMode === 'sqlite') {
-        const storage = getSQLiteStorage();
-        await storage.deleteBundle(id);
-        await handleReloadSQLite();
-      } else {
-        jsonDeleteBundle(id);
-      }
+      const storage = getSQLiteStorage();
+      await storage.deleteBundle(id);
+      await handleReloadSQLite();
       if (selectedBundleId === id) {
         setSelectedBundleId(null);
         try {
@@ -254,7 +228,7 @@ export default function HomePage() {
         }
       }
     },
-    [storageMode, jsonDeleteBundle, selectedBundleId, handleReloadSQLite],
+    [selectedBundleId, handleReloadSQLite],
   );
 
   const handlePageChange = useCallback((index: number) => {
@@ -295,6 +269,7 @@ export default function HomePage() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Ctrl/Cmd+K → super search
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault();
         setActiveTab('supersearch');
@@ -302,6 +277,14 @@ export default function HomePage() {
           localStorage.setItem(ACTIVE_TAB_KEY, 'supersearch');
         } catch {
           // ignore
+        }
+      }
+      // Shift+B → toggle EdgeOne blob sync panel (only on mindmaps tab)
+      if (event.shiftKey && !event.metaKey && !event.ctrlKey && !event.altKey && event.key.toLowerCase() === 'b') {
+        const current = localStorage.getItem(ACTIVE_TAB_KEY);
+        if (current === 'mindmaps') {
+          event.preventDefault();
+          setBlobPanelOpen((v) => !v);
         }
       }
     };
@@ -327,22 +310,14 @@ export default function HomePage() {
       const data = JSON.parse(text);
       if (Array.isArray(data)) {
         const { normalizeBundle } = await import('@/data/bundles');
-        const bundles = data.map((item: Record<string, unknown>) => normalizeBundle(item));
-        if (storageMode === 'sqlite') {
-          const storage = getSQLiteStorage();
-          if (!storage.initialized) await storage.init();
-          await storage.importBundles(bundles);
-          await handleReloadSQLite();
-        } else {
-          bundles.forEach((p: IBundle) => {
-            jsonAddBundle(p.name, p.tags, p.authors, p.collection);
-          });
-        }
+        const imported = data.map((item: Record<string, unknown>) => normalizeBundle(item));
+        await importBundles(imported);
+        await handleReloadSQLite();
         handleTabChange('mindmaps');
       }
     };
     input.click();
-  }, [storageMode, jsonAddBundle, handleReloadSQLite, handleTabChange]);
+  }, [importBundles, handleReloadSQLite, handleTabChange]);
 
   const handleImportDB = useCallback(() => {
     const input = document.createElement('input');
@@ -386,21 +361,17 @@ export default function HomePage() {
         source: 'user',
       };
 
-      if (storageMode === 'sqlite') {
-        (async () => {
-          try {
-            const storage = getSQLiteStorage();
-            if (!storage.initialized) await storage.init();
-            await storage.addBundle(newBundle);
-            const prods = await reloadSQLiteBundles();
-            setSqliteBundles(prods);
-          } catch (e) {
-            console.error('SQLite add bundle failed:', String(e));
-          }
-        })();
-      } else {
-        jsonAddBundle(name, tags, authors, collection);
-      }
+      (async () => {
+        try {
+          const storage = getSQLiteStorage();
+          if (!storage.initialized) await storage.init();
+          await storage.addBundle(newBundle);
+          const prods = await reloadSQLiteBundles();
+          setSqliteBundles(prods);
+        } catch (e) {
+          console.error('SQLite add bundle failed:', String(e));
+        }
+      })();
 
       setSelectedBundleId(newBundle.id);
       try {
@@ -411,28 +382,24 @@ export default function HomePage() {
       setTriggerAddDialog(false);
       return newBundle;
     },
-    [storageMode, jsonAddBundle, reloadSQLiteBundles],
+    [reloadSQLiteBundles],
   );
 
   const handleUpdateBundle = useCallback(
     async (id: string, name: string, tags: string[], authors: string[], collection: string) => {
-      if (storageMode === 'sqlite') {
-        const storage = getSQLiteStorage();
-        const bundle = await storage.getBundle(id);
-        if (bundle) {
-          bundle.name = name;
-          bundle.tags = tags;
-          bundle.authors = authors && authors.length > 0 ? authors : ['susul'];
-          bundle.collection = collection && collection.trim() ? collection.trim() : 'Default';
-          bundle.updatedAt = new Date().toISOString();
-          await storage.updateBundle(bundle);
-          await handleReloadSQLite();
-        }
-      } else {
-        jsonUpdateBundle(id, name, tags, authors, collection);
+      const storage = getSQLiteStorage();
+      const bundle = await storage.getBundle(id);
+      if (bundle) {
+        bundle.name = name;
+        bundle.tags = tags;
+        bundle.authors = authors && authors.length > 0 ? authors : ['susul'];
+        bundle.collection = collection && collection.trim() ? collection.trim() : 'Default';
+        bundle.updatedAt = new Date().toISOString();
+        await storage.updateBundle(bundle);
+        await handleReloadSQLite();
       }
     },
-    [storageMode, jsonUpdateBundle, handleReloadSQLite],
+    [handleReloadSQLite],
   );
 
   const handleAddPage = useCallback(
@@ -448,81 +415,65 @@ export default function HomePage() {
         updatedAt: now,
       };
 
-      if (storageMode === 'sqlite') {
-        const storage = getSQLiteStorage();
-        const bundle = await storage.getBundle(bundleId);
-        if (bundle) {
-          const maxOrder = bundle.pages.reduce((max, pg) => Math.max(max, pg.order), -1);
-          newPage.order = maxOrder + 1;
-          bundle.pages.push(newPage);
-          bundle.updatedAt = now;
-          await storage.updateBundle(bundle);
-          await handleReloadSQLite();
-          return newPage;
-        }
-        return null;
+      const storage = getSQLiteStorage();
+      const bundle = await storage.getBundle(bundleId);
+      if (bundle) {
+        const maxOrder = bundle.pages.reduce((max, pg) => Math.max(max, pg.order), -1);
+        newPage.order = maxOrder + 1;
+        bundle.pages.push(newPage);
+        bundle.updatedAt = now;
+        await storage.updateBundle(bundle);
+        await handleReloadSQLite();
+        return newPage;
       }
-      const result = jsonAddPage(bundleId, pageName);
-      return result;
+      return null;
     },
-    [storageMode, jsonAddPage, handleReloadSQLite],
+    [handleReloadSQLite],
   );
 
   const handleDeletePage = useCallback(
     async (bundleId: string, pageId: string) => {
-      if (storageMode === 'sqlite') {
-        const storage = getSQLiteStorage();
-        const bundle = await storage.getBundle(bundleId);
-        if (bundle && bundle.pages.length > 1) {
-          bundle.pages = bundle.pages.filter((pg) => pg.id !== pageId);
-          bundle.updatedAt = new Date().toISOString();
-          await storage.updateBundle(bundle);
-          await handleReloadSQLite();
-        }
-      } else {
-        jsonDeletePage(bundleId, pageId);
+      const storage = getSQLiteStorage();
+      const bundle = await storage.getBundle(bundleId);
+      if (bundle && bundle.pages.length > 1) {
+        bundle.pages = bundle.pages.filter((pg) => pg.id !== pageId);
+        bundle.updatedAt = new Date().toISOString();
+        await storage.updateBundle(bundle);
+        await handleReloadSQLite();
       }
     },
-    [storageMode, jsonDeletePage, handleReloadSQLite],
+    [handleReloadSQLite],
   );
 
   const handleUpdatePageContent = useCallback(
     async (bundleId: string, pageId: string, content: string) => {
-      if (storageMode === 'sqlite') {
-        const storage = getSQLiteStorage();
-        await storage.updatePageContent(bundleId, pageId, content);
-        setLoadedBundleContent((prev) => {
-          const cached = prev.get(bundleId);
-          if (!cached) return prev;
-          const updatedPages = cached.pages.map((pg) =>
-            pg.id === pageId ? { ...pg, content, updatedAt: new Date().toISOString() } : pg,
-          );
-          const updated = { ...cached, pages: updatedPages, updatedAt: new Date().toISOString() };
-          return new Map(prev).set(bundleId, updated);
-        });
-      } else {
-        jsonUpdatePageContent(bundleId, pageId, content);
-      }
+      const storage = getSQLiteStorage();
+      await storage.updatePageContent(bundleId, pageId, content);
+      setLoadedBundleContent((prev) => {
+        const cached = prev.get(bundleId);
+        if (!cached) return prev;
+        const updatedPages = cached.pages.map((pg) =>
+          pg.id === pageId ? { ...pg, content, updatedAt: new Date().toISOString() } : pg,
+        );
+        const updated = { ...cached, pages: updatedPages, updatedAt: new Date().toISOString() };
+        return new Map(prev).set(bundleId, updated);
+      });
     },
-    [storageMode, jsonUpdatePageContent],
+    [],
   );
 
   const handleReorderPages = useCallback(
     async (bundleId: string, reordered: IBundle['pages']) => {
-      if (storageMode === 'sqlite') {
-        const storage = getSQLiteStorage();
-        const bundle = await storage.getBundle(bundleId);
-        if (bundle) {
-          bundle.pages = reordered.map((pg, idx) => ({ ...pg, order: idx }));
-          bundle.updatedAt = new Date().toISOString();
-          await storage.updateBundle(bundle);
-          await handleReloadSQLite();
-        }
-      } else {
-        jsonReorderPages(bundleId, reordered);
+      const storage = getSQLiteStorage();
+      const bundle = await storage.getBundle(bundleId);
+      if (bundle) {
+        bundle.pages = reordered.map((pg, idx) => ({ ...pg, order: idx }));
+        bundle.updatedAt = new Date().toISOString();
+        await storage.updateBundle(bundle);
+        await handleReloadSQLite();
       }
     },
-    [storageMode, jsonReorderPages, handleReloadSQLite],
+    [handleReloadSQLite],
   );
 
   const handleExportJSON = useCallback(() => {
@@ -533,7 +484,7 @@ export default function HomePage() {
     exportSQLiteDB();
   }, [exportSQLiteDB]);
 
-  const isLoadingContent = storageMode === 'sqlite' && selectedBundleId !== null && !loadedBundleContent.has(selectedBundleId);
+  const isLoadingContent = selectedBundleId !== null && !loadedBundleContent.has(selectedBundleId);
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -557,7 +508,6 @@ export default function HomePage() {
             query={superSearchQuery}
             results={searchResults}
             loading={
-              storageMode === 'sqlite' &&
               superSearchQuery.trim().length > 0 &&
               sqliteBundles.length > 0 &&
               sqliteSearchBundles.length === 0
@@ -607,7 +557,6 @@ export default function HomePage() {
           <MindmapsPage
             bundles={bundles}
             onSelectBundle={handleSelectBundleFromMindmap}
-            storageMode={storageMode}
             sqliteInfo={sqliteInfo}
             sqliteReady={sqliteReady}
             onExportJSON={handleExportJSON}
@@ -640,6 +589,16 @@ export default function HomePage() {
           {renderTabContent()}
         </div>
       </main>
+
+      {/* Hidden EdgeOne blob sync panel (Shift+B on mindmaps tab) */}
+      {activeTab === 'mindmaps' && (
+        <BlobSyncPanel
+          open={blobPanelOpen}
+          onOpenChange={setBlobPanelOpen}
+          bundles={bundles}
+          onReloadBundles={handleReloadSQLite}
+        />
+      )}
 
       {/* Version footer */}
       <div className="pointer-events-none absolute bottom-2 right-4 z-40 select-none">

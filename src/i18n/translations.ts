@@ -75,7 +75,30 @@ export type TranslationKey =
   | 'search.noResults'
   | 'search.results'
   | 'bookmark.bookmarked'
-  | 'bookmark.selectFirst';
+  | 'bookmark.selectFirst'
+  | 'blob.title'
+  | 'blob.subtitle'
+  | 'blob.shiftBHint'
+  | 'blob.credentials'
+  | 'blob.projectId'
+  | 'blob.apiToken'
+  | 'blob.storeName'
+  | 'blob.testConnection'
+  | 'blob.clear'
+  | 'blob.connected'
+  | 'blob.connectionOk'
+  | 'blob.localCollections'
+  | 'blob.noLocal'
+  | 'blob.bundles'
+  | 'blob.upload'
+  | 'blob.uploaded'
+  | 'blob.remoteCollections'
+  | 'blob.refresh'
+  | 'blob.noCredentials'
+  | 'blob.noRemote'
+  | 'blob.downloaded'
+  | 'blob.confirmDelete'
+  | 'blob.deleted';
 
 type TranslationDict = Record<TranslationKey, string>;
 
@@ -138,6 +161,29 @@ const en: TranslationDict = {
   'search.results': 'results',
   'bookmark.bookmarked': 'Bookmarked',
   'bookmark.selectFirst': 'Select text first to bookmark it',
+  'blob.title': 'EdgeOne Blob Sync',
+  'blob.subtitle': 'Collection-based DB sync',
+  'blob.shiftBHint': 'Shift+B',
+  'blob.credentials': 'Credentials',
+  'blob.projectId': 'Project ID',
+  'blob.apiToken': 'API Token',
+  'blob.storeName': 'Store Name',
+  'blob.testConnection': 'Test',
+  'blob.clear': 'Clear',
+  'blob.connected': 'Connected',
+  'blob.connectionOk': 'Connection successful',
+  'blob.localCollections': 'Local Collections',
+  'blob.noLocal': 'No local bundles yet',
+  'blob.bundles': 'bundles',
+  'blob.upload': 'Upload',
+  'blob.uploaded': 'Collection uploaded',
+  'blob.remoteCollections': 'Remote Collections',
+  'blob.refresh': 'Refresh',
+  'blob.noCredentials': 'Save credentials first',
+  'blob.noRemote': 'No remote collections yet',
+  'blob.downloaded': 'Collection downloaded & merged',
+  'blob.confirmDelete': 'Delete this remote collection?',
+  'blob.deleted': 'Remote collection deleted',
 };
 
 const zh: TranslationDict = {
@@ -199,6 +245,29 @@ const zh: TranslationDict = {
   'search.results': '条结果',
   'bookmark.bookmarked': '已添加书签',
   'bookmark.selectFirst': '请先选择文本以添加书签',
+  'blob.title': 'EdgeOne Blob 同步',
+  'blob.subtitle': '按合集同步数据库',
+  'blob.shiftBHint': 'Shift+B',
+  'blob.credentials': '凭证',
+  'blob.projectId': '项目 ID',
+  'blob.apiToken': 'API Token',
+  'blob.storeName': '存储名称',
+  'blob.testConnection': '测试',
+  'blob.clear': '清除',
+  'blob.connected': '已连接',
+  'blob.connectionOk': '连接成功',
+  'blob.localCollections': '本地合集',
+  'blob.noLocal': '暂无本地知识包',
+  'blob.bundles': '个知识包',
+  'blob.upload': '上传',
+  'blob.uploaded': '合集已上传',
+  'blob.remoteCollections': '远端合集',
+  'blob.refresh': '刷新',
+  'blob.noCredentials': '请先保存凭证',
+  'blob.noRemote': '暂无远端合集',
+  'blob.downloaded': '合集已下载并合并',
+  'blob.confirmDelete': '确定删除该远端合集？',
+  'blob.deleted': '远端合集已删除',
 };
 
 const jp: TranslationDict = {
@@ -260,6 +329,29 @@ const jp: TranslationDict = {
   'search.results': '件の結果',
   'bookmark.bookmarked': 'ブックマーク済み',
   'bookmark.selectFirst': 'ブックマークするテキストを選択してください',
+  'blob.title': 'EdgeOne Blob 同期',
+  'blob.subtitle': 'コレクション単位のDB同期',
+  'blob.shiftBHint': 'Shift+B',
+  'blob.credentials': '認証情報',
+  'blob.projectId': 'プロジェクト ID',
+  'blob.apiToken': 'API トークン',
+  'blob.storeName': 'ストア名',
+  'blob.testConnection': 'テスト',
+  'blob.clear': 'クリア',
+  'blob.connected': '接続済み',
+  'blob.connectionOk': '接続成功',
+  'blob.localCollections': 'ローカルコレクション',
+  'blob.noLocal': 'ローカルバンドルがありません',
+  'blob.bundles': 'バンドル',
+  'blob.upload': 'アップロード',
+  'blob.uploaded': 'コレクションをアップロードしました',
+  'blob.remoteCollections': 'リモートコレクション',
+  'blob.refresh': '更新',
+  'blob.noCredentials': '先に認証情報を保存してください',
+  'blob.noRemote': 'リモートコレクションがありません',
+  'blob.downloaded': 'コレクションをダウンロード・マージしました',
+  'blob.confirmDelete': 'このリモートコレクションを削除しますか？',
+  'blob.deleted': 'リモートコレクションを削除しました',
 };
 
 const de: TranslationDict = {
@@ -321,6 +413,29 @@ const de: TranslationDict = {
   'search.results': 'Ergebnisse',
   'bookmark.bookmarked': 'Lesezeichen gesetzt',
   'bookmark.selectFirst': 'Wählen Sie zuerst Text aus, um ein Lesezeichen zu setzen',
+  'blob.title': 'EdgeOne Blob Sync',
+  'blob.subtitle': 'Sammlungsbasierte DB-Synchronisation',
+  'blob.shiftBHint': 'Shift+B',
+  'blob.credentials': 'Anmeldedaten',
+  'blob.projectId': 'Projekt-ID',
+  'blob.apiToken': 'API-Token',
+  'blob.storeName': 'Store-Name',
+  'blob.testConnection': 'Testen',
+  'blob.clear': 'Löschen',
+  'blob.connected': 'Verbunden',
+  'blob.connectionOk': 'Verbindung erfolgreich',
+  'blob.localCollections': 'Lokale Sammlungen',
+  'blob.noLocal': 'Noch keine lokalen Bundles',
+  'blob.bundles': 'Bundles',
+  'blob.upload': 'Hochladen',
+  'blob.uploaded': 'Sammlung hochgeladen',
+  'blob.remoteCollections': 'Remote-Sammlungen',
+  'blob.refresh': 'Aktualisieren',
+  'blob.noCredentials': 'Bitte zuerst Anmeldedaten speichern',
+  'blob.noRemote': 'Noch keine Remote-Sammlungen',
+  'blob.downloaded': 'Sammlung heruntergeladen & zusammengeführt',
+  'blob.confirmDelete': 'Diese Remote-Sammlung löschen?',
+  'blob.deleted': 'Remote-Sammlung gelöscht',
 };
 
 const it: TranslationDict = {
@@ -382,6 +497,29 @@ const it: TranslationDict = {
   'search.results': 'risultati',
   'bookmark.bookmarked': 'Segnalibro aggiunto',
   'bookmark.selectFirst': 'Seleziona prima il testo per aggiungere un segnalibro',
+  'blob.title': 'Sincronizzazione EdgeOne Blob',
+  'blob.subtitle': 'Sincronizzazione DB per raccolta',
+  'blob.shiftBHint': 'Shift+B',
+  'blob.credentials': 'Credenziali',
+  'blob.projectId': 'ID progetto',
+  'blob.apiToken': 'Token API',
+  'blob.storeName': 'Nome store',
+  'blob.testConnection': 'Test',
+  'blob.clear': 'Cancella',
+  'blob.connected': 'Connesso',
+  'blob.connectionOk': 'Connessione riuscita',
+  'blob.localCollections': 'Raccolte locali',
+  'blob.noLocal': 'Nessun bundle locale',
+  'blob.bundles': 'bundle',
+  'blob.upload': 'Carica',
+  'blob.uploaded': 'Raccolta caricata',
+  'blob.remoteCollections': 'Raccolte remote',
+  'blob.refresh': 'Aggiorna',
+  'blob.noCredentials': 'Salva prima le credenziali',
+  'blob.noRemote': 'Nessuna raccolta remota',
+  'blob.downloaded': 'Raccolta scaricata e unita',
+  'blob.confirmDelete': 'Eliminare questa raccolta remota?',
+  'blob.deleted': 'Raccolta remota eliminata',
 };
 
 const es: TranslationDict = {
@@ -443,6 +581,29 @@ const es: TranslationDict = {
   'search.results': 'resultados',
   'bookmark.bookmarked': 'Marcador añadido',
   'bookmark.selectFirst': 'Selecciona primero el texto para añadir un marcador',
+  'blob.title': 'Sincronización EdgeOne Blob',
+  'blob.subtitle': 'Sincronización de DB por colección',
+  'blob.shiftBHint': 'Shift+B',
+  'blob.credentials': 'Credenciales',
+  'blob.projectId': 'ID del proyecto',
+  'blob.apiToken': 'Token de API',
+  'blob.storeName': 'Nombre del store',
+  'blob.testConnection': 'Probar',
+  'blob.clear': 'Borrar',
+  'blob.connected': 'Conectado',
+  'blob.connectionOk': 'Conexión exitosa',
+  'blob.localCollections': 'Colecciones locales',
+  'blob.noLocal': 'Aún no hay bundles locales',
+  'blob.bundles': 'bundles',
+  'blob.upload': 'Subir',
+  'blob.uploaded': 'Colección subida',
+  'blob.remoteCollections': 'Colecciones remotas',
+  'blob.refresh': 'Actualizar',
+  'blob.noCredentials': 'Guarda primero las credenciales',
+  'blob.noRemote': 'Aún no hay colecciones remotas',
+  'blob.downloaded': 'Colección descargada y combinada',
+  'blob.confirmDelete': '¿Eliminar esta colección remota?',
+  'blob.deleted': 'Colección remota eliminada',
 };
 
 export const TRANSLATIONS: Record<LanguageCode, TranslationDict> = {
