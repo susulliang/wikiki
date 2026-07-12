@@ -1,4 +1,5 @@
 import { useRef, useCallback, useEffect, useState, type KeyboardEvent, type ClipboardEvent } from 'react';
+import { marked } from 'marked';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
@@ -25,6 +26,43 @@ interface RichTextEditorProps {
   showToolbar?: boolean;
   highlightQuery?: string;
 }
+
+/**
+ * Detect whether a plain-text string looks like Markdown.
+ * Uses a scoring system: strong signals (headings, code fences, links,
+ * images, tables) score 2 each; moderate signals (bold, italic, lists,
+ * blockquotes, horizontal rules) score 1 each. A total ≥ 2 means Markdown.
+ */
+function looksLikeMarkdown(text: string): boolean {
+  let score = 0;
+
+  // Strong: ATX headings  (#..# space)
+  if (/^#{1,6}\s+\S/m.test(text)) score += 2;
+  // Strong: fenced code blocks (``` or ~~~)
+  if (/^(```|~~~)/m.test(text)) score += 2;
+  // Strong: Markdown links [text](url)
+  if (/\[.+?\]\(https?:\/\/\S+?\)/.test(text)) score += 2;
+  // Strong: Markdown images ![alt](url)
+  if (/!\[.*?\]\(https?:\/\/\S+?\)/.test(text)) score += 2;
+  // Strong: GFM table (header row + delimiter row)
+  if (/^\|.+\|\s*$/m.test(text) && /^\|[\s:-]+\|/m.test(text)) score += 2;
+
+  // Moderate: bold **text** or __text__
+  if (/(\*\*|__)\S/.test(text)) score += 1;
+  // Moderate: unordered list items (-, *, +)
+  if (/^\s*[-*+]\s+\S/m.test(text)) score += 1;
+  // Moderate: ordered list items (1. 2. etc.)
+  if (/^\s*\d+\.\s+\S/m.test(text)) score += 1;
+  // Moderate: blockquote
+  if (/^>\s+\S/m.test(text)) score += 1;
+  // Moderate: horizontal rule (---, ***, ___ on its own line)
+  if (/^\s*(-{3,}|\*{3,}|_{3,})\s*$/m.test(text)) score += 1;
+
+  return score >= 2;
+}
+
+/** Configure marked for GFM, no line-break-as-<br>. */
+marked.setOptions({ gfm: true, breaks: false });
 
 function processImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -249,6 +287,19 @@ export default function RichTextEditor({
           }
           return;
         }
+      }
+
+      // Check for Markdown in plain text — if detected, convert to HTML.
+      // This takes priority over the text/html flavor so that copying
+      // Markdown source from editors (VS Code, Obsidian, etc.) renders
+      // as rich text instead of literal "# Heading".
+      const plain = e.clipboardData.getData('text/plain');
+      if (plain && looksLikeMarkdown(plain)) {
+        e.preventDefault();
+        const html = marked.parse(plain, { async: false }) as string;
+        document.execCommand('insertHTML', false, html);
+        syncContent();
+        return;
       }
 
       // Handle HTML/Text paste - strip inline styles
