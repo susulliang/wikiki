@@ -102,7 +102,11 @@ export type TranslationKey =
   | 'blob.providerEdgeone'
   | 'blob.providerVercel'
   | 'blob.vercelToken'
-  | 'blob.vercelTokenHint';
+  | 'blob.vercelTokenHint'
+  | 'blob.providerD1'
+  | 'blob.cfAccountId'
+  | 'blob.cfApiToken'
+  | 'blob.d1Hint';
 
 type TranslationDict = Record<TranslationKey, string>;
 
@@ -192,6 +196,10 @@ const en: TranslationDict = {
   'blob.providerVercel': 'Vercel',
   'blob.vercelToken': 'Read/Write Token',
   'blob.vercelTokenHint': 'Link your Blob store to the Vercel project first (Dashboard → Storage → Connect to Project). Enter any token below to unlock sync — the server uses env vars for auth.',
+  'blob.providerD1': 'D1',
+  'blob.cfAccountId': 'Cloudflare Account ID',
+  'blob.cfApiToken': 'D1 API Token',
+  'blob.d1Hint': 'Create a D1 API token at Cloudflare Dashboard → My Profile → API Tokens with D1 edit permission. Database ID is preconfigured.',
 };
 
 const zh: TranslationDict = {
@@ -280,6 +288,10 @@ const zh: TranslationDict = {
   'blob.providerVercel': 'Vercel',
   'blob.vercelToken': '读写 Token',
   'blob.vercelTokenHint': '请先将 Blob 存储连接到 Vercel 项目（控制台 → Storage → Connect to Project）。下方输入任意 token 即可解锁同步——服务器使用环境变量进行认证。',
+  'blob.providerD1': 'D1',
+  'blob.cfAccountId': 'Cloudflare 账户 ID',
+  'blob.cfApiToken': 'D1 API Token',
+  'blob.d1Hint': '在 Cloudflare 控制台 → My Profile → API Tokens 创建具有 D1 编辑权限的 API Token。数据库 ID 已预配置。',
 };
 
 const jp: TranslationDict = {
@@ -368,6 +380,10 @@ const jp: TranslationDict = {
   'blob.providerVercel': 'Vercel',
   'blob.vercelToken': '読み取り/書き込みトークン',
   'blob.vercelTokenHint': 'まず Blob ストアを Vercel プロジェクトに連携してください（ダッシュボード → Storage → Connect to Project）。下のトークン欄は同期のロック解除用です——サーバーは環境変数で認証します。',
+  'blob.providerD1': 'D1',
+  'blob.cfAccountId': 'Cloudflare アカウント ID',
+  'blob.cfApiToken': 'D1 API トークン',
+  'blob.d1Hint': 'Cloudflare ダッシュボード → My Profile → API Tokens で D1 編集権限のある API トークンを作成してください。データベース ID は設定済みです。',
 };
 
 const de: TranslationDict = {
@@ -456,6 +472,10 @@ const de: TranslationDict = {
   'blob.providerVercel': 'Vercel',
   'blob.vercelToken': 'Lese-/Schreib-Token',
   'blob.vercelTokenHint': 'Verknüpfen Sie zuerst den Blob-Store mit dem Vercel-Projekt (Dashboard → Storage → Connect to Project). Geben Sie unten ein beliebiges Token ein, um die Synchronisierung zu entsperren — der Server verwendet Umgebungsvariablen für die Authentifizierung.',
+  'blob.providerD1': 'D1',
+  'blob.cfAccountId': 'Cloudflare-Konto-ID',
+  'blob.cfApiToken': 'D1 API-Token',
+  'blob.d1Hint': 'Erstellen Sie einen D1-API-Token im Cloudflare-Dashboard → My Profile → API Tokens mit D1-Bearbeitungsberechtigung. Die Datenbank-ID ist vorkonfiguriert.',
 };
 
 const it: TranslationDict = {
@@ -544,6 +564,10 @@ const it: TranslationDict = {
   'blob.providerVercel': 'Vercel',
   'blob.vercelToken': 'Token di lettura/scrittura',
   'blob.vercelTokenHint': 'Collega prima il Blob store al progetto Vercel (Dashboard → Storage → Connect to Project). Inserisci un token qualsiasi sotto per sbloccare la sincronizzazione — il server usa variabili d\'ambiente per l\'autenticazione.',
+  'blob.providerD1': 'D1',
+  'blob.cfAccountId': 'ID account Cloudflare',
+  'blob.cfApiToken': 'D1 API Token',
+  'blob.d1Hint': 'Crea un D1 API token su Cloudflare Dashboard → My Profile → API Tokens con autorizzazione di modifica D1. L\'ID del database è preconfigurato.',
 };
 
 const es: TranslationDict = {
@@ -632,6 +656,10 @@ const es: TranslationDict = {
   'blob.providerVercel': 'Vercel',
   'blob.vercelToken': 'Token de lectura/escritura',
   'blob.vercelTokenHint': 'Conecta primero el Blob store al proyecto de Vercel (Panel → Storage → Connect to Project). Ingresa cualquier token abajo para desbloquear la sincronización — el servidor usa variables de entorno para la autenticación.',
+  'blob.providerD1': 'D1',
+  'blob.cfAccountId': 'ID de cuenta de Cloudflare',
+  'blob.cfApiToken': 'D1 API Token',
+  'blob.d1Hint': 'Crea un D1 API token en Cloudflare Dashboard → My Profile → API Tokens con permiso de edición D1. El ID de la base de datos está preconfigurado.',
 };
 
 export const TRANSLATIONS: Record<LanguageCode, TranslationDict> = {

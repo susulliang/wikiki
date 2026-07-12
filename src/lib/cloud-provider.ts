@@ -16,7 +16,7 @@
  */
 import type { IBundle } from '@/data/bundles';
 
-export type ProviderId = 'edgeone' | 'vercel';
+export type ProviderId = 'edgeone' | 'vercel' | 'd1';
 
 /** Metadata for one uploaded collection, stored in the manifest. */
 export interface CollectionEntry {

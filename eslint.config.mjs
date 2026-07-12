@@ -37,6 +37,8 @@ export default [
           requestAnimationFrame: 'readonly',
           cancelAnimationFrame: 'readonly',
           fetch: 'readonly',
+          btoa: 'readonly',
+          atob: 'readonly',
         },
       },
       plugins: {

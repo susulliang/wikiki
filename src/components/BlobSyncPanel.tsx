@@ -25,6 +25,11 @@ import {
   saveVercelCreds,
   clearVercelCreds,
 } from '@/lib/vercel-blob';
+import {
+  getD1Creds,
+  saveD1Creds,
+  clearD1Creds,
+} from '@/lib/d1-provider';
 import { getSQLiteStorage, jsonBundlesToSQLite, bundlesFromDbBytes } from '@/lib/sqlite-storage';
 import type { IBundle } from '@/data/bundles';
 
@@ -55,6 +60,10 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
   // Vercel credential form state
   const [vercelToken, setVercelToken] = useState('');
 
+  // D1 credential form state
+  const [cfAccountId, setCfAccountId] = useState('');
+  const [cfApiToken, setCfApiToken] = useState('');
+
   const [hasCreds, setHasCreds] = useState(false);
   const [testing, setTesting] = useState(false);
   const [remote, setRemote] = useState<CollectionEntry[]>([]);
@@ -76,10 +85,20 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
         setHasCreds(false);
         setRemote([]);
       }
-    } else {
+    } else if (id === 'vercel') {
       const creds = getVercelCreds();
       if (creds) {
         setVercelToken(creds.token);
+        setHasCreds(true);
+      } else {
+        setHasCreds(false);
+        setRemote([]);
+      }
+    } else {
+      const creds = getD1Creds();
+      if (creds) {
+        setCfAccountId(creds.accountId);
+        setCfApiToken(creds.token);
         setHasCreds(true);
       } else {
         setHasCreds(false);
@@ -121,10 +140,19 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
         } else {
           setHasCreds(false);
         }
-      } else {
+      } else if (id === 'vercel') {
         const creds = getVercelCreds();
         if (creds) {
           setVercelToken(creds.token);
+          setHasCreds(true);
+        } else {
+          setHasCreds(false);
+        }
+      } else {
+        const creds = getD1Creds();
+        if (creds) {
+          setCfAccountId(creds.accountId);
+          setCfApiToken(creds.token);
           setHasCreds(true);
         } else {
           setHasCreds(false);
@@ -146,14 +174,24 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
       });
       return true;
     }
-    if (!vercelToken.trim()) return false;
-    saveVercelCreds({ token: vercelToken.trim() });
+    if (providerId === 'vercel') {
+      if (!vercelToken.trim()) return false;
+      saveVercelCreds({ token: vercelToken.trim() });
+      return true;
+    }
+    if (!cfAccountId.trim() || !cfApiToken.trim()) return false;
+    saveD1Creds({ accountId: cfAccountId.trim(), token: cfApiToken.trim() });
     return true;
-  }, [providerId, eoProjectId, eoToken, eoStoreName, vercelToken]);
+  }, [providerId, eoProjectId, eoToken, eoStoreName, vercelToken, cfAccountId, cfApiToken]);
 
   const handleSaveCreds = useCallback(() => {
     if (!persistCreds()) {
-      toast.error(providerId === 'edgeone' ? 'Project ID and API Token are required' : 'Vercel Blob token is required');
+      const msg = providerId === 'edgeone'
+        ? 'Project ID and API Token are required'
+        : providerId === 'vercel'
+          ? 'Vercel Blob token is required'
+          : 'Cloudflare Account ID and API Token are required';
+      toast.error(msg);
       return;
     }
     setHasCreds(true);
@@ -167,9 +205,13 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
       setEoProjectId('');
       setEoToken('');
       setEoStoreName('wikiki-db-sync');
-    } else {
+    } else if (providerId === 'vercel') {
       clearVercelCreds();
       setVercelToken('');
+    } else {
+      clearD1Creds();
+      setCfAccountId('');
+      setCfApiToken('');
     }
     setHasCreds(false);
     setRemote([]);
@@ -178,7 +220,12 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
 
   const handleTest = useCallback(async () => {
     if (!persistCreds()) {
-      toast.error(providerId === 'edgeone' ? 'Project ID and API Token are required' : 'Vercel Blob token is required');
+      const msg = providerId === 'edgeone'
+        ? 'Project ID and API Token are required'
+        : providerId === 'vercel'
+          ? 'Vercel Blob token is required'
+          : 'Cloudflare Account ID and API Token are required';
+      toast.error(msg);
       return;
     }
     setHasCreds(true);
@@ -277,7 +324,7 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
       <div className="flex-1 overflow-y-auto px-4 py-3">
         {/* Provider selector */}
         <div className="mb-3 flex gap-1 rounded-lg border border-border/60 bg-foreground/5 p-0.5">
-          {(['edgeone', 'vercel'] as const).map((id) => (
+          {(['edgeone', 'vercel', 'd1'] as const).map((id) => (
             <button
               key={id}
               type="button"
@@ -288,7 +335,7 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              {id === 'edgeone' ? t('blob.providerEdgeone') : t('blob.providerVercel')}
+              {id === 'edgeone' ? t('blob.providerEdgeone') : id === 'vercel' ? t('blob.providerVercel') : t('blob.providerD1')}
             </button>
           ))}
         </div>
@@ -315,7 +362,7 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
                 <Input value={eoStoreName} onChange={(e) => setEoStoreName(e.target.value)} placeholder="wikiki-db-sync" className="h-8 text-xs" />
               </div>
             </div>
-          ) : (
+          ) : providerId === 'vercel' ? (
             <div className="space-y-2">
               <div>
                 <Label className="text-[11px] text-muted-foreground">{t('blob.vercelToken')}</Label>
@@ -327,6 +374,29 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
                   className="h-8 text-xs"
                 />
                 <p className="mt-1 text-[10px] text-muted-foreground">{t('blob.vercelTokenHint')}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div>
+                <Label className="text-[11px] text-muted-foreground">{t('blob.cfAccountId')}</Label>
+                <Input
+                  value={cfAccountId}
+                  onChange={(e) => setCfAccountId(e.target.value)}
+                  placeholder="a1b2c3d4..."
+                  className="h-8 text-xs"
+                />
+              </div>
+              <div>
+                <Label className="text-[11px] text-muted-foreground">{t('blob.cfApiToken')}</Label>
+                <Input
+                  value={cfApiToken}
+                  onChange={(e) => setCfApiToken(e.target.value)}
+                  type="password"
+                  placeholder="D1 API token with edit permissions"
+                  className="h-8 text-xs"
+                />
+                <p className="mt-1 text-[10px] text-muted-foreground">{t('blob.d1Hint')}</p>
               </div>
             </div>
           )}
