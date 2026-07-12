@@ -86,12 +86,16 @@ export function useBundles() {
     };
   }, [bundles]);
 
-  const addBundle = useCallback((name: string, tags: string[]): IBundle => {
+  const addBundle = useCallback((name: string, tags: string[], authors: string[], collection: string): IBundle => {
     const now = new Date().toISOString();
+    const finalAuthors = authors && authors.length > 0 ? authors : ['susul'];
+    const finalCollection = collection && collection.trim() ? collection.trim() : 'Default';
     const newBundle: IBundle = {
       id: `user-${Date.now()}`,
       name,
       tags,
+      authors: finalAuthors,
+      collection: finalCollection,
       pages: [
         {
           id: `page-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -111,10 +115,12 @@ export function useBundles() {
     return newBundle;
   }, []);
 
-  const updateBundle = useCallback((id: string, name: string, tags: string[]) => {
+  const updateBundle = useCallback((id: string, name: string, tags: string[], authors: string[], collection: string) => {
+    const finalAuthors = authors && authors.length > 0 ? authors : ['susul'];
+    const finalCollection = collection && collection.trim() ? collection.trim() : 'Default';
     setBundles((prev) =>
       prev.map((p) =>
-        p.id === id ? { ...p, name, tags, updatedAt: new Date().toISOString() } : p,
+        p.id === id ? { ...p, name, tags, authors: finalAuthors, collection: finalCollection, updatedAt: new Date().toISOString() } : p,
       ),
     );
   }, []);

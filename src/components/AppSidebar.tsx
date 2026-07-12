@@ -67,7 +67,7 @@ interface AppSidebarProps {
   triggerImportJSON: boolean;
   triggerImportDB: boolean;
   onSelectBundle: (id: string) => void;
-  onAddBundle: (name: string, tags: string[]) => IBundle;
+  onAddBundle: (name: string, tags: string[], authors: string[], collection: string) => IBundle;
   onImportBundlesJSON: (incoming: IBundle[]) => { added: number; updated: number };
   onExportBundlesJSON: () => void;
   onToggleCollapse: () => void;
@@ -185,8 +185,8 @@ export default function AppSidebar({
   }, [bundles]);
 
   const handleAddBundle = useCallback(
-    (name: string, tags: string[]) => {
-      const bundle = onAddBundle(name, tags);
+    (name: string, tags: string[], authors: string[], collection: string) => {
+      const bundle = onAddBundle(name, tags, authors, collection);
       onSelectBundle(bundle.id);
       toast.success(`Bundle "${name}" created`);
     },

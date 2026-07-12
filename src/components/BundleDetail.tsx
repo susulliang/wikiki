@@ -26,7 +26,7 @@ interface BundleDetailProps {
   bundle: IBundle;
   pageIndex: number;
   onPageChange: (index: number) => void;
-  onUpdateBundle: (id: string, name: string, tags: string[]) => void | Promise<void>;
+  onUpdateBundle: (id: string, name: string, tags: string[], authors: string[], collection: string) => void | Promise<void>;
   onDeleteBundle: (id: string) => void | Promise<void>;
   onAddPage: (bundleId: string, name: string) => IPage | null | Promise<IPage | null>;
   onDeletePage: (bundleId: string, pageId: string) => void | Promise<void>;
@@ -89,8 +89,8 @@ export default function BundleDetail({
   }, [openMindmap, mindmapPage]);
 
   const handleSaveBundle = useCallback(
-    async (name: string, tags: string[]) => {
-      await onUpdateBundle(bundle.id, name, tags);
+    async (name: string, tags: string[], authors: string[], collection: string) => {
+      await onUpdateBundle(bundle.id, name, tags, authors, collection);
       toast.success('Bundle updated');
     },
     [bundle.id, onUpdateBundle],
@@ -291,6 +291,8 @@ export default function BundleDetail({
         onOpenChange={setEditDialogOpen}
         initialName={bundle.name}
         initialTags={bundle.tags}
+        initialAuthors={bundle.authors}
+        initialCollection={bundle.collection}
         onSave={handleSaveBundle}
         title="Edit Bundle Info"
       />

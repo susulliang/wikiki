@@ -18,6 +18,10 @@ export interface IBundle {
   id: string;
   name: string;
   tags: string[];
+  /** Authors of this bundle (multi-user collaboration). Defaults to ['susul']. */
+  authors: string[];
+  /** Collection this bundle belongs to. Defaults to 'Default'. */
+  collection: string;
   pages: IPage[];
   createdAt: string;
   updatedAt: string;
@@ -88,10 +92,20 @@ export function normalizeBundle(raw: Record<string, unknown>): IBundle {
     };
   });
 
+  // Authors: default to ['susul'] for backward compatibility
+  const rawAuthors = Array.isArray(raw.authors) ? raw.authors.map(String).map((a) => a.trim()).filter(Boolean) : [];
+  const authors = rawAuthors.length > 0 ? rawAuthors : ['susul'];
+  // Collection: default to 'Default' for backward compatibility
+  const collection = typeof raw.collection === 'string' && raw.collection.trim()
+    ? raw.collection.trim()
+    : 'Default';
+
   return {
     id: String(raw.id ?? `bundle-${Date.now()}`),
     name: String(raw.name ?? 'Untitled'),
     tags: Array.isArray(raw.tags) ? raw.tags.map(String) : [],
+    authors,
+    collection,
     pages,
     createdAt,
     updatedAt,
@@ -111,6 +125,8 @@ export function denormalizeBundle(bundle: IBundle): Record<string, unknown> {
       content: pg.content,
     })),
     tags: bundle.tags,
+    authors: bundle.authors,
+    collection: bundle.collection,
     createdAt: new Date(bundle.createdAt).getTime(),
     updatedAt: new Date(bundle.updatedAt).getTime(),
     source: bundle.source || 'user',

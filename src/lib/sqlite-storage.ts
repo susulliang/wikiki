@@ -150,7 +150,8 @@ function createSchema(db: Database): void {
     name TEXT NOT NULL,
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL,
-    source TEXT DEFAULT 'user'
+    source TEXT DEFAULT 'user',
+    collection TEXT DEFAULT 'Default'
   )`);
   db.run(`CREATE TABLE IF NOT EXISTS pages (
     id TEXT PRIMARY KEY,
@@ -171,6 +172,17 @@ function createSchema(db: Database): void {
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
     FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
   )`);
+  db.run(`CREATE TABLE IF NOT EXISTS authors (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE NOT NULL
+  )`);
+  db.run(`CREATE TABLE IF NOT EXISTS product_authors (
+    product_id TEXT NOT NULL,
+    author_id INTEGER NOT NULL,
+    PRIMARY KEY (product_id, author_id),
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+    FOREIGN KEY (author_id) REFERENCES authors(id) ON DELETE CASCADE
+  )`);
   db.run(`CREATE TABLE IF NOT EXISTS images (
     id TEXT PRIMARY KEY,
     product_id TEXT,
@@ -183,6 +195,21 @@ function createSchema(db: Database): void {
     value TEXT
   )`);
   db.run('PRAGMA foreign_keys = ON');
+}
+
+/**
+ * Idempotent migration: add the `collection` column to the `products` table
+ * for existing databases created before this column existed.
+ * SQLite has no ADD COLUMN IF NOT EXISTS, so we guard with PRAGMA table_info.
+ */
+function migrateSchema(db: Database): void {
+  const cols = db.exec('PRAGMA table_info(products)');
+  if (cols[0]) {
+    const colNames = cols[0].values.map((r) => r[1] as string);
+    if (!colNames.includes('collection')) {
+      db.run("ALTER TABLE products ADD COLUMN collection TEXT DEFAULT 'Default'");
+    }
+  }
 }
 
 export interface StorageInfo {
@@ -235,6 +262,7 @@ export class SQLiteStorage {
     }
     // 确保 schema 存在
     createSchema(this.db);
+    migrateSchema(this.db);
     this._initialized = true;
   }
 
@@ -263,19 +291,25 @@ export class SQLiteStorage {
   async getAllBundlesShallow(): Promise<IBundle[]> {
     if (!this.db) return [];
     const prodRows = this.db.exec(
-      'SELECT id, name, created_at, updated_at, source FROM products ORDER BY updated_at DESC',
+      'SELECT id, name, created_at, updated_at, source, collection FROM products ORDER BY updated_at DESC',
     );
     if (!prodRows[0]) return [];
 
     const bundles: IBundle[] = [];
     for (const row of prodRows[0].values) {
-      const [pid, name, createdAt, updatedAt, source] = row as [string, string, number, number, string];
+      const [pid, name, createdAt, updatedAt, source, collection] = row as [string, string, number, number, string, string];
 
       const tagRows = this.db.exec(
         'SELECT t.name FROM tags t JOIN product_tags pt ON t.id = pt.tag_id WHERE pt.product_id = ?',
         [pid],
       );
       const tags: string[] = tagRows[0] ? tagRows[0].values.map((r) => r[0] as string) : [];
+
+      const authorRows = this.db.exec(
+        'SELECT a.name FROM authors a JOIN product_authors pa ON a.id = pa.author_id WHERE pa.product_id = ?',
+        [pid],
+      );
+      const authors: string[] = authorRows[0] ? authorRows[0].values.map((r) => r[0] as string) : [];
 
       // Load page metadata only — no content, no images
       const pageRows = this.db.exec(
@@ -301,6 +335,8 @@ export class SQLiteStorage {
         id: pid,
         name,
         tags,
+        authors: authors.length > 0 ? authors : ['susul'],
+        collection: collection || 'Default',
         pages,
         createdAt: new Date(createdAt as number).toISOString(),
         updatedAt: new Date(updatedAt as number).toISOString(),
@@ -313,17 +349,24 @@ export class SQLiteStorage {
   async getAllBundles(): Promise<IBundle[]> {
     if (!this.db) return [];
     const bundles: IBundle[] = [];
-    const prodRows = this.db.exec('SELECT id, name, created_at, updated_at, source FROM products ORDER BY name');
+    const prodRows = this.db.exec('SELECT id, name, created_at, updated_at, source, collection FROM products ORDER BY name');
     if (!prodRows[0]) return [];
 
     for (const row of prodRows[0].values) {
-      const [id, name, createdAt, updatedAt, source] = row as [string, string, number, number, string];
+      const [id, name, createdAt, updatedAt, source, collection] = row as [string, string, number, number, string, string];
       // 获取标签
       const tagRows = this.db.exec(
         'SELECT t.name FROM tags t JOIN product_tags pt ON t.id = pt.tag_id WHERE pt.product_id = ?',
         [id],
       );
       const tags: string[] = tagRows[0] ? tagRows[0].values.map((r) => r[0] as string) : [];
+
+      // 获取作者
+      const authorRows = this.db.exec(
+        'SELECT a.name FROM authors a JOIN product_authors pa ON a.id = pa.author_id WHERE pa.product_id = ?',
+        [id],
+      );
+      const authors: string[] = authorRows[0] ? authorRows[0].values.map((r) => r[0] as string) : [];
 
       // 获取页面
       const pageRows = this.db.exec(
@@ -358,6 +401,8 @@ export class SQLiteStorage {
         id,
         name,
         tags,
+        authors: authors.length > 0 ? authors : ['susul'],
+        collection: collection || 'Default',
         pages,
         createdAt: new Date(createdAt as number).toISOString(),
         updatedAt: new Date(updatedAt as number).toISOString(),
@@ -371,18 +416,24 @@ export class SQLiteStorage {
     if (!this.db) return null;
     // Fetch only the bundle with the given id, not all bundles
     const prodRows = this.db.exec(
-      'SELECT id, name, created_at, updated_at, source FROM products WHERE id = ?',
+      'SELECT id, name, created_at, updated_at, source, collection FROM products WHERE id = ?',
       [id],
     );
     if (!prodRows[0] || prodRows[0].values.length === 0) return null;
 
-    const [pid, name, createdAt, updatedAt, source] = prodRows[0].values[0] as [string, string, number, number, string];
+    const [pid, name, createdAt, updatedAt, source, collection] = prodRows[0].values[0] as [string, string, number, number, string, string];
 
     const tagRows = this.db.exec(
       'SELECT t.name FROM tags t JOIN product_tags pt ON t.id = pt.tag_id WHERE pt.product_id = ?',
       [pid],
     );
     const tags: string[] = tagRows[0] ? tagRows[0].values.map((r) => r[0] as string) : [];
+
+    const authorRows = this.db.exec(
+      'SELECT a.name FROM authors a JOIN product_authors pa ON a.id = pa.author_id WHERE pa.product_id = ?',
+      [pid],
+    );
+    const authors: string[] = authorRows[0] ? authorRows[0].values.map((r) => r[0] as string) : [];
 
     const pageRows = this.db.exec(
       'SELECT id, title, content, page_order FROM pages WHERE product_id = ? ORDER BY page_order',
@@ -416,6 +467,8 @@ export class SQLiteStorage {
       id: pid,
       name,
       tags,
+      authors: authors.length > 0 ? authors : ['susul'],
+      collection: collection || 'Default',
       pages,
       createdAt: new Date(createdAt as number).toISOString(),
       updatedAt: new Date(updatedAt as number).toISOString(),
@@ -427,12 +480,13 @@ export class SQLiteStorage {
     if (!this.db) return;
     const createdAt = new Date(bundle.createdAt).getTime();
     const updatedAt = new Date(bundle.updatedAt).getTime();
-    this.db.run('INSERT INTO products (id, name, created_at, updated_at, source) VALUES (?, ?, ?, ?, ?)', [
+    this.db.run('INSERT INTO products (id, name, created_at, updated_at, source, collection) VALUES (?, ?, ?, ?, ?, ?)', [
       bundle.id,
       bundle.name,
       createdAt,
       updatedAt,
       bundle.source || 'user',
+      bundle.collection || 'Default',
     ]);
     await this.syncTagsAndPages(bundle);
     await this.persist();
@@ -441,13 +495,15 @@ export class SQLiteStorage {
   async updateBundle(bundle: IBundle): Promise<void> {
     if (!this.db) return;
     const updatedAt = new Date(bundle.updatedAt).getTime();
-    this.db.run('UPDATE products SET name = ?, updated_at = ?, source = ? WHERE id = ?', [
+    this.db.run('UPDATE products SET name = ?, updated_at = ?, source = ?, collection = ? WHERE id = ?', [
       bundle.name,
       updatedAt,
       bundle.source || 'user',
+      bundle.collection || 'Default',
       bundle.id,
     ]);
     this.db.run('DELETE FROM product_tags WHERE product_id = ?', [bundle.id]);
+    this.db.run('DELETE FROM product_authors WHERE product_id = ?', [bundle.id]);
     this.db.run('DELETE FROM images WHERE product_id = ?', [bundle.id]);
     this.db.run('DELETE FROM pages WHERE product_id = ?', [bundle.id]);
     await this.syncTagsAndPages(bundle);
@@ -476,6 +532,7 @@ export class SQLiteStorage {
     this.db.run('DELETE FROM images WHERE product_id = ?', [id]);
     this.db.run('DELETE FROM pages WHERE product_id = ?', [id]);
     this.db.run('DELETE FROM product_tags WHERE product_id = ?', [id]);
+    this.db.run('DELETE FROM product_authors WHERE product_id = ?', [id]);
     this.db.run('DELETE FROM products WHERE id = ?', [id]);
     await this.persist();
   }
@@ -497,18 +554,20 @@ export class SQLiteStorage {
             id: existingId,
             updatedAt: new Date().toISOString(),
           };
-          // 删除旧的标签和页面
+          // 删除旧的标签、作者和页面
           this.db.run('DELETE FROM product_tags WHERE product_id = ?', [existingId]);
+          this.db.run('DELETE FROM product_authors WHERE product_id = ?', [existingId]);
           this.db.run('DELETE FROM images WHERE product_id = ?', [existingId]);
           this.db.run('DELETE FROM pages WHERE product_id = ?', [existingId]);
           // 更新产品信息
-          this.db.run('UPDATE products SET name = ?, updated_at = ?, source = ? WHERE id = ?', [
+          this.db.run('UPDATE products SET name = ?, updated_at = ?, source = ?, collection = ? WHERE id = ?', [
             bundle.name,
             new Date().getTime(),
             bundle.source || 'user',
+            bundle.collection || 'Default',
             existingId,
           ]);
-          // 重新同步标签和页面
+          // 重新同步标签、作者和页面
           await this.syncTagsAndPages(updatedBundle);
           updated++;
         } else {
@@ -538,6 +597,7 @@ export class SQLiteStorage {
     }
     this.db = new sql.Database(data);
     createSchema(this.db);
+    migrateSchema(this.db);
     this._initialized = true;
     await this.persist();
   }
@@ -578,6 +638,16 @@ export class SQLiteStorage {
       if (tagRow[0] && tagRow[0].values.length > 0) {
         const tagId = tagRow[0].values[0][0] as number;
         this.db.run('INSERT OR IGNORE INTO product_tags (product_id, tag_id) VALUES (?, ?)', [bundle.id, tagId]);
+      }
+    }
+    // 同步作者
+    const authors = bundle.authors && bundle.authors.length > 0 ? bundle.authors : ['susul'];
+    for (const author of authors) {
+      this.db.run('INSERT OR IGNORE INTO authors (name) VALUES (?)', [author]);
+      const authorRow = this.db.exec('SELECT id FROM authors WHERE name = ?', [author]);
+      if (authorRow[0] && authorRow[0].values.length > 0) {
+        const authorId = authorRow[0].values[0][0] as number;
+        this.db.run('INSERT OR IGNORE INTO product_authors (product_id, author_id) VALUES (?, ?)', [bundle.id, authorId]);
       }
     }
     // 同步页面并提取图片

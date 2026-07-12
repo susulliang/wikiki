@@ -8,7 +8,7 @@ interface WikisPageProps {
   bundle: IBundle | null;
   pageIndex: number;
   onPageChange: (index: number) => void;
-  onUpdateBundle: (id: string, name: string, tags: string[]) => void | Promise<void>;
+  onUpdateBundle: (id: string, name: string, tags: string[], authors: string[], collection: string) => void | Promise<void>;
   onDeleteBundle: (id: string) => void | Promise<void>;
   onAddPage: (bundleId: string, name: string) => Promise<IPage | null>;
   onDeletePage: (bundleId: string, pageId: string) => void | Promise<void>;

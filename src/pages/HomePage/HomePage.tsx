@@ -335,7 +335,7 @@ export default function HomePage() {
           await handleReloadSQLite();
         } else {
           bundles.forEach((p: IBundle) => {
-            jsonAddBundle(p.name, p.tags);
+            jsonAddBundle(p.name, p.tags, p.authors, p.collection);
           });
         }
         handleTabChange('mindmaps');
@@ -360,12 +360,16 @@ export default function HomePage() {
   }, [importSQLiteDB, handleReloadSQLite, handleTabChange]);
 
   const handleAddBundleFromSidebar = useCallback(
-    (name: string, tags: string[]): IBundle => {
+    (name: string, tags: string[], authors: string[], collection: string): IBundle => {
       const now = new Date().toISOString();
+      const finalAuthors = authors && authors.length > 0 ? authors : ['susul'];
+      const finalCollection = collection && collection.trim() ? collection.trim() : 'Default';
       const newBundle: IBundle = {
         id: `user-${Date.now()}`,
         name,
         tags,
+        authors: finalAuthors,
+        collection: finalCollection,
         pages: [
           {
             id: `page-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -395,7 +399,7 @@ export default function HomePage() {
           }
         })();
       } else {
-        jsonAddBundle(name, tags);
+        jsonAddBundle(name, tags, authors, collection);
       }
 
       setSelectedBundleId(newBundle.id);
@@ -411,19 +415,21 @@ export default function HomePage() {
   );
 
   const handleUpdateBundle = useCallback(
-    async (id: string, name: string, tags: string[]) => {
+    async (id: string, name: string, tags: string[], authors: string[], collection: string) => {
       if (storageMode === 'sqlite') {
         const storage = getSQLiteStorage();
         const bundle = await storage.getBundle(id);
         if (bundle) {
           bundle.name = name;
           bundle.tags = tags;
+          bundle.authors = authors && authors.length > 0 ? authors : ['susul'];
+          bundle.collection = collection && collection.trim() ? collection.trim() : 'Default';
           bundle.updatedAt = new Date().toISOString();
           await storage.updateBundle(bundle);
           await handleReloadSQLite();
         }
       } else {
-        jsonUpdateBundle(id, name, tags);
+        jsonUpdateBundle(id, name, tags, authors, collection);
       }
     },
     [storageMode, jsonUpdateBundle, handleReloadSQLite],
@@ -645,8 +651,8 @@ export default function HomePage() {
         open={triggerAddDialog}
         onOpenChange={setTriggerAddDialog}
         title="Create Bundle"
-        onSave={(name, tags) => {
-          handleAddBundleFromSidebar(name, tags);
+        onSave={(name, tags, authors, collection) => {
+          handleAddBundleFromSidebar(name, tags, authors, collection);
           handleTabChange('wikis');
         }}
       />

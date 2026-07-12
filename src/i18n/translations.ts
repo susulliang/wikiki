@@ -37,6 +37,8 @@ export type TranslationKey =
   | 'common.bundles'
   | 'common.pages'
   | 'common.tags'
+  | 'common.authors'
+  | 'common.collection'
   | 'common.language'
   | 'common.theme'
   | 'empty.noBundles'
@@ -57,6 +59,8 @@ export type TranslationKey =
   | 'dialog.editBundle'
   | 'dialog.bundleName'
   | 'dialog.bundleTags'
+  | 'dialog.bundleAuthors'
+  | 'dialog.bundleCollection'
   | 'dialog.pageName'
   | 'theme.graphite'
   | 'theme.graphiteNight'
@@ -95,6 +99,8 @@ const en: TranslationDict = {
   'common.bundles': 'bundles',
   'common.pages': 'pages',
   'common.tags': 'tags',
+  'common.authors': 'authors',
+  'common.collection': 'collection',
   'common.language': 'Language',
   'common.theme': 'Theme',
   'empty.noBundles': 'No Bundles Yet',
@@ -115,6 +121,8 @@ const en: TranslationDict = {
   'dialog.editBundle': 'Edit Bundle Info',
   'dialog.bundleName': 'Bundle Name',
   'dialog.bundleTags': 'Tags (comma separated)',
+  'dialog.bundleAuthors': 'Authors (comma separated)',
+  'dialog.bundleCollection': 'Collection',
   'dialog.pageName': 'Page Name',
   'theme.graphite': 'Graphite',
   'theme.graphiteNight': 'Graphite Night',
@@ -152,6 +160,8 @@ const zh: TranslationDict = {
   'common.bundles': '知识包',
   'common.pages': '页面',
   'common.tags': '标签',
+  'common.authors': '作者',
+  'common.collection': '合集',
   'common.language': '语言',
   'common.theme': '主题',
   'empty.noBundles': '暂无知识包',
@@ -172,6 +182,8 @@ const zh: TranslationDict = {
   'dialog.editBundle': '编辑知识包信息',
   'dialog.bundleName': '知识包名称',
   'dialog.bundleTags': '标签（逗号分隔）',
+  'dialog.bundleAuthors': '作者（逗号分隔）',
+  'dialog.bundleCollection': '合集',
   'dialog.pageName': '页面名称',
   'theme.graphite': '石墨',
   'theme.graphiteNight': '石墨夜',
@@ -209,6 +221,8 @@ const jp: TranslationDict = {
   'common.bundles': 'バンドル',
   'common.pages': 'ページ',
   'common.tags': 'タグ',
+  'common.authors': '著者',
+  'common.collection': 'コレクション',
   'common.language': '言語',
   'common.theme': 'テーマ',
   'empty.noBundles': 'バンドルがありません',
@@ -229,6 +243,8 @@ const jp: TranslationDict = {
   'dialog.editBundle': 'バンドル情報を編集',
   'dialog.bundleName': 'バンドル名',
   'dialog.bundleTags': 'タグ（カンマ区切り）',
+  'dialog.bundleAuthors': '著者（カンマ区切り）',
+  'dialog.bundleCollection': 'コレクション',
   'dialog.pageName': 'ページ名',
   'theme.graphite': 'グラファイト',
   'theme.graphiteNight': 'グラファイトナイト',
@@ -266,6 +282,8 @@ const de: TranslationDict = {
   'common.bundles': 'Bundles',
   'common.pages': 'Seiten',
   'common.tags': 'Tags',
+  'common.authors': 'Autoren',
+  'common.collection': 'Sammlung',
   'common.language': 'Sprache',
   'common.theme': 'Theme',
   'empty.noBundles': 'Noch keine Bundles',
@@ -286,6 +304,8 @@ const de: TranslationDict = {
   'dialog.editBundle': 'Bundle-Info bearbeiten',
   'dialog.bundleName': 'Bundle-Name',
   'dialog.bundleTags': 'Tags (kommagetrennt)',
+  'dialog.bundleAuthors': 'Autoren (kommagetrennt)',
+  'dialog.bundleCollection': 'Sammlung',
   'dialog.pageName': 'Seitenname',
   'theme.graphite': 'Graphit',
   'theme.graphiteNight': 'Graphit Nacht',
@@ -323,6 +343,8 @@ const it: TranslationDict = {
   'common.bundles': 'bundle',
   'common.pages': 'pagine',
   'common.tags': 'tag',
+  'common.authors': 'autori',
+  'common.collection': 'collezione',
   'common.language': 'Lingua',
   'common.theme': 'Tema',
   'empty.noBundles': 'Nessun bundle',
@@ -343,6 +365,8 @@ const it: TranslationDict = {
   'dialog.editBundle': 'Modifica info bundle',
   'dialog.bundleName': 'Nome bundle',
   'dialog.bundleTags': 'Tag (separati da virgola)',
+  'dialog.bundleAuthors': 'Autori (separati da virgola)',
+  'dialog.bundleCollection': 'Collezione',
   'dialog.pageName': 'Nome pagina',
   'theme.graphite': 'Grafite',
   'theme.graphiteNight': 'Grafite notte',
@@ -380,6 +404,8 @@ const es: TranslationDict = {
   'common.bundles': 'bundles',
   'common.pages': 'páginas',
   'common.tags': 'etiquetas',
+  'common.authors': 'autores',
+  'common.collection': 'colección',
   'common.language': 'Idioma',
   'common.theme': 'Tema',
   'empty.noBundles': 'Sin bundles aún',
@@ -400,6 +426,8 @@ const es: TranslationDict = {
   'dialog.editBundle': 'Editar info del bundle',
   'dialog.bundleName': 'Nombre del bundle',
   'dialog.bundleTags': 'Etiquetas (separadas por comas)',
+  'dialog.bundleAuthors': 'Autores (separados por comas)',
+  'dialog.bundleCollection': 'Colección',
   'dialog.pageName': 'Nombre de la página',
   'theme.graphite': 'Grafito',
   'theme.graphiteNight': 'Grafito noche',
