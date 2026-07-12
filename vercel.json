@@ -2,13 +2,7 @@
   "buildCommand": "npm run build:vercel",
   "outputDirectory": "dist",
   "rewrites": [
-    {
-      "source": "/api/blob/:path*",
-      "destination": "/api/blob"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    { "source": "/api/blob/delete", "destination": "/api/blob" },
+    { "source": "/((?!api).*)", "destination": "/index.html" }
   ]
 }

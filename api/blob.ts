@@ -1,21 +1,18 @@
 /**
- * Vercel Blob API proxy (Edge Runtime).
- *
- * Uses the Edge Runtime with standard Web Request/Response API for better
- * ESM support and to avoid Node.js runtime routing issues that caused 405
- * Method Not Allowed on POST requests.
+ * Vercel Blob API proxy.
  *
  * Reads BLOB_STORE_ID and BLOB_READ_WRITE_TOKEN from env vars (set
  * automatically when a Blob store is linked to the Vercel project) and
- * makes REST calls to the Vercel Blob API server-to-server.
+ * makes REST calls to the Vercel Blob API server-to-server, bypassing
+ * both CORS and the SDK's store-ID parsing bug.
  *
- * Routes:
+ * Routes (all handled by this single function at /api/blob):
  *   GET    /api/blob?limit=N           → list blobs
  *   GET    /api/blob?download=<key>    → download blob content
  *   POST   /api/blob?pathname=<key>    → upload blob
  *   POST   /api/blob/delete            → delete blob(s) by key
  */
-export const config = { runtime: 'edge' };
+import type { IncomingMessage, ServerResponse } from 'http';
 
 const BLOB_API_BASE = 'https://vercel.com/api/blob';
 const BLOB_API_VERSION = '12';
@@ -46,47 +43,54 @@ function blobUrl(key: string): string {
   return `https://${getStoreId()}.public.blob.vercel-storage.com/${key}`;
 }
 
-function json(data: unknown, status = 200): Response {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'content-type': 'application/json' },
+/** Hop-by-hop response headers to skip. */
+const SKIP_RES_HEADERS = new Set([
+  'transfer-encoding',
+  'content-length',
+  'content-encoding',
+  'connection',
+]);
+
+async function forwardResponse(upstream: Response, res: ServerResponse): Promise<void> {
+  res.statusCode = upstream.status;
+  upstream.headers.forEach((value, key) => {
+    if (SKIP_RES_HEADERS.has(key.toLowerCase())) return;
+    res.setHeader(key, value);
   });
+  const buf = Buffer.from(await upstream.arrayBuffer());
+  res.end(buf);
 }
 
-export default async function handler(req: Request): Promise<Response> {
-  const method = req.method;
+function json(res: ServerResponse, data: unknown, status = 200): void {
+  res.statusCode = status;
+  res.setHeader('Content-Type', 'application/json');
+  res.end(JSON.stringify(data));
+}
 
+export default async function handler(req: IncomingMessage, res: ServerResponse): Promise<void> {
+  // Check credentials first
   if (!getToken()) {
-    return json(
-      {
-        error:
-          'BLOB_READ_WRITE_TOKEN env var not set. Link your Blob store to the Vercel project.',
-      },
-      500,
-    );
+    json(res, { error: 'BLOB_READ_WRITE_TOKEN env var not set. Link your Blob store to the Vercel project.' }, 500);
+    return;
   }
 
-  const url = new URL(req.url);
+  const method = req.method ?? 'GET';
+  const url = new URL(req.url || '', `http://${req.headers.host || 'localhost'}`);
 
   try {
     if (method === 'GET') {
       // List blobs
       if (url.searchParams.has('limit')) {
-        const limit = Math.max(
-          1,
-          parseInt(url.searchParams.get('limit') || '1', 10) || 1,
-        );
+        const limit = Math.max(1, parseInt(url.searchParams.get('limit') || '1', 10) || 1);
         const upstream = await fetch(`${BLOB_API_BASE}?limit=${limit}`, {
           method: 'GET',
           headers: blobHeaders(),
         });
-        return new Response(upstream.body, {
-          status: upstream.status,
-          headers: upstream.headers,
-        });
+        await forwardResponse(upstream, res);
+        return;
       }
 
-      // Download blob by key — fetch from the public blob URL directly
+      // Download blob by key
       const downloadKey = url.searchParams.get('download');
       if (downloadKey) {
         const upstream = await fetch(blobUrl(downloadKey), {
@@ -94,55 +98,50 @@ export default async function handler(req: Request): Promise<Response> {
           headers: { authorization: `Bearer ${getToken()}` },
         });
         if (upstream.status === 404) {
-          return new Response(null, { status: 404 });
+          res.statusCode = 404;
+          res.end();
+          return;
         }
-        return new Response(upstream.body, {
-          status: upstream.status,
-          headers: upstream.headers,
-        });
+        await forwardResponse(upstream, res);
+        return;
       }
 
-      return json({ error: 'Missing "limit" or "download" query parameter' }, 400);
+      json(res, { error: 'Missing "limit" or "download" query parameter' }, 400);
+      return;
     }
 
     if (method === 'POST') {
-      const pathname = url.searchParams.get('pathname');
+      // Collect request body
+      const chunks: Buffer[] = [];
+      for await (const chunk of req) {
+        chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+      }
+      const body = Buffer.concat(chunks);
 
       // Upload blob
+      const pathname = url.searchParams.get('pathname');
       if (pathname) {
-        const contentType =
-          req.headers.get('content-type') || 'application/octet-stream';
-        const body = await req.arrayBuffer();
-        const upstream = await fetch(
-          `${BLOB_API_BASE}?pathname=${encodeURIComponent(pathname)}`,
-          {
-            method: 'POST',
-            headers: blobHeaders({
-              'x-vercel-blob-access': 'public',
-              'x-add-random-suffix': '0',
-              'x-allow-overwrite': '1',
-              'content-type': contentType,
-            }),
-            body,
-          },
-        );
-        return new Response(upstream.body, {
-          status: upstream.status,
-          headers: upstream.headers,
+        const contentType = (req.headers['content-type'] as string | undefined) || 'application/octet-stream';
+        const upstream = await fetch(`${BLOB_API_BASE}?pathname=${encodeURIComponent(pathname)}`, {
+          method: 'POST',
+          headers: blobHeaders({
+            'x-vercel-blob-access': 'public',
+            'x-add-random-suffix': '0',
+            'x-allow-overwrite': '1',
+            'content-type': contentType,
+          }),
+          body,
         });
+        await forwardResponse(upstream, res);
+        return;
       }
 
-      // Delete blob(s) by key — Vercel API expects blob URLs
+      // Delete blob(s) — URL path contains "delete" (e.g. /api/blob/delete)
       if (url.pathname.includes('delete')) {
-        const bodyText = await req.text();
         let keys: string[] = [];
         try {
-          const parsed = JSON.parse(bodyText || '{}');
-          keys = Array.isArray(parsed.keys)
-            ? parsed.keys
-            : Array.isArray(parsed.urls)
-              ? parsed.urls
-              : [];
+          const parsed = JSON.parse(body.length > 0 ? body.toString() : '{}');
+          keys = Array.isArray(parsed.keys) ? parsed.keys : Array.isArray(parsed.urls) ? parsed.urls : [];
         } catch {
           keys = [];
         }
@@ -153,23 +152,20 @@ export default async function handler(req: Request): Promise<Response> {
           body: JSON.stringify({ urls }),
         });
         if (upstream.status === 404) {
-          return json({ success: true });
+          json(res, { success: true });
+          return;
         }
-        return new Response(upstream.body, {
-          status: upstream.status,
-          headers: upstream.headers,
-        });
+        await forwardResponse(upstream, res);
+        return;
       }
 
-      return json(
-        { error: 'Missing "pathname" query param or "/delete" path' },
-        400,
-      );
+      json(res, { error: 'Missing "pathname" query param or "/delete" path' }, 400);
+      return;
     }
 
-    return json({ error: 'Method not allowed' }, 405);
+    json(res, { error: 'Method not allowed' }, 405);
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    return json({ error: message }, 502);
+    json(res, { error: message }, 502);
   }
 }
