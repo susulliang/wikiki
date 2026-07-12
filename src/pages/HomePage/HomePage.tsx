@@ -1,6 +1,8 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useTheme } from '@/hooks/useTheme';
+import { useRemoteBundles } from '@/hooks/useRemoteBundles';
 import FloatingTabBar, { type TabId } from '@/components/FloatingTabBar';
 import BundleDialog from '@/components/BundleDialog';
 import BundlesPage from '@/pages/BundlesPage';
@@ -10,7 +12,8 @@ import MindmapsPage from '@/pages/MindmapsPage';
 import SuperSearchPage from '@/pages/SuperSearchPage';
 import BlobSyncPanel from '@/components/BlobSyncPanel';
 import { useStorageMode } from '@/lib/storage-context';
-import { getSQLiteStorage } from '@/lib/sqlite-storage';
+import { getSQLiteStorage, bundlesFromDbBytes } from '@/lib/sqlite-storage';
+import { getActiveProvider } from '@/lib/provider-registry';
 import type { IBundle, IPage } from '@/data/bundles';
 import { searchBundles, type ExtendedSearchResult } from '@/lib/search';
 
@@ -188,9 +191,58 @@ export default function HomePage() {
     return sqliteSearchBundles.length > 0 ? sqliteSearchBundles : bundles;
   }, [sqliteSearchBundles, bundles]);
 
-  const searchResults = useMemo<ExtendedSearchResult[]>(
-    () => (debouncedSuperSearchQuery.trim() ? searchBundles(searchableBundles, debouncedSuperSearchQuery.trim()) : []),
-    [searchableBundles, debouncedSuperSearchQuery],
+  // Fetch remote cloud collections for search when on the super search tab
+  const { remoteCollections, loading: remoteLoading } = useRemoteBundles(
+    sqliteReady && activeTab === 'supersearch',
+  );
+
+  const searchResults = useMemo<ExtendedSearchResult[]>(() => {
+    const q = debouncedSuperSearchQuery.trim();
+    if (!q) return [];
+
+    // Search local bundles
+    const localResults = searchBundles(searchableBundles, q).map((r) => ({
+      ...r,
+      source: 'local' as const,
+    }));
+
+    // Build a set of local bundle names for deduplication
+    const localNames = new Set(searchableBundles.map((b) => b.name));
+
+    // Search remote bundles, excluding duplicates (same bundle name as local)
+    const remoteResults: ExtendedSearchResult[] = [];
+    for (const { collection, bundles: remoteBundles } of remoteCollections) {
+      const remoteOnly = remoteBundles.filter((b) => !localNames.has(b.name));
+      if (remoteOnly.length === 0) continue;
+      const results = searchBundles(remoteOnly, q).map((r) => ({
+        ...r,
+        source: 'remote' as const,
+        collection,
+      }));
+      remoteResults.push(...results);
+    }
+
+    // Local results first, then remote — each group already sorted by score
+    return [...localResults, ...remoteResults];
+  }, [searchableBundles, debouncedSuperSearchQuery, remoteCollections]);
+
+  // Download a remote collection and merge into local DB
+  const handleDownloadCollection = useCallback(
+    async (collection: string) => {
+      try {
+        const provider = getActiveProvider();
+        const bytes = await provider.downloadCollectionDB(collection);
+        const downloaded = await bundlesFromDbBytes(bytes);
+        const storage = getSQLiteStorage();
+        await storage.importBundles(downloaded);
+        await handleReloadSQLite();
+        toast.success(`Downloaded collection "${collection}" (${downloaded.length} bundles)`);
+      } catch (e) {
+        console.error('Collection download failed:', e);
+        toast.error(`Download failed: ${e instanceof Error ? e.message : String(e)}`.slice(0, 120));
+      }
+    },
+    [handleReloadSQLite],
   );
 
   const handleSelectBundle = useCallback(
@@ -513,8 +565,10 @@ export default function HomePage() {
               sqliteSearchBundles.length === 0
             }
             dbPrepping={dbPrepping}
+            remoteLoading={remoteLoading}
             onQueryChange={setSuperSearchQuery}
             onSelect={handleSearchResultSelect}
+            onDownloadCollection={handleDownloadCollection}
           />
         );
 

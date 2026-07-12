@@ -9,6 +9,10 @@ export interface ExtendedSearchResult extends SearchResult {
   matchingParagraphs: MatchingParagraph[];
   /** Whether this page is a mindmap */
   isMindmap?: boolean;
+  /** Where this result came from: local DB or remote cloud collection */
+  source?: 'local' | 'remote';
+  /** Collection name (for remote results, used to prompt download) */
+  collection?: string;
 }
 
 export interface MatchingParagraph {
