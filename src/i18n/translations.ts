@@ -191,7 +191,7 @@ const en: TranslationDict = {
   'blob.providerEdgeone': 'EdgeOne',
   'blob.providerVercel': 'Vercel',
   'blob.vercelToken': 'Read/Write Token',
-  'blob.vercelTokenHint': 'Find it in Vercel dashboard → Storage → Blob store → .env.local tab. Only works when deployed on Vercel (uses /api/blob proxy).',
+  'blob.vercelTokenHint': 'Link your Blob store to the Vercel project first (Dashboard → Storage → Connect to Project). Enter any token below to unlock sync — the server uses env vars for auth.',
 };
 
 const zh: TranslationDict = {
@@ -279,7 +279,7 @@ const zh: TranslationDict = {
   'blob.providerEdgeone': 'EdgeOne',
   'blob.providerVercel': 'Vercel',
   'blob.vercelToken': '读写 Token',
-  'blob.vercelTokenHint': '在 Vercel 控制台 → Storage → Blob 存储的 .env.local 标签页获取。仅在部署于 Vercel 时可用（通过 /api/blob 代理）。',
+  'blob.vercelTokenHint': '请先将 Blob 存储连接到 Vercel 项目（控制台 → Storage → Connect to Project）。下方输入任意 token 即可解锁同步——服务器使用环境变量进行认证。',
 };
 
 const jp: TranslationDict = {
@@ -367,7 +367,7 @@ const jp: TranslationDict = {
   'blob.providerEdgeone': 'EdgeOne',
   'blob.providerVercel': 'Vercel',
   'blob.vercelToken': '読み取り/書き込みトークン',
-  'blob.vercelTokenHint': 'Vercel ダッシュボード → Storage → Blob ストアの .env.local タブで確認。Vercel にデプロイした場合のみ動作します（/api/blob プロキシを使用）。',
+  'blob.vercelTokenHint': 'まず Blob ストアを Vercel プロジェクトに連携してください（ダッシュボード → Storage → Connect to Project）。下のトークン欄は同期のロック解除用です——サーバーは環境変数で認証します。',
 };
 
 const de: TranslationDict = {
@@ -455,7 +455,7 @@ const de: TranslationDict = {
   'blob.providerEdgeone': 'EdgeOne',
   'blob.providerVercel': 'Vercel',
   'blob.vercelToken': 'Lese-/Schreib-Token',
-  'blob.vercelTokenHint': 'Im Vercel-Dashboard → Storage → Blob-Store unter dem Reiter .env.local zu finden. Funktioniert nur bei Bereitstellung auf Vercel (/api/blob-Proxy).',
+  'blob.vercelTokenHint': 'Verknüpfen Sie zuerst den Blob-Store mit dem Vercel-Projekt (Dashboard → Storage → Connect to Project). Geben Sie unten ein beliebiges Token ein, um die Synchronisierung zu entsperren — der Server verwendet Umgebungsvariablen für die Authentifizierung.',
 };
 
 const it: TranslationDict = {
@@ -543,7 +543,7 @@ const it: TranslationDict = {
   'blob.providerEdgeone': 'EdgeOne',
   'blob.providerVercel': 'Vercel',
   'blob.vercelToken': 'Token di lettura/scrittura',
-  'blob.vercelTokenHint': 'Trovalo nella dashboard Vercel → Storage → Blob store, scheda .env.local. Funziona solo se distribuito su Vercel (usa proxy /api/blob).',
+  'blob.vercelTokenHint': 'Collega prima il Blob store al progetto Vercel (Dashboard → Storage → Connect to Project). Inserisci un token qualsiasi sotto per sbloccare la sincronizzazione — il server usa variabili d\'ambiente per l\'autenticazione.',
 };
 
 const es: TranslationDict = {
@@ -631,7 +631,7 @@ const es: TranslationDict = {
   'blob.providerEdgeone': 'EdgeOne',
   'blob.providerVercel': 'Vercel',
   'blob.vercelToken': 'Token de lectura/escritura',
-  'blob.vercelTokenHint': 'Búscalo en el panel de Vercel → Storage → Blob store, pestaña .env.local. Solo funciona desplegado en Vercel (usa proxy /api/blob).',
+  'blob.vercelTokenHint': 'Conecta primero el Blob store al proyecto de Vercel (Panel → Storage → Connect to Project). Ingresa cualquier token abajo para desbloquear la sincronización — el servidor usa variables de entorno para la autenticación.',
 };
 
 export const TRANSLATIONS: Record<LanguageCode, TranslationDict> = {
