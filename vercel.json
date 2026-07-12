@@ -3,6 +3,10 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/api/blob/:path*",
+      "destination": "/api/blob"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

@@ -3,7 +3,7 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 
 export default [
-  { ignores: ['dist', '**/components/ui/**', 'node_modules', 'src-tauri', 'scripts'] },
+  { ignores: ['dist', '**/components/ui/**', 'node_modules', 'src-tauri', 'scripts', 'api'] },
   ...tseslint.config(
     {
       files: ['**/*.{ts,tsx}'],

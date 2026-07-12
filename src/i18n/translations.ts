@@ -191,7 +191,7 @@ const en: TranslationDict = {
   'blob.providerEdgeone': 'EdgeOne',
   'blob.providerVercel': 'Vercel',
   'blob.vercelToken': 'Read/Write Token',
-  'blob.vercelTokenHint': 'Find it in Vercel dashboard → Storage → Blob store → .env.local tab.',
+  'blob.vercelTokenHint': 'Find it in Vercel dashboard → Storage → Blob store → .env.local tab. Only works when deployed on Vercel (uses /api/blob proxy).',
 };
 
 const zh: TranslationDict = {
@@ -279,7 +279,7 @@ const zh: TranslationDict = {
   'blob.providerEdgeone': 'EdgeOne',
   'blob.providerVercel': 'Vercel',
   'blob.vercelToken': '读写 Token',
-  'blob.vercelTokenHint': '在 Vercel 控制台 → Storage → Blob 存储的 .env.local 标签页获取。',
+  'blob.vercelTokenHint': '在 Vercel 控制台 → Storage → Blob 存储的 .env.local 标签页获取。仅在部署于 Vercel 时可用（通过 /api/blob 代理）。',
 };
 
 const jp: TranslationDict = {
@@ -367,7 +367,7 @@ const jp: TranslationDict = {
   'blob.providerEdgeone': 'EdgeOne',
   'blob.providerVercel': 'Vercel',
   'blob.vercelToken': '読み取り/書き込みトークン',
-  'blob.vercelTokenHint': 'Vercel ダッシュボード → Storage → Blob ストアの .env.local タブで確認できます。',
+  'blob.vercelTokenHint': 'Vercel ダッシュボード → Storage → Blob ストアの .env.local タブで確認。Vercel にデプロイした場合のみ動作します（/api/blob プロキシを使用）。',
 };
 
 const de: TranslationDict = {
@@ -455,7 +455,7 @@ const de: TranslationDict = {
   'blob.providerEdgeone': 'EdgeOne',
   'blob.providerVercel': 'Vercel',
   'blob.vercelToken': 'Lese-/Schreib-Token',
-  'blob.vercelTokenHint': 'Im Vercel-Dashboard → Storage → Blob-Store unter dem Reiter .env.local zu finden.',
+  'blob.vercelTokenHint': 'Im Vercel-Dashboard → Storage → Blob-Store unter dem Reiter .env.local zu finden. Funktioniert nur bei Bereitstellung auf Vercel (/api/blob-Proxy).',
 };
 
 const it: TranslationDict = {
@@ -543,7 +543,7 @@ const it: TranslationDict = {
   'blob.providerEdgeone': 'EdgeOne',
   'blob.providerVercel': 'Vercel',
   'blob.vercelToken': 'Token di lettura/scrittura',
-  'blob.vercelTokenHint': 'Trovalo nella dashboard Vercel → Storage → Blob store, scheda .env.local.',
+  'blob.vercelTokenHint': 'Trovalo nella dashboard Vercel → Storage → Blob store, scheda .env.local. Funziona solo se distribuito su Vercel (usa proxy /api/blob).',
 };
 
 const es: TranslationDict = {
@@ -631,7 +631,7 @@ const es: TranslationDict = {
   'blob.providerEdgeone': 'EdgeOne',
   'blob.providerVercel': 'Vercel',
   'blob.vercelToken': 'Token de lectura/escritura',
-  'blob.vercelTokenHint': 'Búscalo en el panel de Vercel → Storage → Blob store, pestaña .env.local.',
+  'blob.vercelTokenHint': 'Búscalo en el panel de Vercel → Storage → Blob store, pestaña .env.local. Solo funciona desplegado en Vercel (usa proxy /api/blob).',
 };
 
 export const TRANSLATIONS: Record<LanguageCode, TranslationDict> = {

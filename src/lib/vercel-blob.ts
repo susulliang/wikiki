@@ -1,25 +1,28 @@
 /**
  * Vercel Blob adapter for Wikiki's cloud sync.
  *
- * Uses @vercel/blob's token option (the SDK explicitly supports browser /
- * non-Vercel runtimes by passing `token` to each call). The user supplies
- * their own `BLOB_READ_WRITE_TOKEN` (from the Vercel dashboard → Storage →
- * Blob store settings) in the BlobSyncPanel; no secrets are baked into the
- * bundle.
+ * The @vercel/blob SDK's API endpoint (vercel.com/api/blob) does NOT support
+ * CORS — it's designed for server-side use only. Browser requests are blocked
+ * by CORS policy. To work around this, we make direct REST calls to a
+ * same-origin proxy at /api/blob (deployed as a Vercel serverless function
+ * in api/blob.ts). The proxy forwards requests to the Vercel Blob API
+ * server-to-server, bypassing CORS entirely.
  *
- * Store ID: the SDK extracts the storeId from the token itself
- * (token format: `vercel_blob_rw_<storeId>_<random>`), so we do NOT need a
- * separate storeId field.
+ * This means the Vercel provider only works when the app is deployed on Vercel
+ * (where the /api/blob function exists). For local dev, use `vercel dev`.
  *
- * The collection-level split-by-Collection logic (manifest + per-collection
- * SQLite DBs) lives in cloud-provider.ts. This module only implements the
- * primitive `BlobAdapter` and credential management.
+ * Store ID: extracted from the token itself
+ * (token format: vercel_blob_rw_<storeId>_<random>), so no separate store ID
+ * field is needed.
  *
  * SDK reference: https://vercel.com/docs/storage/vercel-blob/using-blob-sdk
  */
 import { BaseCloudProvider, type BlobAdapter, type CloudProvider } from '@/lib/cloud-provider';
 
 const CREDS_KEY = '__wikiki_vercel_creds';
+
+/** Same-origin proxy URL (Vercel serverless function). */
+const PROXY_URL = '/api/blob';
 
 export interface VercelCreds {
   /** Vercel Blob read-write token, starts with `vercel_blob_rw_`. */
@@ -61,51 +64,44 @@ export function hasVercelCreds(): boolean {
   return getVercelCreds() !== null;
 }
 
+function getToken(): string | null {
+  return getVercelCreds()?.token ?? null;
+}
+
 /**
- * Lazy-load the @vercel/blob SDK. We dynamically import it so the SDK stays
- * out of the main bundle (this whole feature is hidden behind Shift+B).
- *
- * The SDK uses native fetch / Blob / ReadableStream and ships browser shims
- * for Node-only deps (undici, crypto, stream), so it works in the browser
- * when a `token` is passed explicitly to each call.
+ * Extract the store ID from a Vercel Blob read-write token.
+ * Token format: vercel_blob_rw_<storeId>_<random>
  */
-async function getBlob() {
-  const mod = await import('@vercel/blob');
-  return { put: mod.put, del: mod.del, get: mod.get, list: mod.list };
+function parseStoreId(token: string): string {
+  const parts = token.split('_');
+  return parts[3] || '';
 }
 
-function token(): string | null {
-  const creds = getVercelCreds();
-  return creds?.token ?? null;
+/** Construct the public blob URL for a given key. */
+function blobUrl(key: string): string {
+  const storeId = parseStoreId(getToken() || '');
+  return `https://${storeId}.public.blob.vercel-storage.com/${key}`;
 }
 
-/** Options shared by every put, overriding the SDK's suffix/overwrite defaults. */
-const PUT_OPTS = {
-  access: 'public' as const,
-  addRandomSuffix: false,
-  allowOverwrite: true,
-  // Bypass CDN cache so reads immediately reflect the latest write.
-  cacheControlMaxAge: 0,
-};
+/** Auth headers sent with every proxy request. */
+function authHeaders(): Record<string, string> {
+  const token = getToken();
+  if (!token) throw new Error('No Vercel Blob credentials configured');
+  return {
+    authorization: `Bearer ${token}`,
+    'x-vercel-blob-store-id': parseStoreId(token),
+  };
+}
 
-/** Read a ReadableStream to completion and return the accumulated bytes. */
-async function streamToBytes(stream: ReadableStream<Uint8Array>): Promise<Uint8Array> {
-  const reader = stream.getReader();
-  const chunks: Uint8Array[] = [];
-  let total = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    chunks.push(value);
-    total += value.byteLength;
+/** Wrap errors with context. */
+function wrapError(op: string, e: unknown): Error {
+  const msg = e instanceof Error ? e.message : String(e);
+  if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
+    return new Error(
+      `${op} failed: ${msg}. The /api/blob proxy may not exist — ensure the app is deployed on Vercel.`,
+    );
   }
-  const result = new Uint8Array(total);
-  let offset = 0;
-  for (const c of chunks) {
-    result.set(c, offset);
-    offset += c.byteLength;
-  }
-  return result;
+  return new Error(`${op} failed: ${msg}`);
 }
 
 const vercelAdapter: BlobAdapter = {
@@ -113,44 +109,72 @@ const vercelAdapter: BlobAdapter = {
   clearCredentials: () => clearVercelCreds(),
 
   async testConnection() {
-    const t = token();
+    const t = getToken();
     if (!t) throw new Error('No Vercel Blob credentials configured');
-    const { list } = await getBlob();
-    await list({ limit: 1, token: t });
+    try {
+      const res = await fetch(`${PROXY_URL}?limit=1`, {
+        method: 'GET',
+        headers: authHeaders(),
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(`HTTP ${res.status}: ${text.slice(0, 200)}`);
+      }
+    } catch (e) {
+      throw wrapError('Vercel testConnection', e);
+    }
   },
 
   async putBytes(key, bytes, contentType) {
-    const t = token();
-    if (!t) throw new Error('No Vercel Blob credentials configured');
-    const { put } = await getBlob();
-    // Copy bytes into a fresh ArrayBuffer so the BlobPart type is satisfied
-    // (Uint8Array<ArrayBufferLike> isn't assignable to BlobPart under TS 5.7+).
-    const ab = new ArrayBuffer(bytes.byteLength);
-    new Uint8Array(ab).set(bytes);
-    const blob = new Blob([ab], { type: contentType ?? 'application/octet-stream' });
-    await put(key, blob, { ...PUT_OPTS, token: t, contentType: contentType ?? 'application/octet-stream' });
+    try {
+      const headers: Record<string, string> = {
+        ...authHeaders(),
+        'x-vercel-blob-access': 'public',
+        'x-add-random-suffix': '0',
+        'x-allow-overwrite': '1',
+        'content-type': contentType ?? 'application/octet-stream',
+      };
+      // Copy into a fresh ArrayBuffer so the BodyInit type is satisfied
+      // (Uint8Array<ArrayBufferLike> isn't assignable to BodyInit under TS 5.9+).
+      const ab = new ArrayBuffer(bytes.byteLength);
+      new Uint8Array(ab).set(bytes);
+      const res = await fetch(`${PROXY_URL}?pathname=${encodeURIComponent(key)}`, {
+        method: 'POST',
+        headers,
+        body: ab,
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(`HTTP ${res.status}: ${text.slice(0, 200)}`);
+      }
+    } catch (e) {
+      throw wrapError(`Vercel putBytes(${key})`, e);
+    }
   },
 
-  /**
-   * Use `get()` (not `head()`) because `get()` returns null for 404, whereas
-   * `head()` throws BlobNotFoundError.  The storeId is parsed from the token
-   * so `get()` can construct the blob URL directly without an API round-trip.
-   */
   async getBytes(key) {
-    const t = token();
-    if (!t) throw new Error('No Vercel Blob credentials configured');
-    const { get } = await getBlob();
-    const result = await get(key, { access: 'public', token: t, useCache: false });
-    if (!result) return null;
-    return streamToBytes(result.stream);
+    try {
+      // Route through the proxy's download endpoint to avoid CORS issues
+      // with the blob storage URL.
+      const res = await fetch(`${PROXY_URL}?download=${encodeURIComponent(key)}`, {
+        method: 'GET',
+        headers: authHeaders(),
+      });
+      if (res.status === 404) return null;
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(`HTTP ${res.status}: ${text.slice(0, 200)}`);
+      }
+      const buf = await res.arrayBuffer();
+      return new Uint8Array(buf);
+    } catch (e) {
+      throw wrapError(`Vercel getBytes(${key})`, e);
+    }
   },
 
   async putJSON(key, value) {
-    const t = token();
-    if (!t) throw new Error('No Vercel Blob credentials configured');
-    const { put } = await getBlob();
     const body = JSON.stringify(value);
-    await put(key, body, { ...PUT_OPTS, token: t, contentType: 'application/json' });
+    await vercelAdapter.putBytes(key, new TextEncoder().encode(body), 'application/json');
   },
 
   async getJSON<T>(key: string): Promise<T | null> {
@@ -160,10 +184,24 @@ const vercelAdapter: BlobAdapter = {
   },
 
   async delete(key) {
-    const t = token();
-    if (!t) throw new Error('No Vercel Blob credentials configured');
-    const { del } = await getBlob();
-    await del(key, { token: t });
+    try {
+      // Vercel Blob delete API expects an array of blob URLs
+      const url = blobUrl(key);
+      const res = await fetch(`${PROXY_URL}/delete`, {
+        method: 'POST',
+        headers: {
+          ...authHeaders(),
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ urls: [url] }),
+      });
+      if (!res.ok && res.status !== 404) {
+        const text = await res.text().catch(() => '');
+        throw new Error(`HTTP ${res.status}: ${text.slice(0, 200)}`);
+      }
+    } catch (e) {
+      throw wrapError(`Vercel delete(${key})`, e);
+    }
   },
 };
 
