@@ -541,7 +541,9 @@ export class SQLiteStorage {
     if (!this.db) return { added: 0, updated: 0 };
     let added = 0;
     let updated = 0;
+    let txActive = false;
     this.db.run('BEGIN TRANSACTION');
+    txActive = true;
     try {
       for (const bundle of bundles) {
         // 按 name 查询是否已存在
@@ -571,14 +573,32 @@ export class SQLiteStorage {
           await this.syncTagsAndPages(updatedBundle);
           updated++;
         } else {
-          // 不存在：新增
-          await this.addBundle(bundle);
+          // 不存在：新增（内联 addBundle 逻辑，但不调用 persist() ——
+          // export() 在事务中会破坏事务状态，最后统一 persist 一次即可）
+          const createdAt = new Date(bundle.createdAt).getTime();
+          const updatedAt = new Date(bundle.updatedAt).getTime();
+          this.db.run(
+            'INSERT INTO products (id, name, created_at, updated_at, source, collection) VALUES (?, ?, ?, ?, ?, ?)',
+            [bundle.id, bundle.name, createdAt, updatedAt, bundle.source || 'user', bundle.collection || 'Default'],
+          );
+          await this.syncTagsAndPages(bundle);
           added++;
         }
       }
       this.db.run('COMMIT');
+      txActive = false;
     } catch (e) {
-      this.db.run('ROLLBACK');
+      // SQLite 在某些错误（如约束冲突）下会自动回滚事务，此时显式 ROLLBACK
+      // 会抛 "cannot rollback - no transaction is active"。用 try/catch 吞掉
+      // 这个二次错误，让原始错误正常冒泡。
+      if (txActive) {
+        try {
+          this.db.run('ROLLBACK');
+        } catch {
+          // 事务已不在活动状态，忽略
+        }
+        txActive = false;
+      }
       throw e;
     }
     await this.persist();

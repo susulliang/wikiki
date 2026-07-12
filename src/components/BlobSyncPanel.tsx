@@ -242,7 +242,7 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
   const handleUpload = useCallback(
     async (name: string) => {
       setBusy(`upload:${name}`);
-      setStatus({ op: 'upload', step: 'Reading local bundles…', pct: 10 });
+      setStatus({ op: 'upload', step: t('blob.statusReadingLocal'), pct: 10 });
       try {
         const storage = getSQLiteStorage();
         const all = await storage.getAllBundles();
@@ -251,13 +251,13 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
           toast.error('No bundles in this collection');
           return;
         }
-        setStatus({ op: 'upload', step: `Building SQLite DB (${subset.length} bundles)…`, pct: 25 });
+        setStatus({ op: 'upload', step: t('blob.statusBuildingDb').replace('{n}', String(subset.length)), pct: 25 });
         const bytes = await jsonBundlesToSQLite(subset);
-        setStatus({ op: 'upload', step: `Uploading ${formatBytes(bytes.byteLength)} to cloud…`, pct: 50 });
+        setStatus({ op: 'upload', step: t('blob.statusUploading').replace('{size}', formatBytes(bytes.byteLength)), pct: 50 });
         await getActiveProvider().uploadCollectionDB(name, bytes, subset.length);
-        setStatus({ op: 'upload', step: 'Refreshing remote list…', pct: 85 });
+        setStatus({ op: 'upload', step: t('blob.statusRefreshing'), pct: 85 });
         await refreshRemote();
-        setStatus({ op: 'upload', step: 'Upload complete', pct: 100 });
+        setStatus({ op: 'upload', step: t('blob.statusUploadDone'), pct: 100 });
         toast.success(t('blob.uploaded'));
       } catch (e) {
         console.error('Upload failed:', e);
@@ -273,17 +273,21 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
   const handleDownload = useCallback(
     async (name: string) => {
       setBusy(`download:${name}`);
-      setStatus({ op: 'download', step: 'Downloading from cloud…', pct: 15 });
+      setStatus({ op: 'download', step: t('blob.statusDownloading'), pct: 15 });
       try {
         const bytes = await getActiveProvider().downloadCollectionDB(name);
-        setStatus({ op: 'download', step: `Parsing SQLite DB (${formatBytes(bytes.byteLength)})…`, pct: 45 });
+        setStatus({ op: 'download', step: t('blob.statusParsing').replace('{size}', formatBytes(bytes.byteLength)), pct: 45 });
         const downloaded = await bundlesFromDbBytes(bytes);
-        setStatus({ op: 'download', step: `Importing ${downloaded.length} bundles into local DB…`, pct: 65 });
+        setStatus({ op: 'download', step: t('blob.statusImporting').replace('{n}', String(downloaded.length)), pct: 65 });
         const storage = getSQLiteStorage();
         const result = await storage.importBundles(downloaded);
-        setStatus({ op: 'download', step: 'Reloading local data…', pct: 85 });
+        setStatus({ op: 'download', step: t('blob.statusReloading'), pct: 85 });
         await onReloadBundles();
-        setStatus({ op: 'download', step: `Imported: ${result.added} added, ${result.updated} updated`, pct: 100 });
+        setStatus({
+          op: 'download',
+          step: t('blob.statusImportDone').replace('{added}', String(result.added)).replace('{updated}', String(result.updated)),
+          pct: 100,
+        });
         toast.success(t('blob.downloaded'));
       } catch (e) {
         console.error('Download failed:', e);

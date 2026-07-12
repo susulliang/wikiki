@@ -106,7 +106,17 @@ export type TranslationKey =
   | 'blob.providerD1'
   | 'blob.cfAccountId'
   | 'blob.cfApiToken'
-  | 'blob.d1Hint';
+  | 'blob.d1Hint'
+  | 'blob.statusReadingLocal'
+  | 'blob.statusBuildingDb'
+  | 'blob.statusUploading'
+  | 'blob.statusRefreshing'
+  | 'blob.statusUploadDone'
+  | 'blob.statusDownloading'
+  | 'blob.statusParsing'
+  | 'blob.statusImporting'
+  | 'blob.statusReloading'
+  | 'blob.statusImportDone';
 
 type TranslationDict = Record<TranslationKey, string>;
 
@@ -200,6 +210,16 @@ const en: TranslationDict = {
   'blob.cfAccountId': 'Cloudflare Account ID',
   'blob.cfApiToken': 'D1 API Token',
   'blob.d1Hint': 'Account ID is a 32-char hex string (NOT your email). Find it: Cloudflare Dashboard → any domain → right sidebar. API token: My Profile → API Tokens → D1 edit permission. Database ID is preconfigured.',
+  'blob.statusReadingLocal': 'Reading local bundles…',
+  'blob.statusBuildingDb': 'Building SQLite DB ({n} bundles)…',
+  'blob.statusUploading': 'Uploading {size} to cloud…',
+  'blob.statusRefreshing': 'Refreshing remote list…',
+  'blob.statusUploadDone': 'Upload complete',
+  'blob.statusDownloading': 'Downloading from cloud…',
+  'blob.statusParsing': 'Parsing SQLite DB ({size})…',
+  'blob.statusImporting': 'Importing {n} bundles into local DB…',
+  'blob.statusReloading': 'Reloading local data…',
+  'blob.statusImportDone': 'Imported: {added} added, {updated} updated',
 };
 
 const zh: TranslationDict = {
@@ -292,6 +312,16 @@ const zh: TranslationDict = {
   'blob.cfAccountId': 'Cloudflare 账户 ID',
   'blob.cfApiToken': 'D1 API Token',
   'blob.d1Hint': '账户 ID 是 32 位十六进制字符串（不是邮箱）。查找位置：Cloudflare 控制台 → 任意域名 → 右侧边栏。API Token：My Profile → API Tokens → D1 编辑权限。数据库 ID 已预配置。',
+  'blob.statusReadingLocal': '正在读取本地数据…',
+  'blob.statusBuildingDb': '构建 SQLite 数据库（{n} 条）…',
+  'blob.statusUploading': '上传 {size} 到云端…',
+  'blob.statusRefreshing': '刷新远程列表…',
+  'blob.statusUploadDone': '上传完成',
+  'blob.statusDownloading': '从云端下载…',
+  'blob.statusParsing': '解析 SQLite 数据库（{size}）…',
+  'blob.statusImporting': '导入 {n} 条数据到本地数据库…',
+  'blob.statusReloading': '重新加载本地数据…',
+  'blob.statusImportDone': '已导入：新增 {added} 条，更新 {updated} 条',
 };
 
 const jp: TranslationDict = {
@@ -384,6 +414,16 @@ const jp: TranslationDict = {
   'blob.cfAccountId': 'Cloudflare アカウント ID',
   'blob.cfApiToken': 'D1 API トークン',
   'blob.d1Hint': 'アカウント ID は 32 文字の 16 進数（メールアドレスではありません）。確認方法：Cloudflare ダッシュボード → 任意のドメイン → 右サイドバー。API トークン：My Profile → API Tokens → D1 編集権限。データベース ID は設定済みです。',
+  'blob.statusReadingLocal': 'ローカルデータを読み込み中…',
+  'blob.statusBuildingDb': 'SQLite DB を構築中（{n} 件）…',
+  'blob.statusUploading': '{size} をクラウドにアップロード中…',
+  'blob.statusRefreshing': 'リモートリストを更新中…',
+  'blob.statusUploadDone': 'アップロード完了',
+  'blob.statusDownloading': 'クラウドからダウンロード中…',
+  'blob.statusParsing': 'SQLite DB を解析中（{size}）…',
+  'blob.statusImporting': '{n} 件をローカル DB にインポート中…',
+  'blob.statusReloading': 'ローカルデータを再読み込み中…',
+  'blob.statusImportDone': 'インポート完了：追加 {added} 件、更新 {updated} 件',
 };
 
 const de: TranslationDict = {
@@ -476,6 +516,16 @@ const de: TranslationDict = {
   'blob.cfAccountId': 'Cloudflare-Konto-ID',
   'blob.cfApiToken': 'D1 API-Token',
   'blob.d1Hint': 'Die Konto-ID ist ein 32-stelliger Hex-String (NICHT Ihre E-Mail). Zu finden: Cloudflare-Dashboard → beliebige Domain → rechte Seitenleiste. API-Token: My Profile → API Tokens → D1-Bearbeitungsberechtigung. Die Datenbank-ID ist vorkonfiguriert.',
+  'blob.statusReadingLocal': 'Lokale Bundles werden gelesen…',
+  'blob.statusBuildingDb': 'SQLite-DB wird erstellt ({n} Bundles)…',
+  'blob.statusUploading': '{size} wird in die Cloud hochgeladen…',
+  'blob.statusRefreshing': 'Remote-Liste wird aktualisiert…',
+  'blob.statusUploadDone': 'Upload abgeschlossen',
+  'blob.statusDownloading': 'Download aus der Cloud…',
+  'blob.statusParsing': 'SQLite-DB wird geparst ({size})…',
+  'blob.statusImporting': '{n} Bundles werden in lokale DB importiert…',
+  'blob.statusReloading': 'Lokale Daten werden neu geladen…',
+  'blob.statusImportDone': 'Importiert: {added} hinzugefügt, {updated} aktualisiert',
 };
 
 const it: TranslationDict = {
@@ -568,6 +618,16 @@ const it: TranslationDict = {
   'blob.cfAccountId': 'ID account Cloudflare',
   'blob.cfApiToken': 'D1 API Token',
   'blob.d1Hint': 'L\'ID account è una stringa esadecimale di 32 caratteri (NON la tua email). Trovalo: Cloudflare Dashboard → qualsiasi dominio → barra laterale destra. API token: My Profile → API Tokens → permesso modifica D1. L\'ID del database è preconfigurato.',
+  'blob.statusReadingLocal': 'Lettura dei bundle locali…',
+  'blob.statusBuildingDb': 'Creazione DB SQLite ({n} bundle)…',
+  'blob.statusUploading': 'Caricamento di {size} sul cloud…',
+  'blob.statusRefreshing': 'Aggiornamento lista remota…',
+  'blob.statusUploadDone': 'Caricamento completato',
+  'blob.statusDownloading': 'Download dal cloud…',
+  'blob.statusParsing': 'Analisi DB SQLite ({size})…',
+  'blob.statusImporting': 'Importazione di {n} bundle nel DB locale…',
+  'blob.statusReloading': 'Ricaricamento dati locali…',
+  'blob.statusImportDone': 'Importato: {added} aggiunti, {updated} aggiornati',
 };
 
 const es: TranslationDict = {
@@ -660,6 +720,16 @@ const es: TranslationDict = {
   'blob.cfAccountId': 'ID de cuenta de Cloudflare',
   'blob.cfApiToken': 'D1 API Token',
   'blob.d1Hint': 'El ID de cuenta es una cadena hexadecimal de 32 caracteres (NO tu correo). Encuéntralo: Cloudflare Dashboard → cualquier dominio → barra lateral derecha. API token: My Profile → API Tokens → permiso de edición D1. El ID de la base de datos está preconfigurado.',
+  'blob.statusReadingLocal': 'Leyendo bundles locales…',
+  'blob.statusBuildingDb': 'Creando DB SQLite ({n} bundles)…',
+  'blob.statusUploading': 'Subiendo {size} a la nube…',
+  'blob.statusRefreshing': 'Actualizando lista remota…',
+  'blob.statusUploadDone': 'Carga completada',
+  'blob.statusDownloading': 'Descargando desde la nube…',
+  'blob.statusParsing': 'Analizando DB SQLite ({size})…',
+  'blob.statusImporting': 'Importando {n} bundles a la DB local…',
+  'blob.statusReloading': 'Recargando datos locales…',
+  'blob.statusImportDone': 'Importado: {added} añadidos, {updated} actualizados',
 };
 
 export const TRANSLATIONS: Record<LanguageCode, TranslationDict> = {
