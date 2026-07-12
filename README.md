@@ -42,21 +42,31 @@ Choose from:
 - Search across all products and pages
 - Find content by product name, tags, or page content
 - Instant results with highlighted snippets
+- **Grouped results**: multiple matches within the same page are grouped into ranked bubbles inside a single card
+- **Remote search**: when cloud sync is configured, search also queries remote collections via SQL — no full download required
 
-### 💾 Two Storage Modes
-1. **JSON Mode** (localStorage)
-   - Fast, lightweight
-   - Stores data in your browser
-   - Easy JSON export/import
-2. **SQLite Mode** (IndexedDB)
-   - Powerful database storage
-   - Better for large data sets
-   - Export/import `.db` files
+### 💾 SQLite Storage
+- All data is stored locally in a SQLite database (via sql.js + IndexedDB/OPFS)
+- Handles large datasets reliably
+- Export/import `.db` files
+- JSON import/export still supported for migration
+
+### ☁️ Cloud Sync
+- Sync collections to the cloud with **Cloudflare D1** or **EdgeOne Blob**
+- Upload/download collections as SQLite database blobs
+- Chunked uploads for large datasets (splits blobs > 512 KB to avoid payload limits)
+- Hidden sync panel — press **Shift+B** to open
+- Remote search index: uploaded collections are indexed server-side so search works without downloading full DBs
+- Per-collection organization with authors and collection metadata
+
+### 📝 Markdown Paste
+- Paste Markdown-formatted text into the rich text editor and it's automatically converted to formatted HTML
+- Detects headings, code blocks, links, images, tables, bold, lists, blockquotes, and more
 
 ### 📤 Import & Export
-- **Export**: Download your entire knowledge base as JSON or SQLite database
-- **Import**: Load data from JSON or `.db` files
-- Switch seamlessly between storage modes
+- **Export**: Download your entire knowledge base as a SQLite database or JSON
+- **Import**: Load data from `.db` or JSON files
+- Data merges with existing content (no duplicates)
 
 ---
 
@@ -106,10 +116,11 @@ Choose from:
 4. Select your file
 5. Data will be merged with existing content (no duplicates)
 
-#### Switch Storage Modes
-- In the sidebar, click the **storage mode indicator** (JSON/SQLite)
-- Choose your preferred mode
-- Data will be migrated automatically
+#### Cloud Sync
+1. Press **Shift+B** to open the cloud sync panel
+2. Choose a provider (Cloudflare D1 or EdgeOne Blob) and enter credentials
+3. Upload local collections to the cloud or download remote collections
+4. Remote search works automatically once collections are uploaded
 
 ---
 
@@ -117,10 +128,12 @@ Choose from:
 
 - **Keyboard shortcuts**: Ctrl+B (bold), Ctrl+I (italic), Ctrl+U (underline)
 - **Paste images**: Copy an image and paste directly into the editor
+- **Paste Markdown**: Copy Markdown source from any editor and paste — it auto-converts to formatted HTML
 - **Sticky toolbar**: The toolbar stays visible while scrolling for easy access
 - **Frosted panels**: Top panel and toolbar have a translucent effect — content scrolls beautifully underneath
 - **Auto-save**: Changes are saved automatically after 500ms
 - **Optimized performance**: Lazy loading ensures smooth performance even with many pages
+- **Cloud sync**: Press **Shift+B** to open the hidden sync panel
 
 ---
 
@@ -180,10 +193,32 @@ This repository includes a GitHub Actions workflow (`.github/workflows/release.y
 ## Technical Details
 
 - **Framework**: React + TypeScript + Vite
-- **Storage**: localStorage (JSON) or IndexedDB (SQLite via sql.js)
+- **Storage**: SQLite (sql.js + IndexedDB/OPFS)
+- **Cloud sync**: Cloudflare D1, EdgeOne Blob
 - **Styling**: Tailwind CSS with custom theme system
 - **Deployment**: Optimized for Vercel and other static hosts
 - **Browser support**: Modern browsers (Chrome, Firefox, Safari, Edge)
+
+---
+
+## Changelog
+
+### v0.3.2
+
+- **Markdown paste**: pasting Markdown-formatted text into the rich text editor now auto-converts it to formatted HTML (headings, code blocks, links, images, tables, lists, and more)
+- **Enhanced Super Search**: multiple matches within the same page are grouped into ranked "bubbles" inside a single result card, each navigable to its specific match location
+- **Remote cloud search**: search now queries remote D1 collections via SQL directly — no full database download needed to find matches. Results show a download button to load the full collection locally
+- **Progress indicators**: search page shows progress bars for index prep, remote querying, and active searching
+- **Chunked cloud uploads**: large databases (> 512 KB) are split into chunks to avoid D1 payload limits
+
+### v0.3.0
+
+- **SQLite-only storage**: JSON storage mode has been removed; all data now lives in a local SQLite database (sql.js + IndexedDB/OPFS) for better performance and reliability with large datasets
+- **Cloud sync**: sync collections to the cloud via Cloudflare D1 or EdgeOne Blob. Hidden sync panel accessible via **Shift+B**
+- **Bundle schema**: added `authors` and `collection` fields to support multi-user collaboration and collection-level organization
+- **Desktop app**: Tauri-based desktop builds for Windows and macOS
+
+> **Remote Bundle** is currently in development.
 
 ---
 
