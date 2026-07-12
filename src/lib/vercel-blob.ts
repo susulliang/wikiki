@@ -7,6 +7,10 @@
  * Blob store settings) in the BlobSyncPanel; no secrets are baked into the
  * bundle.
  *
+ * Store ID: the SDK extracts the storeId from the token itself
+ * (token format: `vercel_blob_rw_<storeId>_<random>`), so we do NOT need a
+ * separate storeId field.
+ *
  * The collection-level split-by-Collection logic (manifest + per-collection
  * SQLite DBs) lives in cloud-provider.ts. This module only implements the
  * primitive `BlobAdapter` and credential management.
@@ -67,7 +71,7 @@ export function hasVercelCreds(): boolean {
  */
 async function getBlob() {
   const mod = await import('@vercel/blob');
-  return { put: mod.put, del: mod.del, head: mod.head, list: mod.list };
+  return { put: mod.put, del: mod.del, get: mod.get, list: mod.list };
 }
 
 function token(): string | null {
@@ -81,8 +85,28 @@ const PUT_OPTS = {
   addRandomSuffix: false,
   allowOverwrite: true,
   // Bypass CDN cache so reads immediately reflect the latest write.
-  cacheControlMaxAge: 60,
+  cacheControlMaxAge: 0,
 };
+
+/** Read a ReadableStream to completion and return the accumulated bytes. */
+async function streamToBytes(stream: ReadableStream<Uint8Array>): Promise<Uint8Array> {
+  const reader = stream.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+    total += value.byteLength;
+  }
+  const result = new Uint8Array(total);
+  let offset = 0;
+  for (const c of chunks) {
+    result.set(c, offset);
+    offset += c.byteLength;
+  }
+  return result;
+}
 
 const vercelAdapter: BlobAdapter = {
   hasCredentials: () => hasVercelCreds(),
@@ -107,17 +131,18 @@ const vercelAdapter: BlobAdapter = {
     await put(key, blob, { ...PUT_OPTS, token: t, contentType: contentType ?? 'application/octet-stream' });
   },
 
+  /**
+   * Use `get()` (not `head()`) because `get()` returns null for 404, whereas
+   * `head()` throws BlobNotFoundError.  The storeId is parsed from the token
+   * so `get()` can construct the blob URL directly without an API round-trip.
+   */
   async getBytes(key) {
     const t = token();
     if (!t) throw new Error('No Vercel Blob credentials configured');
-    const { head } = await getBlob();
-    const meta = await head(key, { token: t });
-    if (!meta) return null;
-    // Public access means the blob URL is directly fetchable.
-    const res = await fetch(meta.url, { cache: 'no-store' });
-    if (!res.ok) throw new Error(`Vercel Blob GET ${key} failed: ${res.status}`);
-    const buf = await res.arrayBuffer();
-    return new Uint8Array(buf);
+    const { get } = await getBlob();
+    const result = await get(key, { access: 'public', token: t, useCache: false });
+    if (!result) return null;
+    return streamToBytes(result.stream);
   },
 
   async putJSON(key, value) {
@@ -129,14 +154,9 @@ const vercelAdapter: BlobAdapter = {
   },
 
   async getJSON<T>(key: string): Promise<T | null> {
-    const t = token();
-    if (!t) return null;
-    const { head } = await getBlob();
-    const meta = await head(key, { token: t });
-    if (!meta) return null;
-    const res = await fetch(meta.url, { cache: 'no-store' });
-    if (!res.ok) throw new Error(`Vercel Blob GET ${key} failed: ${res.status}`);
-    return (await res.json()) as T;
+    const bytes = await vercelAdapter.getBytes(key);
+    if (!bytes) return null;
+    return JSON.parse(new TextDecoder().decode(bytes)) as T;
   },
 
   async delete(key) {

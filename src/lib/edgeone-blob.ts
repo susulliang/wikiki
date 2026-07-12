@@ -79,6 +79,22 @@ async function getBlobStore(): Promise<Store | null> {
   });
 }
 
+/**
+ * Wrap SDK errors with context about the operation and likely cause.
+ * Network errors ("Failed to fetch") almost always indicate CORS is not
+ * configured on the EdgeOne blob store — the SDK was designed for Pages
+ * Functions (server-side), so browser CORS must be enabled separately.
+ */
+function wrapError(op: string, e: unknown): Error {
+  const msg = e instanceof Error ? e.message : String(e);
+  if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('CORS')) {
+    return new Error(
+      `${op} failed: ${msg}. This is likely a CORS issue — enable CORS on your EdgeOne blob store / COS bucket for your domain.`,
+    );
+  }
+  return new Error(`${op} failed: ${msg}`);
+}
+
 const edgeoneAdapter: BlobAdapter = {
   hasCredentials: () => hasBlobCreds(),
   clearCredentials: () => clearBlobCreds(),
@@ -86,7 +102,11 @@ const edgeoneAdapter: BlobAdapter = {
   async testConnection() {
     const store = await getBlobStore();
     if (!store) throw new Error('No EdgeOne credentials configured');
-    await store.list({ limit: 1 });
+    try {
+      await store.list({ limit: 1 });
+    } catch (e) {
+      throw wrapError('EdgeOne testConnection', e);
+    }
   },
 
   async putBytes(key, bytes) {
@@ -98,37 +118,55 @@ const edgeoneAdapter: BlobAdapter = {
       bytes.byteOffset,
       bytes.byteOffset + bytes.byteLength,
     ) as ArrayBuffer;
-    // EdgeOne's `set` doesn't expose a content-type option; bypass CDN cache
-    // so reads immediately reflect the latest write.
-    await store.set(key, buffer, { cacheControl: null });
+    try {
+      await store.set(key, buffer, { cacheControl: null });
+    } catch (e) {
+      throw wrapError(`EdgeOne putBytes(${key})`, e);
+    }
   },
 
   async getBytes(key) {
     const store = await getBlobStore();
     if (!store) throw new Error('No EdgeOne credentials configured');
-    const buf = await store.get(key, { type: 'arrayBuffer', consistency: 'strong' });
-    if (!buf) return null;
-    return new Uint8Array(buf);
+    try {
+      const buf = await store.get(key, { type: 'arrayBuffer', consistency: 'strong' });
+      if (!buf) return null;
+      return new Uint8Array(buf);
+    } catch (e) {
+      throw wrapError(`EdgeOne getBytes(${key})`, e);
+    }
   },
 
   async putJSON(key, value) {
     const store = await getBlobStore();
     if (!store) throw new Error('No EdgeOne credentials configured');
-    await store.setJSON(key, value);
+    try {
+      await store.setJSON(key, value);
+    } catch (e) {
+      throw wrapError(`EdgeOne putJSON(${key})`, e);
+    }
   },
 
   async getJSON<T>(key: string): Promise<T | null> {
     const store = await getBlobStore();
     if (!store) return null;
-    const data = await store.get(key, { type: 'json', consistency: 'strong' });
-    if (data === null) return null;
-    return data as T;
+    try {
+      const data = await store.get(key, { type: 'json', consistency: 'strong' });
+      if (data === null) return null;
+      return data as T;
+    } catch (e) {
+      throw wrapError(`EdgeOne getJSON(${key})`, e);
+    }
   },
 
   async delete(key) {
     const store = await getBlobStore();
     if (!store) throw new Error('No EdgeOne credentials configured');
-    await store.delete(key);
+    try {
+      await store.delete(key);
+    } catch (e) {
+      throw wrapError(`EdgeOne delete(${key})`, e);
+    }
   },
 };
 
