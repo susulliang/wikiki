@@ -169,6 +169,31 @@ async function ensureTable(): Promise<void> {
   tableInitialized = true;
 }
 
+// ── Chunked storage ──────────────────────────────────────────────
+// D1 REST API rejects large request bodies (HTTP 413 FUNCTION_PAYLOAD_TOO_LARGE
+// at ~1 MB). For blobs larger than CHUNK_SIZE we split into multiple rows:
+//   `${key}__meta`        → JSON { chunkCount, totalSize, contentType }
+//   `${key}__chunk_0..N`  → base64 of each chunk
+// Small blobs are stored as a single row at `${key}` (backward compatible).
+
+/** 512 KB raw → ~682 KB base64. Well under D1's ~1 MB request limit. */
+const CHUNK_SIZE = 512 * 1024;
+
+interface ChunkMeta {
+  chunkCount: number;
+  totalSize: number;
+  contentType: string;
+}
+
+/** Delete the main key, its meta, and all chunks. */
+async function deleteKeyAndChunks(key: string): Promise<void> {
+  await d1Query('DELETE FROM wikiki_kv WHERE key = ? OR key = ? OR key LIKE ?', [
+    key,
+    `${key}__meta`,
+    `${key}__chunk_%`,
+  ]);
+}
+
 const d1Adapter: BlobAdapter = {
   hasCredentials: () => hasD1Creds(),
   clearCredentials: () => clearD1Creds(),
@@ -186,11 +211,39 @@ const d1Adapter: BlobAdapter = {
   async putBytes(key, bytes, contentType) {
     try {
       await ensureTable();
-      const base64 = bytesToBase64(bytes);
+      const ct = contentType ?? 'application/octet-stream';
       const now = new Date().toISOString();
+
+      // Always clean up any previous chunks/meta for this key first.
+      await deleteKeyAndChunks(key);
+
+      if (bytes.length <= CHUNK_SIZE) {
+        // Small blob — single row.
+        const base64 = bytesToBase64(bytes);
+        await d1Query(
+          'INSERT INTO wikiki_kv (key, value, content_type, updated_at) VALUES (?, ?, ?, ?)',
+          [key, base64, ct, now],
+        );
+        return;
+      }
+
+      // Large blob — split into chunks.
+      const chunkCount = Math.ceil(bytes.length / CHUNK_SIZE);
+      for (let i = 0; i < chunkCount; i++) {
+        const start = i * CHUNK_SIZE;
+        const end = Math.min(start + CHUNK_SIZE, bytes.length);
+        const chunk = bytes.subarray(start, end);
+        const base64 = bytesToBase64(chunk);
+        await d1Query(
+          'INSERT INTO wikiki_kv (key, value, content_type, updated_at) VALUES (?, ?, ?, ?)',
+          [`${key}__chunk_${i}`, base64, ct, now],
+        );
+      }
+      // Write meta last so partial uploads are detectable.
+      const meta: ChunkMeta = { chunkCount, totalSize: bytes.length, contentType: ct };
       await d1Query(
-        'INSERT OR REPLACE INTO wikiki_kv (key, value, content_type, updated_at) VALUES (?, ?, ?, ?)',
-        [key, base64, contentType ?? 'application/octet-stream', now],
+        'INSERT INTO wikiki_kv (key, value, content_type, updated_at) VALUES (?, ?, ?, ?)',
+        [`${key}__meta`, JSON.stringify(meta), 'application/json', now],
       );
     } catch (e) {
       throw wrapError(`D1 putBytes(${key})`, e);
@@ -200,10 +253,32 @@ const d1Adapter: BlobAdapter = {
   async getBytes(key) {
     try {
       await ensureTable();
+
+      // Check for chunked-meta first.
+      const metaResult = await d1Query('SELECT value FROM wikiki_kv WHERE key = ?', [`${key}__meta`]);
+      if (metaResult.results && metaResult.results.length > 0) {
+        const meta = JSON.parse(metaResult.results[0].value as string) as ChunkMeta;
+        const chunks: Uint8Array[] = [];
+        for (let i = 0; i < meta.chunkCount; i++) {
+          const r = await d1Query('SELECT value FROM wikiki_kv WHERE key = ?', [`${key}__chunk_${i}`]);
+          if (!r.results || r.results.length === 0) {
+            throw new Error(`Missing chunk ${i} of ${meta.chunkCount} for ${key}`);
+          }
+          chunks.push(base64ToBytes(r.results[0].value as string));
+        }
+        const out = new Uint8Array(meta.totalSize);
+        let offset = 0;
+        for (const c of chunks) {
+          out.set(c, offset);
+          offset += c.length;
+        }
+        return out;
+      }
+
+      // Not chunked — direct single-row read.
       const result = await d1Query('SELECT value FROM wikiki_kv WHERE key = ?', [key]);
       if (!result.results || result.results.length === 0) return null;
-      const base64 = result.results[0].value as string;
-      return base64ToBytes(base64);
+      return base64ToBytes(result.results[0].value as string);
     } catch (e) {
       throw wrapError(`D1 getBytes(${key})`, e);
     }
@@ -223,7 +298,7 @@ const d1Adapter: BlobAdapter = {
   async delete(key) {
     try {
       await ensureTable();
-      await d1Query('DELETE FROM wikiki_kv WHERE key = ?', [key]);
+      await deleteKeyAndChunks(key);
     } catch (e) {
       throw wrapError(`D1 delete(${key})`, e);
     }
