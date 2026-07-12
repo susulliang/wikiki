@@ -33,15 +33,34 @@ interface D1Response {
   messages?: unknown[];
 }
 
+/** Send a JSON response with CORS headers. */
+function sendJSON(res: ServerResponse, status: number, data: unknown): void {
+  res.statusCode = status;
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-cf-account-id, x-cf-d1-token');
+  res.end(JSON.stringify(data));
+}
+
 export default async function handler(
   req: IncomingMessage,
   res: ServerResponse,
 ): Promise<void> {
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    sendJSON(res, 204, {});
+    return;
+  }
+
+  // GET → health check (visit /api/d1-query in browser to verify function is live)
+  if (req.method === 'GET') {
+    sendJSON(res, 200, { ok: true, function: 'd1-query', method: 'GET' });
+    return;
+  }
+
   if (req.method !== 'POST') {
-    res.statusCode = 405;
-    res.setHeader('Allow', 'POST');
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ error: 'Method not allowed' }));
+    sendJSON(res, 405, { error: 'Method not allowed' });
     return;
   }
 
@@ -56,16 +75,12 @@ export default async function handler(
   try {
     body = JSON.parse(bodyText);
   } catch {
-    res.statusCode = 400;
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ error: 'Invalid JSON body' }));
+    sendJSON(res, 400, { error: 'Invalid JSON body' });
     return;
   }
 
   if (!body.sql) {
-    res.statusCode = 400;
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ error: 'Missing "sql" in body' }));
+    sendJSON(res, 400, { error: 'Missing "sql" in body' });
     return;
   }
 
@@ -80,14 +95,10 @@ export default async function handler(
     '';
 
   if (!accountId || !apiToken) {
-    res.statusCode = 401;
-    res.setHeader('Content-Type', 'application/json');
-    res.end(
-      JSON.stringify({
-        error:
-          'Missing Cloudflare credentials. Provide x-cf-account-id and x-cf-d1-token headers, or set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_D1_API_TOKEN env vars.',
-      }),
-    );
+    sendJSON(res, 401, {
+      error:
+        'Missing Cloudflare credentials. Provide x-cf-account-id and x-cf-d1-token headers, or set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_D1_API_TOKEN env vars.',
+    });
     return;
   }
 
@@ -110,28 +121,20 @@ export default async function handler(
 
     if (!upstream.ok || !data.success) {
       const errMsg = data.errors?.[0]?.message || `HTTP ${upstream.status}`;
-      res.statusCode = upstream.ok ? 502 : upstream.status;
-      res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: errMsg, details: data.errors }));
+      sendJSON(res, upstream.ok ? 502 : upstream.status, { error: errMsg, details: data.errors });
       return;
     }
 
     // Return the first result set (we only execute single statements)
     const result = data.result?.[0];
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'application/json');
-    res.end(
-      JSON.stringify({
-        results: result?.results ?? [],
-        meta: result?.meta ?? {},
-        success: true,
-      }),
-    );
+    sendJSON(res, 200, {
+      results: result?.results ?? [],
+      meta: result?.meta ?? {},
+      success: true,
+    });
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     console.error('D1 query proxy error:', message);
-    res.statusCode = 502;
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ error: message }));
+    sendJSON(res, 502, { error: message });
   }
 }
