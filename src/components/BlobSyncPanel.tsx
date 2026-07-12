@@ -6,13 +6,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useLanguage } from '@/hooks/useLanguage';
 import {
-  getActiveProvider,
-  getActiveProviderId,
-  setActiveProviderId,
   localCollections,
   type CollectionEntry,
   type ProviderId,
 } from '@/lib/cloud-provider';
+import {
+  getActiveProvider,
+  getActiveProviderId,
+  setActiveProviderId,
+} from '@/lib/provider-registry';
 import {
   getBlobCreds as getEdgeoneCreds,
   saveBlobCreds as saveEdgeoneCreds,

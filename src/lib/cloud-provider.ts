@@ -15,8 +15,6 @@
  * Databases remain unencrypted for now; encryption will follow.
  */
 import type { IBundle } from '@/data/bundles';
-import { edgeoneProvider } from '@/lib/edgeone-blob';
-import { vercelProvider } from '@/lib/vercel-blob';
 
 export type ProviderId = 'edgeone' | 'vercel';
 
@@ -36,8 +34,6 @@ interface CollectionIndex {
 const INDEX_KEY = '__wikiki_index.json';
 /** Blob key prefix for per-collection SQLite databases. */
 const DB_PREFIX = 'collections/';
-
-const ACTIVE_PROVIDER_KEY = '__wikiki_cloud_provider';
 
 /**
  * Minimal primitive operations each backend must implement. The shared
@@ -125,37 +121,6 @@ export class BaseCloudProvider implements CloudProvider {
       await this.adapter.putJSON(INDEX_KEY, idx);
     }
   }
-}
-
-const PROVIDERS: Record<ProviderId, CloudProvider> = {
-  edgeone: edgeoneProvider,
-  vercel: vercelProvider,
-};
-
-export function getActiveProviderId(): ProviderId {
-  try {
-    const v = localStorage.getItem(ACTIVE_PROVIDER_KEY);
-    if (v === 'edgeone' || v === 'vercel') return v;
-  } catch {
-    // ignore
-  }
-  return 'edgeone';
-}
-
-export function setActiveProviderId(id: ProviderId): void {
-  try {
-    localStorage.setItem(ACTIVE_PROVIDER_KEY, id);
-  } catch {
-    // ignore
-  }
-}
-
-export function getActiveProvider(): CloudProvider {
-  return PROVIDERS[getActiveProviderId()];
-}
-
-export function getProvider(id: ProviderId): CloudProvider {
-  return PROVIDERS[id];
 }
 
 /**
