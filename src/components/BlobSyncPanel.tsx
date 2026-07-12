@@ -6,17 +6,23 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useLanguage } from '@/hooks/useLanguage';
 import {
-  getBlobCreds,
-  saveBlobCreds,
-  clearBlobCreds,
-  testConnection,
-  listUploadedCollections,
-  uploadCollectionDB,
-  downloadCollectionDB,
-  deleteCollectionDB,
+  getActiveProvider,
+  getActiveProviderId,
+  setActiveProviderId,
   localCollections,
   type CollectionEntry,
+  type ProviderId,
+} from '@/lib/cloud-provider';
+import {
+  getBlobCreds as getEdgeoneCreds,
+  saveBlobCreds as saveEdgeoneCreds,
+  clearBlobCreds as clearEdgeoneCreds,
 } from '@/lib/edgeone-blob';
+import {
+  getVercelCreds,
+  saveVercelCreds,
+  clearVercelCreds,
+} from '@/lib/vercel-blob';
 import { getSQLiteStorage, jsonBundlesToSQLite, bundlesFromDbBytes } from '@/lib/sqlite-storage';
 import type { IBundle } from '@/data/bundles';
 
@@ -35,9 +41,18 @@ function formatBytes(n: number): string {
 
 export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBundles }: BlobSyncPanelProps) {
   const { t } = useLanguage();
-  const [projectId, setProjectId] = useState('');
-  const [token, setToken] = useState('');
-  const [storeName, setStoreName] = useState('wikiki-db-sync');
+
+  // Active cloud provider (edgeone | vercel), persisted to localStorage.
+  const [providerId, setProviderId] = useState<ProviderId>(() => getActiveProviderId());
+
+  // EdgeOne credential form state
+  const [eoProjectId, setEoProjectId] = useState('');
+  const [eoToken, setEoToken] = useState('');
+  const [eoStoreName, setEoStoreName] = useState('wikiki-db-sync');
+
+  // Vercel credential form state
+  const [vercelToken, setVercelToken] = useState('');
+
   const [hasCreds, setHasCreds] = useState(false);
   const [testing, setTesting] = useState(false);
   const [remote, setRemote] = useState<CollectionEntry[]>([]);
@@ -46,71 +61,135 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
 
   useEffect(() => {
     if (!open) return;
-    const creds = getBlobCreds();
-    if (creds) {
-      setProjectId(creds.projectId);
-      setToken(creds.token);
-      setStoreName(creds.storeName);
-      setHasCreds(true);
-      void refreshRemote();
+    const id = getActiveProviderId();
+    setProviderId(id);
+    if (id === 'edgeone') {
+      const creds = getEdgeoneCreds();
+      if (creds) {
+        setEoProjectId(creds.projectId);
+        setEoToken(creds.token);
+        setEoStoreName(creds.storeName);
+        setHasCreds(true);
+      } else {
+        setHasCreds(false);
+        setRemote([]);
+      }
     } else {
-      setHasCreds(false);
-      setRemote([]);
+      const creds = getVercelCreds();
+      if (creds) {
+        setVercelToken(creds.token);
+        setHasCreds(true);
+      } else {
+        setHasCreds(false);
+        setRemote([]);
+      }
     }
+    void refreshRemote(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  const refreshRemote = useCallback(async () => {
+  const refreshRemote = useCallback(async (id: ProviderId = getActiveProviderId()) => {
     setLoadingRemote(true);
     try {
-      const list = await listUploadedCollections();
-      setRemote(list);
+      const list = await getActiveProvider().listUploadedCollections();
+      // guard against provider switching mid-flight
+      if (getActiveProviderId() === id) setRemote(list);
     } catch (e) {
       console.error('Failed to list remote collections:', String(e));
-      setRemote([]);
+      if (getActiveProviderId() === id) setRemote([]);
     } finally {
-      setLoadingRemote(false);
+      if (getActiveProviderId() === id) setLoadingRemote(false);
     }
   }, []);
 
+  const handleSwitchProvider = useCallback(
+    (id: ProviderId) => {
+      if (id === providerId) return;
+      setActiveProviderId(id);
+      setProviderId(id);
+      setRemote([]);
+      // Reflect the newly-selected provider's stored credentials into the form.
+      if (id === 'edgeone') {
+        const creds = getEdgeoneCreds();
+        if (creds) {
+          setEoProjectId(creds.projectId);
+          setEoToken(creds.token);
+          setEoStoreName(creds.storeName);
+          setHasCreds(true);
+        } else {
+          setHasCreds(false);
+        }
+      } else {
+        const creds = getVercelCreds();
+        if (creds) {
+          setVercelToken(creds.token);
+          setHasCreds(true);
+        } else {
+          setHasCreds(false);
+        }
+      }
+      void refreshRemote(id);
+    },
+    [providerId, refreshRemote],
+  );
+
+  /** Persist credentials for the active provider without toasting. Returns false if invalid. */
+  const persistCreds = useCallback((): boolean => {
+    if (providerId === 'edgeone') {
+      if (!eoProjectId.trim() || !eoToken.trim()) return false;
+      saveEdgeoneCreds({
+        projectId: eoProjectId.trim(),
+        token: eoToken.trim(),
+        storeName: eoStoreName.trim() || 'wikiki-db-sync',
+      });
+      return true;
+    }
+    if (!vercelToken.trim()) return false;
+    saveVercelCreds({ token: vercelToken.trim() });
+    return true;
+  }, [providerId, eoProjectId, eoToken, eoStoreName, vercelToken]);
+
   const handleSaveCreds = useCallback(() => {
-    if (!projectId.trim() || !token.trim()) {
-      toast.error('Project ID and API Token are required');
+    if (!persistCreds()) {
+      toast.error(providerId === 'edgeone' ? 'Project ID and API Token are required' : 'Vercel Blob token is required');
       return;
     }
-    saveBlobCreds({ projectId: projectId.trim(), token: token.trim(), storeName: storeName.trim() || 'wikiki-db-sync' });
     setHasCreds(true);
     toast.success('Credentials saved');
     void refreshRemote();
-  }, [projectId, token, storeName, refreshRemote]);
+  }, [persistCreds, providerId, refreshRemote]);
 
   const handleClearCreds = useCallback(() => {
-    clearBlobCreds();
+    if (providerId === 'edgeone') {
+      clearEdgeoneCreds();
+      setEoProjectId('');
+      setEoToken('');
+      setEoStoreName('wikiki-db-sync');
+    } else {
+      clearVercelCreds();
+      setVercelToken('');
+    }
     setHasCreds(false);
     setRemote([]);
-    setProjectId('');
-    setToken('');
-    setStoreName('wikiki-db-sync');
     toast.info('Credentials cleared');
-  }, []);
+  }, [providerId]);
 
   const handleTest = useCallback(async () => {
-    if (!projectId.trim() || !token.trim()) {
-      toast.error('Project ID and API Token are required');
+    if (!persistCreds()) {
+      toast.error(providerId === 'edgeone' ? 'Project ID and API Token are required' : 'Vercel Blob token is required');
       return;
     }
-    saveBlobCreds({ projectId: projectId.trim(), token: token.trim(), storeName: storeName.trim() || 'wikiki-db-sync' });
     setHasCreds(true);
     setTesting(true);
     try {
-      await testConnection();
+      await getActiveProvider().testConnection();
       toast.success(t('blob.connectionOk'));
     } catch (e) {
       toast.error(`Connection failed: ${String(e).slice(0, 80)}`);
     } finally {
       setTesting(false);
     }
-  }, [projectId, token, storeName, t]);
+  }, [persistCreds, providerId, t]);
 
   const handleUpload = useCallback(
     async (name: string) => {
@@ -124,7 +203,7 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
           return;
         }
         const bytes = await jsonBundlesToSQLite(subset);
-        await uploadCollectionDB(name, bytes, subset.length);
+        await getActiveProvider().uploadCollectionDB(name, bytes, subset.length);
         await refreshRemote();
         toast.success(t('blob.uploaded'));
       } catch (e) {
@@ -140,7 +219,7 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
     async (name: string) => {
       setBusy(`download:${name}`);
       try {
-        const bytes = await downloadCollectionDB(name);
+        const bytes = await getActiveProvider().downloadCollectionDB(name);
         const downloaded = await bundlesFromDbBytes(bytes);
         const storage = getSQLiteStorage();
         await storage.importBundles(downloaded);
@@ -160,7 +239,7 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
       if (!confirm(t('blob.confirmDelete'))) return;
       setBusy(`delete:${name}`);
       try {
-        await deleteCollectionDB(name);
+        await getActiveProvider().deleteCollectionDB(name);
         await refreshRemote();
         toast.success(t('blob.deleted'));
       } catch (e) {
@@ -194,26 +273,62 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-3">
+        {/* Provider selector */}
+        <div className="mb-3 flex gap-1 rounded-lg border border-border/60 bg-foreground/5 p-0.5">
+          {(['edgeone', 'vercel'] as const).map((id) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => handleSwitchProvider(id)}
+              className={`flex-1 rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${
+                providerId === id
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {id === 'edgeone' ? t('blob.providerEdgeone') : t('blob.providerVercel')}
+            </button>
+          ))}
+        </div>
+
         {/* Credentials */}
         <div className="space-y-2.5">
           <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             <KeyRound className="size-3" />
             {t('blob.credentials')}
           </div>
-          <div className="space-y-2">
-            <div>
-              <Label className="text-[11px] text-muted-foreground">{t('blob.projectId')}</Label>
-              <Input value={projectId} onChange={(e) => setProjectId(e.target.value)} placeholder="pages-xxxxxxxx" className="h-8 text-xs" />
+
+          {providerId === 'edgeone' ? (
+            <div className="space-y-2">
+              <div>
+                <Label className="text-[11px] text-muted-foreground">{t('blob.projectId')}</Label>
+                <Input value={eoProjectId} onChange={(e) => setEoProjectId(e.target.value)} placeholder="pages-xxxxxxxx" className="h-8 text-xs" />
+              </div>
+              <div>
+                <Label className="text-[11px] text-muted-foreground">{t('blob.apiToken')}</Label>
+                <Input value={eoToken} onChange={(e) => setEoToken(e.target.value)} type="password" placeholder="c+KH5..." className="h-8 text-xs" />
+              </div>
+              <div>
+                <Label className="text-[11px] text-muted-foreground">{t('blob.storeName')}</Label>
+                <Input value={eoStoreName} onChange={(e) => setEoStoreName(e.target.value)} placeholder="wikiki-db-sync" className="h-8 text-xs" />
+              </div>
             </div>
-            <div>
-              <Label className="text-[11px] text-muted-foreground">{t('blob.apiToken')}</Label>
-              <Input value={token} onChange={(e) => setToken(e.target.value)} type="password" placeholder="c+KH5..." className="h-8 text-xs" />
+          ) : (
+            <div className="space-y-2">
+              <div>
+                <Label className="text-[11px] text-muted-foreground">{t('blob.vercelToken')}</Label>
+                <Input
+                  value={vercelToken}
+                  onChange={(e) => setVercelToken(e.target.value)}
+                  type="password"
+                  placeholder="vercel_blob_rw_..."
+                  className="h-8 text-xs"
+                />
+                <p className="mt-1 text-[10px] text-muted-foreground">{t('blob.vercelTokenHint')}</p>
+              </div>
             </div>
-            <div>
-              <Label className="text-[11px] text-muted-foreground">{t('blob.storeName')}</Label>
-              <Input value={storeName} onChange={(e) => setStoreName(e.target.value)} placeholder="wikiki-db-sync" className="h-8 text-xs" />
-            </div>
-          </div>
+          )}
+
           <div className="flex gap-2 pt-0.5">
             <Button size="sm" className="h-7 flex-1 text-xs" onClick={handleSaveCreds}>
               {t('action.save')}
@@ -272,7 +387,7 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
             <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               {t('blob.remoteCollections')}
             </div>
-            <Button size="sm" variant="ghost" className="h-5 px-1.5 text-[10px]" onClick={refreshRemote} disabled={!hasCreds || loadingRemote}>
+            <Button size="sm" variant="ghost" className="h-5 px-1.5 text-[10px]" onClick={() => refreshRemote()} disabled={!hasCreds || loadingRemote}>
               {loadingRemote ? <Loader2 className="size-3 animate-spin" /> : t('blob.refresh')}
             </Button>
           </div>

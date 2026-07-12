@@ -98,7 +98,11 @@ export type TranslationKey =
   | 'blob.noRemote'
   | 'blob.downloaded'
   | 'blob.confirmDelete'
-  | 'blob.deleted';
+  | 'blob.deleted'
+  | 'blob.providerEdgeone'
+  | 'blob.providerVercel'
+  | 'blob.vercelToken'
+  | 'blob.vercelTokenHint';
 
 type TranslationDict = Record<TranslationKey, string>;
 
@@ -184,6 +188,10 @@ const en: TranslationDict = {
   'blob.downloaded': 'Collection downloaded & merged',
   'blob.confirmDelete': 'Delete this remote collection?',
   'blob.deleted': 'Remote collection deleted',
+  'blob.providerEdgeone': 'EdgeOne',
+  'blob.providerVercel': 'Vercel',
+  'blob.vercelToken': 'Read/Write Token',
+  'blob.vercelTokenHint': 'Find it in Vercel dashboard → Storage → Blob store → .env.local tab.',
 };
 
 const zh: TranslationDict = {
@@ -268,6 +276,10 @@ const zh: TranslationDict = {
   'blob.downloaded': '合集已下载并合并',
   'blob.confirmDelete': '确定删除该远端合集？',
   'blob.deleted': '远端合集已删除',
+  'blob.providerEdgeone': 'EdgeOne',
+  'blob.providerVercel': 'Vercel',
+  'blob.vercelToken': '读写 Token',
+  'blob.vercelTokenHint': '在 Vercel 控制台 → Storage → Blob 存储的 .env.local 标签页获取。',
 };
 
 const jp: TranslationDict = {
@@ -352,6 +364,10 @@ const jp: TranslationDict = {
   'blob.downloaded': 'コレクションをダウンロード・マージしました',
   'blob.confirmDelete': 'このリモートコレクションを削除しますか？',
   'blob.deleted': 'リモートコレクションを削除しました',
+  'blob.providerEdgeone': 'EdgeOne',
+  'blob.providerVercel': 'Vercel',
+  'blob.vercelToken': '読み取り/書き込みトークン',
+  'blob.vercelTokenHint': 'Vercel ダッシュボード → Storage → Blob ストアの .env.local タブで確認できます。',
 };
 
 const de: TranslationDict = {
@@ -436,6 +452,10 @@ const de: TranslationDict = {
   'blob.downloaded': 'Sammlung heruntergeladen & zusammengeführt',
   'blob.confirmDelete': 'Diese Remote-Sammlung löschen?',
   'blob.deleted': 'Remote-Sammlung gelöscht',
+  'blob.providerEdgeone': 'EdgeOne',
+  'blob.providerVercel': 'Vercel',
+  'blob.vercelToken': 'Lese-/Schreib-Token',
+  'blob.vercelTokenHint': 'Im Vercel-Dashboard → Storage → Blob-Store unter dem Reiter .env.local zu finden.',
 };
 
 const it: TranslationDict = {
@@ -520,6 +540,10 @@ const it: TranslationDict = {
   'blob.downloaded': 'Raccolta scaricata e unita',
   'blob.confirmDelete': 'Eliminare questa raccolta remota?',
   'blob.deleted': 'Raccolta remota eliminata',
+  'blob.providerEdgeone': 'EdgeOne',
+  'blob.providerVercel': 'Vercel',
+  'blob.vercelToken': 'Token di lettura/scrittura',
+  'blob.vercelTokenHint': 'Trovalo nella dashboard Vercel → Storage → Blob store, scheda .env.local.',
 };
 
 const es: TranslationDict = {
@@ -604,6 +628,10 @@ const es: TranslationDict = {
   'blob.downloaded': 'Colección descargada y combinada',
   'blob.confirmDelete': '¿Eliminar esta colección remota?',
   'blob.deleted': 'Colección remota eliminada',
+  'blob.providerEdgeone': 'EdgeOne',
+  'blob.providerVercel': 'Vercel',
+  'blob.vercelToken': 'Token de lectura/escritura',
+  'blob.vercelTokenHint': 'Búscalo en el panel de Vercel → Storage → Blob store, pestaña .env.local.',
 };
 
 export const TRANSLATIONS: Record<LanguageCode, TranslationDict> = {
