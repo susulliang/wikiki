@@ -199,7 +199,7 @@ const en: TranslationDict = {
   'blob.providerD1': 'D1',
   'blob.cfAccountId': 'Cloudflare Account ID',
   'blob.cfApiToken': 'D1 API Token',
-  'blob.d1Hint': 'Create a D1 API token at Cloudflare Dashboard → My Profile → API Tokens with D1 edit permission. Database ID is preconfigured.',
+  'blob.d1Hint': 'Account ID is a 32-char hex string (NOT your email). Find it: Cloudflare Dashboard → any domain → right sidebar. API token: My Profile → API Tokens → D1 edit permission. Database ID is preconfigured.',
 };
 
 const zh: TranslationDict = {
@@ -291,7 +291,7 @@ const zh: TranslationDict = {
   'blob.providerD1': 'D1',
   'blob.cfAccountId': 'Cloudflare 账户 ID',
   'blob.cfApiToken': 'D1 API Token',
-  'blob.d1Hint': '在 Cloudflare 控制台 → My Profile → API Tokens 创建具有 D1 编辑权限的 API Token。数据库 ID 已预配置。',
+  'blob.d1Hint': '账户 ID 是 32 位十六进制字符串（不是邮箱）。查找位置：Cloudflare 控制台 → 任意域名 → 右侧边栏。API Token：My Profile → API Tokens → D1 编辑权限。数据库 ID 已预配置。',
 };
 
 const jp: TranslationDict = {
@@ -383,7 +383,7 @@ const jp: TranslationDict = {
   'blob.providerD1': 'D1',
   'blob.cfAccountId': 'Cloudflare アカウント ID',
   'blob.cfApiToken': 'D1 API トークン',
-  'blob.d1Hint': 'Cloudflare ダッシュボード → My Profile → API Tokens で D1 編集権限のある API トークンを作成してください。データベース ID は設定済みです。',
+  'blob.d1Hint': 'アカウント ID は 32 文字の 16 進数（メールアドレスではありません）。確認方法：Cloudflare ダッシュボード → 任意のドメイン → 右サイドバー。API トークン：My Profile → API Tokens → D1 編集権限。データベース ID は設定済みです。',
 };
 
 const de: TranslationDict = {
@@ -475,7 +475,7 @@ const de: TranslationDict = {
   'blob.providerD1': 'D1',
   'blob.cfAccountId': 'Cloudflare-Konto-ID',
   'blob.cfApiToken': 'D1 API-Token',
-  'blob.d1Hint': 'Erstellen Sie einen D1-API-Token im Cloudflare-Dashboard → My Profile → API Tokens mit D1-Bearbeitungsberechtigung. Die Datenbank-ID ist vorkonfiguriert.',
+  'blob.d1Hint': 'Die Konto-ID ist ein 32-stelliger Hex-String (NICHT Ihre E-Mail). Zu finden: Cloudflare-Dashboard → beliebige Domain → rechte Seitenleiste. API-Token: My Profile → API Tokens → D1-Bearbeitungsberechtigung. Die Datenbank-ID ist vorkonfiguriert.',
 };
 
 const it: TranslationDict = {
@@ -567,7 +567,7 @@ const it: TranslationDict = {
   'blob.providerD1': 'D1',
   'blob.cfAccountId': 'ID account Cloudflare',
   'blob.cfApiToken': 'D1 API Token',
-  'blob.d1Hint': 'Crea un D1 API token su Cloudflare Dashboard → My Profile → API Tokens con autorizzazione di modifica D1. L\'ID del database è preconfigurato.',
+  'blob.d1Hint': 'L\'ID account è una stringa esadecimale di 32 caratteri (NON la tua email). Trovalo: Cloudflare Dashboard → qualsiasi dominio → barra laterale destra. API token: My Profile → API Tokens → permesso modifica D1. L\'ID del database è preconfigurato.',
 };
 
 const es: TranslationDict = {
@@ -659,7 +659,7 @@ const es: TranslationDict = {
   'blob.providerD1': 'D1',
   'blob.cfAccountId': 'ID de cuenta de Cloudflare',
   'blob.cfApiToken': 'D1 API Token',
-  'blob.d1Hint': 'Crea un D1 API token en Cloudflare Dashboard → My Profile → API Tokens con permiso de edición D1. El ID de la base de datos está preconfigurado.',
+  'blob.d1Hint': 'El ID de cuenta es una cadena hexadecimal de 32 caracteres (NO tu correo). Encuéntralo: Cloudflare Dashboard → cualquier dominio → barra lateral derecha. API token: My Profile → API Tokens → permiso de edición D1. El ID de la base de datos está preconfigurado.',
 };
 
 export const TRANSLATIONS: Record<LanguageCode, TranslationDict> = {

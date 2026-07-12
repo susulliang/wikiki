@@ -163,41 +163,41 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
     [providerId, refreshRemote],
   );
 
-  /** Persist credentials for the active provider without toasting. Returns false if invalid. */
-  const persistCreds = useCallback((): boolean => {
+  /** Persist credentials for the active provider. Returns error message or null on success. */
+  const persistCreds = useCallback((): string | null => {
     if (providerId === 'edgeone') {
-      if (!eoProjectId.trim() || !eoToken.trim()) return false;
+      if (!eoProjectId.trim() || !eoToken.trim()) return 'Project ID and API Token are required';
       saveEdgeoneCreds({
         projectId: eoProjectId.trim(),
         token: eoToken.trim(),
         storeName: eoStoreName.trim() || 'wikiki-db-sync',
       });
-      return true;
+      return null;
     }
     if (providerId === 'vercel') {
-      if (!vercelToken.trim()) return false;
+      if (!vercelToken.trim()) return 'Vercel Blob token is required';
       saveVercelCreds({ token: vercelToken.trim() });
-      return true;
+      return null;
     }
-    if (!cfAccountId.trim() || !cfApiToken.trim()) return false;
-    saveD1Creds({ accountId: cfAccountId.trim(), token: cfApiToken.trim() });
-    return true;
+    if (!cfAccountId.trim() || !cfApiToken.trim()) return 'Cloudflare Account ID and API Token are required';
+    try {
+      saveD1Creds({ accountId: cfAccountId.trim(), token: cfApiToken.trim() });
+      return null;
+    } catch (e) {
+      return e instanceof Error ? e.message : String(e);
+    }
   }, [providerId, eoProjectId, eoToken, eoStoreName, vercelToken, cfAccountId, cfApiToken]);
 
   const handleSaveCreds = useCallback(() => {
-    if (!persistCreds()) {
-      const msg = providerId === 'edgeone'
-        ? 'Project ID and API Token are required'
-        : providerId === 'vercel'
-          ? 'Vercel Blob token is required'
-          : 'Cloudflare Account ID and API Token are required';
-      toast.error(msg);
+    const error = persistCreds();
+    if (error) {
+      toast.error(error);
       return;
     }
     setHasCreds(true);
     toast.success('Credentials saved');
     void refreshRemote();
-  }, [persistCreds, providerId, refreshRemote]);
+  }, [persistCreds, refreshRemote]);
 
   const handleClearCreds = useCallback(() => {
     if (providerId === 'edgeone') {
@@ -219,13 +219,9 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
   }, [providerId]);
 
   const handleTest = useCallback(async () => {
-    if (!persistCreds()) {
-      const msg = providerId === 'edgeone'
-        ? 'Project ID and API Token are required'
-        : providerId === 'vercel'
-          ? 'Vercel Blob token is required'
-          : 'Cloudflare Account ID and API Token are required';
-      toast.error(msg);
+    const error = persistCreds();
+    if (error) {
+      toast.error(error);
       return;
     }
     setHasCreds(true);
@@ -383,8 +379,8 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
                 <Input
                   value={cfAccountId}
                   onChange={(e) => setCfAccountId(e.target.value)}
-                  placeholder="a1b2c3d4..."
-                  className="h-8 text-xs"
+                  placeholder="32-char hex, e.g. a1b2c3d4e5f6..."
+                  className="h-8 text-xs font-mono"
                 />
               </div>
               <div>

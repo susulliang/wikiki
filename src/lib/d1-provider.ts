@@ -22,10 +22,31 @@ const CREATE_TABLE_SQL = `CREATE TABLE IF NOT EXISTS wikiki_kv (
 )`;
 
 export interface D1Creds {
-  /** Cloudflare account ID (hex string). */
+  /** Cloudflare account ID (32-char hex string, NOT your email). */
   accountId: string;
   /** D1 API token with D1 edit permissions. */
   token: string;
+}
+
+/**
+ * Validate that the account ID looks like a Cloudflare account ID
+ * (32-char hex string). Rejects emails and other formats early with a
+ * clear error message instead of a confusing 404 from the API.
+ */
+export function validateAccountId(accountId: string): Error | null {
+  const trimmed = accountId.trim();
+  if (!trimmed) return new Error('Account ID is empty');
+  if (trimmed.includes('@')) {
+    return new Error(
+      'Account ID should be a 32-character hex string (e.g. "a1b2c3d4..."), not an email. Find it in Cloudflare Dashboard → any domain → right sidebar "Account ID".',
+    );
+  }
+  if (!/^[a-f0-9]{32}$/i.test(trimmed)) {
+    return new Error(
+      `Account ID must be 32 hex characters (got ${trimmed.length} chars). Find it in Cloudflare Dashboard → any domain → right sidebar "Account ID".`,
+    );
+  }
+  return null;
 }
 
 export function getD1Creds(): D1Creds | null {
@@ -41,6 +62,9 @@ export function getD1Creds(): D1Creds | null {
 }
 
 export function saveD1Creds(creds: D1Creds): void {
+  // Don't persist invalid account IDs (emails, etc.)
+  const validationError = validateAccountId(creds.accountId);
+  if (validationError) throw validationError;
   try {
     localStorage.setItem(
       CREDS_KEY,
@@ -98,6 +122,10 @@ async function d1Query(
 ): Promise<D1QueryResult> {
   const creds = getD1Creds();
   if (!creds) throw new Error('No D1 credentials configured');
+
+  // Validate account ID format early to give a clear error
+  const validationError = validateAccountId(creds.accountId);
+  if (validationError) throw validationError;
 
   const res = await fetch(QUERY_URL, {
     method: 'POST',
