@@ -26,6 +26,25 @@ export interface CollectionEntry {
   uploadedAt: string;
 }
 
+/**
+ * Lightweight search result from a remote provider's SQL query.
+ * Contains just enough data to display a result card + excerpt —
+ * the full bundle/page content is NOT included (user must download
+ * the collection to access it).
+ */
+export interface RemoteSearchResult {
+  bundleId: string;
+  bundleName: string;
+  collection: string;
+  tags: string[];
+  pageId: string | null;
+  pageName: string | null;
+  /** Short content excerpt (first ~300 chars of matching page) */
+  excerpt: string;
+  /** What matched: name, tag, or content */
+  matchType: 'name' | 'tag' | 'content';
+}
+
 interface CollectionIndex {
   collections: CollectionEntry[];
 }
@@ -66,6 +85,13 @@ export interface CloudProvider {
   uploadCollectionDB(name: string, bytes: Uint8Array, bundleCount: number): Promise<void>;
   downloadCollectionDB(name: string): Promise<Uint8Array>;
   deleteCollectionDB(name: string): Promise<void>;
+  /**
+   * Search remote storage WITHOUT downloading full DBs.
+   * Returns lightweight results (name, excerpt, collection) so the UI
+   * can show matches and prompt the user to download.
+   * Not supported by all providers (returns empty array if unsupported).
+   */
+  searchRemote?(query: string): Promise<RemoteSearchResult[]>;
 }
 
 /**

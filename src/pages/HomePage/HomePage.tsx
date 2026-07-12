@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTheme } from '@/hooks/useTheme';
-import { useRemoteBundles } from '@/hooks/useRemoteBundles';
+import { useRemoteSearch } from '@/hooks/useRemoteSearch';
 import FloatingTabBar, { type TabId } from '@/components/FloatingTabBar';
 import BundleDialog from '@/components/BundleDialog';
 import BundlesPage from '@/pages/BundlesPage';
@@ -191,9 +191,10 @@ export default function HomePage() {
     return sqliteSearchBundles.length > 0 ? sqliteSearchBundles : bundles;
   }, [sqliteSearchBundles, bundles]);
 
-  // Fetch remote cloud collections for search when on the super search tab
-  const { remoteCollections, loading: remoteLoading, progress: remoteProgress } = useRemoteBundles(
+  // Search remote cloud storage via SQL (no full DB download) when on super search tab
+  const { results: remoteSearchResults, loading: remoteLoading } = useRemoteSearch(
     sqliteReady && activeTab === 'supersearch',
+    debouncedSuperSearchQuery,
   );
 
   const searchResults = useMemo<ExtendedSearchResult[]>(() => {
@@ -209,22 +210,33 @@ export default function HomePage() {
     // Build a set of local bundle names for deduplication
     const localNames = new Set(searchableBundles.map((b) => b.name));
 
-    // Search remote bundles, excluding duplicates (same bundle name as local)
-    const remoteResults: ExtendedSearchResult[] = [];
-    for (const { collection, bundles: remoteBundles } of remoteCollections) {
-      const remoteOnly = remoteBundles.filter((b) => !localNames.has(b.name));
-      if (remoteOnly.length === 0) continue;
-      const results = searchBundles(remoteOnly, q).map((r) => ({
-        ...r,
+    // Convert remote search results to ExtendedSearchResult format,
+    // excluding duplicates (same bundle name as local)
+    const remoteResults: ExtendedSearchResult[] = remoteSearchResults
+      .filter((r) => !localNames.has(r.bundleName))
+      .map((r) => ({
+        bundleId: r.bundleId,
+        bundleName: r.bundleName,
+        bundleTags: r.tags,
+        pageId: r.pageId,
+        pageIndex: 0,
+        pageName: r.pageName,
+        snippet: r.excerpt,
+        matchType: r.matchType,
+        score: r.matchType === 'name' ? 100 : r.matchType === 'tag' ? 50 : 25,
+        matchingParagraphs: [{
+          excerpt: r.excerpt,
+          matchStart: 0,
+          matchedTokens: q.split(/\s+/).filter(Boolean),
+          score: r.matchType === 'name' ? 100 : 50,
+        }],
         source: 'remote' as const,
-        collection,
+        collection: r.collection,
       }));
-      remoteResults.push(...results);
-    }
 
-    // Local results first, then remote — each group already sorted by score
+    // Local results first, then remote
     return [...localResults, ...remoteResults];
-  }, [searchableBundles, debouncedSuperSearchQuery, remoteCollections]);
+  }, [searchableBundles, debouncedSuperSearchQuery, remoteSearchResults]);
 
   // Download a remote collection and merge into local DB
   const handleDownloadCollection = useCallback(
@@ -566,7 +578,6 @@ export default function HomePage() {
             }
             dbPrepping={dbPrepping}
             remoteLoading={remoteLoading}
-            remoteProgress={remoteProgress}
             onQueryChange={setSuperSearchQuery}
             onSelect={handleSearchResultSelect}
             onDownloadCollection={handleDownloadCollection}

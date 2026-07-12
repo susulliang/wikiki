@@ -7,7 +7,6 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import type { RemoteProgress } from '@/hooks/useRemoteBundles';
 
 interface SuperSearchPageProps {
   query: string;
@@ -15,7 +14,6 @@ interface SuperSearchPageProps {
   loading: boolean;
   dbPrepping: boolean;
   remoteLoading?: boolean;
-  remoteProgress?: RemoteProgress | null;
   onQueryChange: (query: string) => void;
   onSelect: (result: ExtendedSearchResult, paragraphIndex?: number) => void;
   onDownloadCollection?: (collection: string) => void;
@@ -27,7 +25,6 @@ export default function SuperSearchPage({
   loading,
   dbPrepping,
   remoteLoading,
-  remoteProgress,
   onQueryChange,
   onSelect,
   onDownloadCollection,
@@ -68,7 +65,7 @@ export default function SuperSearchPage({
   const remoteResults = results.filter((r) => r.source === 'remote');
 
   const showDbPrepBar = dbPrepping;
-  const showRemoteBar = remoteLoading && !!remoteProgress;
+  const showRemoteBar = remoteLoading && !dbPrepping;
   const showSearchBar = isSearching && !dbPrepping && !remoteLoading;
 
   return (
@@ -100,9 +97,9 @@ export default function SuperSearchPage({
           )}
           {showRemoteBar && (
             <ProgressBar
-              label={remoteProgress!.step}
-              pct={remoteProgress!.pct}
+              label="Searching remote collections…"
               variant="primary"
+              indeterminate
             />
           )}
           {showSearchBar && (
@@ -175,12 +172,12 @@ export default function SuperSearchPage({
 /** A labeled progress bar with percentage. */
 function ProgressBar({
   label,
-  pct,
+  pct = 0,
   variant = 'muted',
   indeterminate = false,
 }: {
   label: string;
-  pct: number;
+  pct?: number;
   variant?: 'muted' | 'primary';
   indeterminate?: boolean;
 }) {

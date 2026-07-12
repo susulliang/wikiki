@@ -5,20 +5,38 @@
  * D1 SQLite table called `wikiki_kv`. All SQL is executed through the
  * /api/d1-query proxy function, which forwards to Cloudflare's D1 REST API.
  *
+ * Additionally maintains a `wikiki_search_index` table that stores
+ * flattened bundle/page metadata so remote search can run SQL LIKE
+ * queries WITHOUT downloading the full DB blob.
+ *
  * Credentials (Cloudflare account ID + D1 API token) are stored in
  * localStorage and sent as headers to the proxy.
  */
-import { BaseCloudProvider, type BlobAdapter, type CloudProvider } from '@/lib/cloud-provider';
+import { BaseCloudProvider, type BlobAdapter, type CloudProvider, type RemoteSearchResult } from '@/lib/cloud-provider';
+import { bundlesFromDbBytes } from '@/lib/sqlite-storage';
 
 const CREDS_KEY = '__wikiki_d1_creds';
 const QUERY_URL = '/api/d1-query';
 
 /** Table schema for key-value storage. */
-const CREATE_TABLE_SQL = `CREATE TABLE IF NOT EXISTS wikiki_kv (
+const CREATE_KV_TABLE_SQL = `CREATE TABLE IF NOT EXISTS wikiki_kv (
   key TEXT PRIMARY KEY,
   value TEXT NOT NULL,
   content_type TEXT,
   updated_at TEXT NOT NULL
+)`;
+
+/** Search index table — one row per page, with flattened bundle metadata. */
+const CREATE_SEARCH_INDEX_SQL = `CREATE TABLE IF NOT EXISTS wikiki_search_index (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  bundle_id TEXT NOT NULL,
+  bundle_name TEXT NOT NULL,
+  collection TEXT NOT NULL,
+  tags TEXT DEFAULT '',
+  page_id TEXT,
+  page_title TEXT DEFAULT '',
+  content_text TEXT DEFAULT '',
+  page_order INTEGER DEFAULT 0
 )`;
 
 export interface D1Creds {
@@ -62,7 +80,6 @@ export function getD1Creds(): D1Creds | null {
 }
 
 export function saveD1Creds(creds: D1Creds): void {
-  // Don't persist invalid account IDs (emails, etc.)
   const validationError = validateAccountId(creds.accountId);
   if (validationError) throw validationError;
   try {
@@ -123,7 +140,6 @@ async function d1Query(
   const creds = getD1Creds();
   if (!creds) throw new Error('No D1 credentials configured');
 
-  // Validate account ID format early to give a clear error
   const validationError = validateAccountId(creds.accountId);
   if (validationError) throw validationError;
 
@@ -162,36 +178,19 @@ function wrapError(op: string, e: unknown): Error {
 
 let tableInitialized = false;
 
-/** Ensure the wikiki_kv table exists. Called once per session. */
+/** Ensure both tables exist. Called once per session. */
 async function ensureTable(): Promise<void> {
   if (tableInitialized) return;
-  await d1Query(CREATE_TABLE_SQL);
+  await d1Query(CREATE_KV_TABLE_SQL);
+  await d1Query(CREATE_SEARCH_INDEX_SQL);
   tableInitialized = true;
 }
 
-// ── Chunked storage ──────────────────────────────────────────────
-// D1 REST API rejects large request bodies (HTTP 413 FUNCTION_PAYLOAD_TOO_LARGE
-// at ~1 MB). For blobs larger than CHUNK_SIZE we split into multiple rows:
-//   `${key}__meta`        → JSON { chunkCount, totalSize, contentType }
-//   `${key}__chunk_0..N`  → base64 of each chunk
-// Small blobs are stored as a single row at `${key}` (backward compatible).
-
-/** 512 KB raw → ~682 KB base64. Well under D1's ~1 MB request limit. */
-const CHUNK_SIZE = 512 * 1024;
-
-interface ChunkMeta {
-  chunkCount: number;
-  totalSize: number;
-  contentType: string;
-}
-
-/** Delete the main key, its meta, and all chunks. */
-async function deleteKeyAndChunks(key: string): Promise<void> {
-  await d1Query('DELETE FROM wikiki_kv WHERE key = ? OR key = ? OR key LIKE ?', [
-    key,
-    `${key}__meta`,
-    `${key}__chunk_%`,
-  ]);
+/** Strip HTML tags to get plain text for search indexing. */
+function stripHtml(html: string): string {
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  return (div.textContent || '').replace(/\s+/g, ' ').trim();
 }
 
 const d1Adapter: BlobAdapter = {
@@ -200,7 +199,8 @@ const d1Adapter: BlobAdapter = {
 
   async testConnection() {
     try {
-      await d1Query(CREATE_TABLE_SQL);
+      await d1Query(CREATE_KV_TABLE_SQL);
+      await d1Query(CREATE_SEARCH_INDEX_SQL);
       tableInitialized = true;
       await d1Query('SELECT 1 as ok');
     } catch (e) {
@@ -211,39 +211,11 @@ const d1Adapter: BlobAdapter = {
   async putBytes(key, bytes, contentType) {
     try {
       await ensureTable();
-      const ct = contentType ?? 'application/octet-stream';
+      const base64 = bytesToBase64(bytes);
       const now = new Date().toISOString();
-
-      // Always clean up any previous chunks/meta for this key first.
-      await deleteKeyAndChunks(key);
-
-      if (bytes.length <= CHUNK_SIZE) {
-        // Small blob — single row.
-        const base64 = bytesToBase64(bytes);
-        await d1Query(
-          'INSERT INTO wikiki_kv (key, value, content_type, updated_at) VALUES (?, ?, ?, ?)',
-          [key, base64, ct, now],
-        );
-        return;
-      }
-
-      // Large blob — split into chunks.
-      const chunkCount = Math.ceil(bytes.length / CHUNK_SIZE);
-      for (let i = 0; i < chunkCount; i++) {
-        const start = i * CHUNK_SIZE;
-        const end = Math.min(start + CHUNK_SIZE, bytes.length);
-        const chunk = bytes.subarray(start, end);
-        const base64 = bytesToBase64(chunk);
-        await d1Query(
-          'INSERT INTO wikiki_kv (key, value, content_type, updated_at) VALUES (?, ?, ?, ?)',
-          [`${key}__chunk_${i}`, base64, ct, now],
-        );
-      }
-      // Write meta last so partial uploads are detectable.
-      const meta: ChunkMeta = { chunkCount, totalSize: bytes.length, contentType: ct };
       await d1Query(
-        'INSERT INTO wikiki_kv (key, value, content_type, updated_at) VALUES (?, ?, ?, ?)',
-        [`${key}__meta`, JSON.stringify(meta), 'application/json', now],
+        'INSERT OR REPLACE INTO wikiki_kv (key, value, content_type, updated_at) VALUES (?, ?, ?, ?)',
+        [key, base64, contentType ?? 'application/octet-stream', now],
       );
     } catch (e) {
       throw wrapError(`D1 putBytes(${key})`, e);
@@ -253,32 +225,10 @@ const d1Adapter: BlobAdapter = {
   async getBytes(key) {
     try {
       await ensureTable();
-
-      // Check for chunked-meta first.
-      const metaResult = await d1Query('SELECT value FROM wikiki_kv WHERE key = ?', [`${key}__meta`]);
-      if (metaResult.results && metaResult.results.length > 0) {
-        const meta = JSON.parse(metaResult.results[0].value as string) as ChunkMeta;
-        const chunks: Uint8Array[] = [];
-        for (let i = 0; i < meta.chunkCount; i++) {
-          const r = await d1Query('SELECT value FROM wikiki_kv WHERE key = ?', [`${key}__chunk_${i}`]);
-          if (!r.results || r.results.length === 0) {
-            throw new Error(`Missing chunk ${i} of ${meta.chunkCount} for ${key}`);
-          }
-          chunks.push(base64ToBytes(r.results[0].value as string));
-        }
-        const out = new Uint8Array(meta.totalSize);
-        let offset = 0;
-        for (const c of chunks) {
-          out.set(c, offset);
-          offset += c.length;
-        }
-        return out;
-      }
-
-      // Not chunked — direct single-row read.
       const result = await d1Query('SELECT value FROM wikiki_kv WHERE key = ?', [key]);
       if (!result.results || result.results.length === 0) return null;
-      return base64ToBytes(result.results[0].value as string);
+      const base64 = result.results[0].value as string;
+      return base64ToBytes(base64);
     } catch (e) {
       throw wrapError(`D1 getBytes(${key})`, e);
     }
@@ -298,11 +248,185 @@ const d1Adapter: BlobAdapter = {
   async delete(key) {
     try {
       await ensureTable();
-      await deleteKeyAndChunks(key);
+      await d1Query('DELETE FROM wikiki_kv WHERE key = ?', [key]);
     } catch (e) {
       throw wrapError(`D1 delete(${key})`, e);
     }
   },
 };
 
-export const d1Provider: CloudProvider = new BaseCloudProvider('d1', d1Adapter);
+/**
+ * D1-specific cloud provider that extends BaseCloudProvider with:
+ * - Search index population on upload (flattened bundle/page data)
+ * - Search index cleanup on delete
+ * - Remote SQL search via `searchRemote()` — queries D1 directly,
+ *   no full DB download needed
+ */
+class D1CloudProvider extends BaseCloudProvider implements CloudProvider {
+  constructor() {
+    super('d1', d1Adapter);
+  }
+
+  /**
+   * After uploading a collection DB, parse it and populate the
+   * `wikiki_search_index` table so remote search works without
+   * downloading the full DB.
+   */
+  override async uploadCollectionDB(name: string, bytes: Uint8Array, bundleCount: number): Promise<void> {
+    // 1. Upload the DB blob (base class behavior)
+    await super.uploadCollectionDB(name, bytes, bundleCount);
+
+    // 2. Parse the DB and populate the search index
+    try {
+      await ensureTable();
+      const bundles = await bundlesFromDbBytes(bytes);
+
+      // Delete old search index entries for this collection
+      await d1Query('DELETE FROM wikiki_search_index WHERE collection = ?', [name]);
+
+      // Insert one row per page
+      for (const bundle of bundles) {
+        const tags = bundle.tags.join(', ');
+        for (let i = 0; i < bundle.pages.length; i++) {
+          const page = bundle.pages[i];
+          const contentText = stripHtml(page.content).slice(0, 5000); // cap to keep payload reasonable
+          await d1Query(
+            `INSERT INTO wikiki_search_index (bundle_id, bundle_name, collection, tags, page_id, page_title, content_text, page_order)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [bundle.id, bundle.name, name, tags, page.id, page.name || page.title, contentText, i],
+          );
+        }
+      }
+    } catch (e) {
+      // Search index population is best-effort — the upload itself succeeded
+      console.error('D1 search index population failed:', e);
+    }
+  }
+
+  /** Also clean up the search index when deleting a collection. */
+  override async deleteCollectionDB(name: string): Promise<void> {
+    await super.deleteCollectionDB(name);
+    try {
+      await ensureTable();
+      await d1Query('DELETE FROM wikiki_search_index WHERE collection = ?', [name]);
+    } catch (e) {
+      console.error('D1 search index cleanup failed:', e);
+    }
+  }
+
+  /**
+   * Search the remote D1 search index with SQL LIKE — NO full DB download.
+   * Returns lightweight results with excerpts for the UI to display.
+   */
+  async searchRemote(query: string): Promise<RemoteSearchResult[]> {
+    const trimmed = query.trim();
+    if (!trimmed) return [];
+
+    try {
+      await ensureTable();
+
+      // Build WHERE clause: each token matched against all text columns via OR.
+      // We use LIKE for case-insensitive substring matching.
+      const tokens = trimmed.split(/\s+/).filter(Boolean);
+      if (tokens.length === 0) return [];
+
+      const conditions: string[] = [];
+      const params: (string | number | null)[] = [];
+
+      for (const token of tokens) {
+        const pattern = `%${token}%`;
+        conditions.push('bundle_name LIKE ?');
+        params.push(pattern);
+        conditions.push('tags LIKE ?');
+        params.push(pattern);
+        conditions.push('page_title LIKE ?');
+        params.push(pattern);
+        conditions.push('content_text LIKE ?');
+        params.push(pattern);
+      }
+
+      const whereClause = conditions.join(' OR ');
+      const sql = `
+        SELECT bundle_id, bundle_name, collection, tags, page_id, page_title, content_text
+        FROM wikiki_search_index
+        WHERE ${whereClause}
+        LIMIT 30
+      `;
+
+      const result = await d1Query(sql, params);
+      if (!result.results || result.results.length === 0) return [];
+
+      // Deduplicate by bundle_id + page_id (multiple tokens may match same row)
+      const seen = new Set<string>();
+      const results: RemoteSearchResult[] = [];
+
+      for (const row of result.results) {
+        const bundleId = row.bundle_id as string;
+        const pageId = (row.page_id as string) || null;
+        const dedupKey = `${bundleId}:${pageId ?? 'null'}`;
+        if (seen.has(dedupKey)) continue;
+        seen.add(dedupKey);
+
+        const bundleName = row.bundle_name as string;
+        const collection = row.collection as string;
+        const tagsStr = (row.tags as string) || '';
+        const pageTitle = (row.page_title as string) || '';
+        const contentText = (row.content_text as string) || '';
+
+        // Determine match type and build excerpt
+        let matchType: 'name' | 'tag' | 'content' = 'content';
+        const lowerQuery = trimmed.toLowerCase();
+
+        if (bundleName.toLowerCase().includes(lowerQuery) ||
+            tokens.every((t) => bundleName.toLowerCase().includes(t.toLowerCase()))) {
+          matchType = 'name';
+        } else if (tagsStr.toLowerCase().includes(lowerQuery) ||
+                   tokens.some((t) => tagsStr.toLowerCase().includes(t.toLowerCase()))) {
+          matchType = 'tag';
+        }
+
+        // Build excerpt: find first match position and extract context
+        let excerpt = '';
+        if (matchType === 'name') {
+          excerpt = bundleName;
+        } else if (matchType === 'tag') {
+          excerpt = `Tags: ${tagsStr}`;
+        } else {
+          // Find first token match in content
+          const lowerContent = contentText.toLowerCase();
+          let matchPos = -1;
+          for (const token of tokens) {
+            const pos = lowerContent.indexOf(token.toLowerCase());
+            if (pos >= 0 && (matchPos < 0 || pos < matchPos)) {
+              matchPos = pos;
+            }
+          }
+          if (matchPos >= 0) {
+            const start = Math.max(0, matchPos - 60);
+            const end = Math.min(contentText.length, matchPos + 140);
+            excerpt = `${start > 0 ? '...' : ''}${contentText.slice(start, end)}${end < contentText.length ? '...' : ''}`;
+          } else {
+            excerpt = contentText.slice(0, 200);
+          }
+        }
+
+        results.push({
+          bundleId,
+          bundleName,
+          collection,
+          tags: tagsStr ? tagsStr.split(', ').filter(Boolean) : [],
+          pageId,
+          pageName: pageId ? pageTitle : null,
+          excerpt,
+          matchType,
+        });
+      }
+
+      return results;
+    } catch (e) {
+      throw wrapError('D1 searchRemote', e);
+    }
+  }
+}
+
+export const d1Provider: CloudProvider = new D1CloudProvider();
