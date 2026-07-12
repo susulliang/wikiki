@@ -4,6 +4,7 @@ import { X, Cloud, CloudUpload, CloudDownload, Trash2, KeyRound, Loader2, Check 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 import { useLanguage } from '@/hooks/useLanguage';
 import {
   localCollections,
@@ -69,6 +70,8 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
   const [remote, setRemote] = useState<CollectionEntry[]>([]);
   const [loadingRemote, setLoadingRemote] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+  /** Status message for the current upload/download operation (shown in UI + progress bar). */
+  const [status, setStatus] = useState<{ op: string; step: string; pct: number } | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -239,6 +242,7 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
   const handleUpload = useCallback(
     async (name: string) => {
       setBusy(`upload:${name}`);
+      setStatus({ op: 'upload', step: 'Reading local bundles…', pct: 10 });
       try {
         const storage = getSQLiteStorage();
         const all = await storage.getAllBundles();
@@ -247,14 +251,20 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
           toast.error('No bundles in this collection');
           return;
         }
+        setStatus({ op: 'upload', step: `Building SQLite DB (${subset.length} bundles)…`, pct: 25 });
         const bytes = await jsonBundlesToSQLite(subset);
+        setStatus({ op: 'upload', step: `Uploading ${formatBytes(bytes.byteLength)} to cloud…`, pct: 50 });
         await getActiveProvider().uploadCollectionDB(name, bytes, subset.length);
+        setStatus({ op: 'upload', step: 'Refreshing remote list…', pct: 85 });
         await refreshRemote();
+        setStatus({ op: 'upload', step: 'Upload complete', pct: 100 });
         toast.success(t('blob.uploaded'));
       } catch (e) {
-        toast.error(`Upload failed: ${String(e).slice(0, 80)}`);
+        console.error('Upload failed:', e);
+        toast.error(`Upload failed: ${e instanceof Error ? e.message : String(e)}`.slice(0, 120));
       } finally {
         setBusy(null);
+        setStatus(null);
       }
     },
     [refreshRemote, t],
@@ -263,17 +273,24 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
   const handleDownload = useCallback(
     async (name: string) => {
       setBusy(`download:${name}`);
+      setStatus({ op: 'download', step: 'Downloading from cloud…', pct: 15 });
       try {
         const bytes = await getActiveProvider().downloadCollectionDB(name);
+        setStatus({ op: 'download', step: `Parsing SQLite DB (${formatBytes(bytes.byteLength)})…`, pct: 45 });
         const downloaded = await bundlesFromDbBytes(bytes);
+        setStatus({ op: 'download', step: `Importing ${downloaded.length} bundles into local DB…`, pct: 65 });
         const storage = getSQLiteStorage();
-        await storage.importBundles(downloaded);
+        const result = await storage.importBundles(downloaded);
+        setStatus({ op: 'download', step: 'Reloading local data…', pct: 85 });
         await onReloadBundles();
+        setStatus({ op: 'download', step: `Imported: ${result.added} added, ${result.updated} updated`, pct: 100 });
         toast.success(t('blob.downloaded'));
       } catch (e) {
-        toast.error(`Download failed: ${String(e).slice(0, 80)}`);
+        console.error('Download failed:', e);
+        toast.error(`Download failed: ${e instanceof Error ? e.message : String(e)}`.slice(0, 120));
       } finally {
         setBusy(null);
+        setStatus(null);
       }
     },
     [onReloadBundles, t],
@@ -316,6 +333,18 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
           <X className="size-4" />
         </Button>
       </div>
+
+      {/* Status banner with progress bar (shown during upload/download) */}
+      {status && (
+        <div className="border-b border-border/60 bg-primary/5 px-4 py-2.5">
+          <div className="mb-1 flex items-center gap-1.5">
+            <Loader2 className="size-3 animate-spin text-primary" />
+            <span className="flex-1 text-[11px] font-medium text-foreground">{status.step}</span>
+            <span className="font-mono text-[10px] text-muted-foreground">{status.pct}%</span>
+          </div>
+          <Progress value={status.pct} className="h-1" />
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto px-4 py-3">
         {/* Provider selector */}
