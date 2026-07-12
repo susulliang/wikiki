@@ -6,6 +6,8 @@ import { getTagColor } from '@/data/bundles';
 import { useLanguage } from '@/hooks/useLanguage';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import type { RemoteProgress } from '@/hooks/useRemoteBundles';
 
 interface SuperSearchPageProps {
   query: string;
@@ -13,6 +15,7 @@ interface SuperSearchPageProps {
   loading: boolean;
   dbPrepping: boolean;
   remoteLoading?: boolean;
+  remoteProgress?: RemoteProgress | null;
   onQueryChange: (query: string) => void;
   onSelect: (result: ExtendedSearchResult, paragraphIndex?: number) => void;
   onDownloadCollection?: (collection: string) => void;
@@ -24,6 +27,7 @@ export default function SuperSearchPage({
   loading,
   dbPrepping,
   remoteLoading,
+  remoteProgress,
   onQueryChange,
   onSelect,
   onDownloadCollection,
@@ -31,13 +35,41 @@ export default function SuperSearchPage({
   const { t } = useLanguage();
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Track whether the user's query differs from the displayed results
+  // (i.e., search is debouncing/computing). When the input changes but
+  // results haven't updated yet, show a "searching…" indicator.
+  const [isSearching, setIsSearching] = useState(false);
+
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
+  // When query changes, mark as searching; results prop will catch up after debounce
+  useEffect(() => {
+    if (!query.trim()) {
+      setIsSearching(false);
+      return;
+    }
+    setIsSearching(true);
+  }, [query]);
+
+  // When results update (debounce completed), clear searching flag
+  useEffect(() => {
+    if (query.trim()) {
+      // Results just arrived — flip the flag off on next tick so the
+      // progress bar completes smoothly rather than vanishing mid-frame.
+      const t = setTimeout(() => setIsSearching(false), 150);
+      return () => clearTimeout(t);
+    }
+  }, [results, query]);
+
   // Split results into local and remote for separate sections
   const localResults = results.filter((r) => r.source !== 'remote');
   const remoteResults = results.filter((r) => r.source === 'remote');
+
+  const showDbPrepBar = dbPrepping;
+  const showRemoteBar = remoteLoading && !!remoteProgress;
+  const showSearchBar = isSearching && !dbPrepping && !remoteLoading;
 
   return (
     <div className="flex h-full flex-col">
@@ -52,20 +84,36 @@ export default function SuperSearchPage({
             placeholder={t('search.placeholder')}
             className="w-full border-2 border-border bg-card py-4 pl-12 pr-4 font-serif text-lg text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
-          {(loading || dbPrepping || remoteLoading) && (
+          {(loading || dbPrepping || remoteLoading || isSearching) && (
             <Loader2 className="absolute right-4 top-1/2 size-5 -translate-y-1/2 animate-spin text-muted-foreground" />
           )}
         </div>
-        {dbPrepping && !query && (
-          <p className="mt-2 text-center font-mono text-xs uppercase tracking-wider text-muted-foreground">
-            Preparing search index…
-          </p>
-        )}
-        {remoteLoading && !dbPrepping && (
-          <p className="mt-2 text-center font-mono text-xs uppercase tracking-wider text-primary/70">
-            Fetching remote collections for search…
-          </p>
-        )}
+
+        {/* Progress bars — stacked, highest priority first */}
+        <div className="mt-3 space-y-2">
+          {showDbPrepBar && (
+            <ProgressBar
+              label="Preparing search index…"
+              pct={45}
+              variant="muted"
+            />
+          )}
+          {showRemoteBar && (
+            <ProgressBar
+              label={remoteProgress!.step}
+              pct={remoteProgress!.pct}
+              variant="primary"
+            />
+          )}
+          {showSearchBar && (
+            <ProgressBar
+              label={`Searching for "${query.trim()}"…`}
+              pct={75}
+              variant="muted"
+              indeterminate
+            />
+          )}
+        </div>
       </div>
 
       <div className="mx-auto flex h-full w-full max-w-2xl flex-1 flex-col overflow-y-auto px-6 pb-10">
@@ -76,7 +124,7 @@ export default function SuperSearchPage({
           </div>
         )}
 
-        {!loading && query && results.length === 0 && (
+        {!loading && query && !isSearching && results.length === 0 && (
           <div className="flex flex-1 flex-col items-center justify-center text-center text-muted-foreground">
             <Search className="mb-3 size-8 opacity-40" />
             <p className="text-sm">{t('search.noResults')}</p>
@@ -86,6 +134,9 @@ export default function SuperSearchPage({
         {/* Local results */}
         {localResults.length > 0 && (
           <div className="space-y-3">
+            <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+              {localResults.length} local result{localResults.length !== 1 ? 's' : ''}
+            </p>
             {localResults.map((result, idx) => (
               <ResultCard
                 key={`local-${result.bundleId}-${result.pageId ?? 'p'}-${idx}`}
@@ -102,7 +153,7 @@ export default function SuperSearchPage({
           <div className="mt-4">
             <div className="mb-2 flex items-center gap-1.5 border-t border-border/60 pt-3 text-[11px] font-semibold uppercase tracking-wider text-primary/70">
               <Cloud className="size-3" />
-              Remote — download to access
+              Remote — download to access ({remoteResults.length})
             </div>
             <div className="space-y-3">
               {remoteResults.map((result, idx) => (
@@ -117,6 +168,46 @@ export default function SuperSearchPage({
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+/** A labeled progress bar with percentage. */
+function ProgressBar({
+  label,
+  pct,
+  variant = 'muted',
+  indeterminate = false,
+}: {
+  label: string;
+  pct: number;
+  variant?: 'muted' | 'primary';
+  indeterminate?: boolean;
+}) {
+  return (
+    <div className={cn(
+      'rounded-lg border px-3 py-2',
+      variant === 'primary' ? 'border-primary/30 bg-primary/5' : 'border-border bg-card/50',
+    )}>
+      <div className="mb-1 flex items-center gap-1.5">
+        <Loader2 className={cn(
+          'size-3 animate-spin',
+          variant === 'primary' ? 'text-primary' : 'text-muted-foreground',
+        )} />
+        <span className={cn(
+          'flex-1 text-[11px] font-medium',
+          variant === 'primary' ? 'text-foreground' : 'text-muted-foreground',
+        )}>
+          {label}
+        </span>
+        {!indeterminate && (
+          <span className="font-mono text-[10px] text-muted-foreground">{pct}%</span>
+        )}
+      </div>
+      <Progress
+        value={indeterminate ? 50 : pct}
+        className={cn('h-1', indeterminate && 'animate-pulse')}
+      />
     </div>
   );
 }

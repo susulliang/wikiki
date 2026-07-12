@@ -192,7 +192,7 @@ export default function HomePage() {
   }, [sqliteSearchBundles, bundles]);
 
   // Fetch remote cloud collections for search when on the super search tab
-  const { remoteCollections, loading: remoteLoading } = useRemoteBundles(
+  const { remoteCollections, loading: remoteLoading, progress: remoteProgress } = useRemoteBundles(
     sqliteReady && activeTab === 'supersearch',
   );
 
@@ -566,6 +566,7 @@ export default function HomePage() {
             }
             dbPrepping={dbPrepping}
             remoteLoading={remoteLoading}
+            remoteProgress={remoteProgress}
             onQueryChange={setSuperSearchQuery}
             onSelect={handleSearchResultSelect}
             onDownloadCollection={handleDownloadCollection}
