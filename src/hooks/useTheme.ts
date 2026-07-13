@@ -7,7 +7,7 @@ export type ThemeName = 'graphite' | 'graphite-night' | 'warm-light' | 'clean-li
 export const THEME_OPTIONS = [
   { value: 'graphite' as const, label: 'Graphite', isDark: false },
   { value: 'graphite-night' as const, label: 'Graphite Night', isDark: true },
-  { value: 'warm-light' as const, label: 'Warm Light', isDark: false },
+  { value: 'warm-light' as const, label: 'Warm Light', isDark: true },
   { value: 'clean-light' as const, label: 'Clean Light', isDark: false },
   { value: 'soft-light' as const, label: 'Soft Lavender', isDark: false },
   { value: 'sunset' as const, label: 'Sunset Glow', isDark: true },
