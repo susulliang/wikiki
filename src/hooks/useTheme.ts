@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 
 const THEME_KEY = '__wikiki_theme';
 
-export type ThemeName = 'graphite' | 'graphite-night' | 'warm-light' | 'clean-light' | 'soft-light' | 'sunset' | 'forest' | 'dark' | 'midnight';
+export type ThemeName = 'graphite' | 'graphite-night' | 'warm-light' | 'clean-light' | 'soft-light' | 'sunset' | 'forest' | 'charcoal' | 'midnight';
 
 export const THEME_OPTIONS = [
   { value: 'graphite' as const, label: 'Graphite', isDark: false },
@@ -12,14 +12,16 @@ export const THEME_OPTIONS = [
   { value: 'soft-light' as const, label: 'Soft Lavender', isDark: false },
   { value: 'sunset' as const, label: 'Sunset Glow', isDark: true },
   { value: 'forest' as const, label: 'Forest Moss', isDark: false },
-  { value: 'dark' as const, label: 'Charcoal Dark', isDark: true },
+  { value: 'charcoal' as const, label: 'Charcoal Dark', isDark: true },
   { value: 'midnight' as const, label: 'Midnight Blue', isDark: true },
 ] as const;
 
 export function useTheme() {
   const [theme, setThemeState] = useState<ThemeName>(() => {
     try {
-      const stored = localStorage.getItem(THEME_KEY) as ThemeName;
+      let stored = localStorage.getItem(THEME_KEY) as ThemeName;
+      // Migrate old 'dark' theme name to 'charcoal'
+      if (stored === ('dark' as string)) stored = 'charcoal' as ThemeName;
       if (THEME_OPTIONS.some(t => t.value === stored)) return stored;
     } catch {
       // ignore

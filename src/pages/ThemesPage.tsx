@@ -14,7 +14,7 @@ const THEME_PALETTE: Record<ThemeName, string> = {
   'soft-light': 'linear-gradient(135deg, #FAF5FF 0%, #a855f7 100%)',
   'sunset': 'linear-gradient(135deg, #2d1d18 0%, #f97316 100%)',
   'forest': 'linear-gradient(135deg, #f4f7f4 0%, #2e7d32 100%)',
-  'dark': 'linear-gradient(135deg, #18181b 0%, #eab308 100%)',
+  'charcoal': 'linear-gradient(135deg, #18181b 0%, #eab308 100%)',
   'midnight': 'linear-gradient(135deg, #090d16 0%, #14b8a6 100%)',
 };
 
@@ -26,7 +26,7 @@ const THEME_LABEL_KEYS: Record<ThemeName, TranslationKey> = {
   'soft-light': 'theme.softLavender',
   'sunset': 'theme.sunsetGlow',
   'forest': 'theme.forestMoss',
-  'dark': 'theme.charcoalDark',
+  'charcoal': 'theme.charcoalDark',
   'midnight': 'theme.midnightBlue',
 };
 

@@ -171,14 +171,14 @@
 
 /* Default (no theme class) also gets the light graphite noise,
    since :root defaults to graphite. */
-:root:not(.warm-light):not(.clean-light):not(.soft-light):not(.sunset):not(.forest):not(.dark):not(.midnight):not(.graphite-night) body {
+:root:not(.warm-light):not(.clean-light):not(.soft-light):not(.sunset):not(.forest):not(.charcoal):not(.midnight):not(.graphite-night) body {
   background-image: var(--graphite-noise-fine), var(--graphite-noise-mosaic);
   background-attachment: fixed;
   background-repeat: repeat, repeat;
 }
 
-:root:not(.warm-light):not(.clean-light):not(.soft-light):not(.sunset):not(.forest):not(.dark):not(.midnight):not(.graphite-night) .bg-background,
-:root:not(.warm-light):not(.clean-light):not(.soft-light):not(.sunset):not(.forest):not(.dark):not(.midnight):not(.graphite-night) .bg-card {
+:root:not(.warm-light):not(.clean-light):not(.soft-light):not(.sunset):not(.forest):not(.charcoal):not(.midnight):not(.graphite-night) .bg-background,
+:root:not(.warm-light):not(.clean-light):not(.soft-light):not(.sunset):not(.forest):not(.charcoal):not(.midnight):not(.graphite-night) .bg-card {
   background-image: var(--graphite-noise-fine), var(--graphite-noise-mosaic);
   background-repeat: repeat, repeat;
 }
@@ -505,8 +505,8 @@
   --spacing: 0.25rem;
 }
 
-/* ── Dark: charcoal + amber accent ── */
-:root.dark {
+/* ── Charcoal: charcoal + amber accent ── */
+:root.charcoal {
   --button-outline: rgba(255,255,255, .08);
   --badge-outline: rgba(255,255,255, .04);
   --opaque-button-border-intensity: 8;
