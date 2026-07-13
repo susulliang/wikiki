@@ -454,7 +454,7 @@ export default function RichTextEditor({
     <div className="flex flex-col flex-1 relative">
       {/* Floating Vertical Toolbar */}
       {showToolbar && (
-        <div className="fixed right-4 top-1/2 z-30 flex max-h-[85vh] -translate-y-1/2 flex-col items-center gap-0.5 overflow-y-auto no-scrollbar rounded-full border border-foreground/10 bg-background/40 p-1.5 shadow-2xl backdrop-blur-2xl backdrop-saturate-150">
+        <div className="fixed left-4 top-1/2 z-30 flex max-h-[85vh] -translate-y-1/2 flex-col items-center gap-0.5 overflow-y-auto no-scrollbar rounded-full border border-foreground/10 bg-background/40 p-1.5 shadow-2xl backdrop-blur-2xl backdrop-saturate-150">
           {/* Headings */}
           <Button
             variant={activeHeading === 'p' ? 'secondary' : 'ghost'}
@@ -573,12 +573,12 @@ export default function RichTextEditor({
         </div>
       )}
 
-      {/* Editor area — padded right to clear the floating toolbar */}
+      {/* Editor area — padded left to clear the floating toolbar */}
       <div
         ref={editorRef}
         contentEditable
         suppressContentEditableWarning
-        className={`prose prose-sm max-w-none dark:prose-invert min-h-max h-full flex-1 py-6 pl-8 outline-none focus:outline-none ${showToolbar ? 'pr-20' : 'pr-8'}`}
+        className={`prose prose-sm max-w-none dark:prose-invert min-h-max h-full flex-1 py-6 pr-8 outline-none focus:outline-none ${showToolbar ? 'pl-20' : 'pl-8'}`}
         onInput={handleInput}
         onKeyDown={handleKeyDown}
         onPaste={handlePaste}
