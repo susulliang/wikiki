@@ -9,8 +9,8 @@ interface StorageContextValue {
   sqliteReady: boolean;
   sqliteLoading: boolean;
   sqliteError: string | null;
-  /** Import bundles into the SQLite database (upsert by name) */
-  importBundles: (bundles: IBundle[]) => Promise<{ added: number; updated: number }>;
+  /** Import bundles into the SQLite database (merge by name, keep richer copy) */
+  importBundles: (bundles: IBundle[]) => Promise<{ added: number; updated: number; skipped: number }>;
   /** Export all bundles as a JSON file download */
   exportBundlesJSON: () => Promise<void>;
   /** Export the SQLite database as a .db file download */
@@ -81,7 +81,7 @@ export function StorageModeProvider({ children }: { children: ReactNode }) {
     return prods;
   }, []);
 
-  const importBundles = useCallback(async (bundles: IBundle[]): Promise<{ added: number; updated: number }> => {
+  const importBundles = useCallback(async (bundles: IBundle[]): Promise<{ added: number; updated: number; skipped: number }> => {
     const storage = getSQLiteStorage();
     if (!storage.initialized) await storage.init();
     const result = await storage.importBundles(bundles);

@@ -23,7 +23,7 @@ const ACTIVE_TAB_KEY = '__wikiki_active_tab';
 const TABBAR_MINIMIZED_KEY = '__wikiki_tabbar_minimized';
 
 export default function HomePage() {
-  const { sqliteReady, reloadSQLiteBundles, exportBundlesJSON, exportSQLiteDB, importSQLiteDB, sqliteInfo, importBundles } = useStorageMode();
+  const { sqliteReady, reloadSQLiteBundles, exportSQLiteDB, importSQLiteDB, sqliteInfo, importBundles } = useStorageMode();
 
   useEffect(() => {
     document.title = 'Wikiki';
@@ -363,26 +363,6 @@ export default function HomePage() {
     setTriggerAddDialog(true);
   }, []);
 
-  const handleImportJSON = useCallback(() => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-    input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file) return;
-      const text = await file.text();
-      const data = JSON.parse(text);
-      if (Array.isArray(data)) {
-        const { normalizeBundle } = await import('@/data/bundles');
-        const imported = data.map((item: Record<string, unknown>) => normalizeBundle(item));
-        await importBundles(imported);
-        await handleReloadSQLite();
-        handleTabChange('mindmaps');
-      }
-    };
-    input.click();
-  }, [importBundles, handleReloadSQLite, handleTabChange]);
-
   const handleImportDB = useCallback(() => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -540,10 +520,6 @@ export default function HomePage() {
     [handleReloadSQLite],
   );
 
-  const handleExportJSON = useCallback(() => {
-    exportBundlesJSON();
-  }, [exportBundlesJSON]);
-
   const handleExportDB = useCallback(() => {
     exportSQLiteDB();
   }, [exportSQLiteDB]);
@@ -625,9 +601,7 @@ export default function HomePage() {
             onSelectBundle={handleSelectBundleFromMindmap}
             sqliteInfo={sqliteInfo}
             sqliteReady={sqliteReady}
-            onExportJSON={handleExportJSON}
             onExportDB={handleExportDB}
-            onImportJSON={handleImportJSON}
             onImportDB={handleImportDB}
             onCreateBundle={handleCreateBundle}
           />

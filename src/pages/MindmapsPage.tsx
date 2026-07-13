@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
-import { Network, Database, Download, Upload, HardDrive, Plus } from 'lucide-react';
+import { Network, Database, Upload, HardDrive, Plus } from 'lucide-react';
 import type { IBundle } from '@/data/bundles';
 import { useTheme, THEME_OPTIONS } from '@/hooks/useTheme';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -13,9 +13,7 @@ interface MindmapsPageProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   sqliteInfo: any;
   sqliteReady: boolean;
-  onExportJSON: () => void;
   onExportDB: () => void;
-  onImportJSON: () => void;
   onImportDB: () => void;
   onCreateBundle: () => void;
 }
@@ -52,9 +50,7 @@ export default function MindmapsPage({
   onSelectBundle,
   sqliteInfo,
   sqliteReady,
-  onExportJSON,
   onExportDB,
-  onImportJSON,
   onImportDB,
   onCreateBundle,
 }: MindmapsPageProps) {
@@ -197,16 +193,6 @@ export default function MindmapsPage({
         {/* Import / Export buttons */}
         <div className="flex items-center gap-1">
           <Button
-            onClick={onImportJSON}
-            variant="ghost"
-            size="sm"
-            className="h-7 gap-1.5 px-2 font-mono text-[10px] uppercase tracking-wider"
-            title="Import JSON"
-          >
-            <Upload className="size-3" />
-            <span className="hidden sm:inline">JSON</span>
-          </Button>
-          <Button
             onClick={onImportDB}
             variant="ghost"
             size="sm"
@@ -217,16 +203,6 @@ export default function MindmapsPage({
             <span className="hidden sm:inline">DB</span>
           </Button>
           <div className="mx-1 h-4 w-px bg-border" />
-          <Button
-            onClick={onExportJSON}
-            variant="ghost"
-            size="sm"
-            className="h-7 gap-1.5 px-2 font-mono text-[10px] uppercase tracking-wider"
-            title="Export JSON"
-          >
-            <Download className="size-3" />
-            <span className="hidden sm:inline">JSON</span>
-          </Button>
           <Button
             onClick={onExportDB}
             variant="ghost"

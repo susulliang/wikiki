@@ -14,7 +14,7 @@
  */
 import type { IncomingMessage, ServerResponse } from 'http';
 
-const D1_DATABASE_ID = '6c02052c-6013-441b-bca2-8323d51b87ee';
+const D1_DATABASE_ID = 'df91007d-d0f0-4003-bce4-c3f0078bdbeb';
 const D1_API_BASE = 'https://api.cloudflare.com/client/v4';
 
 interface D1QueryBody {

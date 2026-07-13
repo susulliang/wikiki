@@ -537,31 +537,61 @@ export class SQLiteStorage {
     await this.persist();
   }
 
-  async importBundles(bundles: IBundle[]): Promise<{ added: number; updated: number }> {
-    if (!this.db) return { added: 0, updated: 0 };
+  /** Estimate the "richness" of a bundle — more pages + more content = higher score. */
+  private bundleRichnessScore(bundle: IBundle): number {
+    let score = bundle.pages.length * 100;
+    for (const page of bundle.pages) {
+      score += page.content.length;
+    }
+    score += bundle.tags.length * 10;
+    return score;
+  }
+
+  async importBundles(bundles: IBundle[]): Promise<{ added: number; updated: number; skipped: number }> {
+    if (!this.db) return { added: 0, updated: 0, skipped: 0 };
     let added = 0;
     let updated = 0;
+    let skipped = 0;
     let txActive = false;
     this.db.run('BEGIN TRANSACTION');
     txActive = true;
     try {
       for (const bundle of bundles) {
-        // 按 name 查询是否已存在
-        const existing = this.db.exec('SELECT id FROM products WHERE name = ?', [bundle.name]);
+        const existing = this.db.exec(
+          'SELECT id, (SELECT COUNT(*) FROM pages WHERE product_id = products.id) as page_count FROM products WHERE name = ?',
+          [bundle.name],
+        );
         if (existing[0] && existing[0].values.length > 0) {
-          // 存在：使用原 ID 更新
           const existingId = existing[0].values[0][0] as string;
+          const existingPageCount = existing[0].values[0][1] as number;
+
+          // Estimate existing richness (page count + rough content size)
+          const contentRes = this.db.exec(
+            "SELECT SUM(LENGTH(content)) FROM pages WHERE product_id = ?",
+            [existingId],
+          );
+          const existingContentLen =
+            contentRes[0]?.values?.[0]?.[0] != null
+              ? (contentRes[0].values[0][0] as number)
+              : 0;
+          const existingScore = existingPageCount * 100 + existingContentLen;
+          const incomingScore = this.bundleRichnessScore(bundle);
+
+          // Only update if the incoming bundle is richer (more data)
+          if (incomingScore <= existingScore) {
+            skipped++;
+            continue;
+          }
+
           const updatedBundle: IBundle = {
             ...bundle,
             id: existingId,
             updatedAt: new Date().toISOString(),
           };
-          // 删除旧的标签、作者和页面
           this.db.run('DELETE FROM product_tags WHERE product_id = ?', [existingId]);
           this.db.run('DELETE FROM product_authors WHERE product_id = ?', [existingId]);
           this.db.run('DELETE FROM images WHERE product_id = ?', [existingId]);
           this.db.run('DELETE FROM pages WHERE product_id = ?', [existingId]);
-          // 更新产品信息
           this.db.run('UPDATE products SET name = ?, updated_at = ?, source = ?, collection = ? WHERE id = ?', [
             bundle.name,
             new Date().getTime(),
@@ -569,12 +599,9 @@ export class SQLiteStorage {
             bundle.collection || 'Default',
             existingId,
           ]);
-          // 重新同步标签、作者和页面
           await this.syncTagsAndPages(updatedBundle);
           updated++;
         } else {
-          // 不存在：新增（内联 addBundle 逻辑，但不调用 persist() ——
-          // export() 在事务中会破坏事务状态，最后统一 persist 一次即可）
           const createdAt = new Date(bundle.createdAt).getTime();
           const updatedAt = new Date(bundle.updatedAt).getTime();
           this.db.run(
@@ -588,9 +615,6 @@ export class SQLiteStorage {
       this.db.run('COMMIT');
       txActive = false;
     } catch (e) {
-      // SQLite 在某些错误（如约束冲突）下会自动回滚事务，此时显式 ROLLBACK
-      // 会抛 "cannot rollback - no transaction is active"。用 try/catch 吞掉
-      // 这个二次错误，让原始错误正常冒泡。
       if (txActive) {
         try {
           this.db.run('ROLLBACK');
@@ -602,7 +626,7 @@ export class SQLiteStorage {
       throw e;
     }
     await this.persist();
-    return { added, updated };
+    return { added, updated, skipped };
   }
 
   async exportDatabase(): Promise<Uint8Array> {
