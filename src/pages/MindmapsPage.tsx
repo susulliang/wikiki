@@ -27,9 +27,19 @@ interface Group {
   items: GroupItem[];
 }
 
-const ROOT_COLORS = [
-  'var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)',
-  'var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)',
+/** Pleasing colorful palette for mindmap nodes.
+ *  Each entry: rootFill (vibrant), childFill (lighter tint), textColor (on root). */
+const NODE_PALETTE = [
+  { root: 'hsl(210 65% 53%)', child: 'hsl(210 65% 70%)', text: '#ffffff' }, // Blue
+  { root: 'hsl(140 52% 48%)', child: 'hsl(140 52% 68%)', text: '#ffffff' }, // Green
+  { root: 'hsl(35 82% 52%)', child: 'hsl(35 82% 68%)', text: '#ffffff' },   // Orange
+  { root: 'hsl(280 48% 58%)', child: 'hsl(280 48% 72%)', text: '#ffffff' }, // Purple
+  { root: 'hsl(340 62% 56%)', child: 'hsl(340 62% 72%)', text: '#ffffff' }, // Rose
+  { root: 'hsl(180 55% 43%)', child: 'hsl(180 55% 62%)', text: '#ffffff' }, // Teal
+  { root: 'hsl(45 78% 50%)', child: 'hsl(45 78% 68%)', text: '#1a1a1a' },   // Amber
+  { root: 'hsl(120 38% 43%)', child: 'hsl(120 38% 63%)', text: '#ffffff' }, // Forest
+  { root: 'hsl(240 50% 60%)', child: 'hsl(240 50% 73%)', text: '#ffffff' }, // Indigo
+  { root: 'hsl(15 68% 53%)', child: 'hsl(15 68% 70%)', text: '#ffffff' },   // Coral
 ];
 
 function buildGroups(bundles: IBundle[]): Map<string, Group> {
@@ -74,14 +84,14 @@ export default function MindmapsPage({
     let colorIdx = 0;
     groups.forEach((group, key) => {
       const rootNodeId = `root-${key}`;
-      const rootColor = ROOT_COLORS[colorIdx % ROOT_COLORS.length];
+      const palette = NODE_PALETTE[colorIdx % NODE_PALETTE.length];
       colorIdx++;
       nodes.push({
         id: rootNodeId,
         name: group.root,
         symbolSize: 44,
-        itemStyle: { color: rootColor, borderColor: rootColor },
-        label: { show: true, color: isDark ? '#0a0a0a' : '#ffffff', fontWeight: 'bold', fontSize: 13 },
+        itemStyle: { color: palette.root, borderColor: palette.root },
+        label: { show: true, color: palette.text, fontWeight: 'bold', fontSize: 13 },
         category: 0,
       });
       group.items.forEach((item) => {
@@ -91,13 +101,13 @@ export default function MindmapsPage({
           name: item.label,
           symbolSize: 26,
           itemStyle: {
-            color: isDark ? '#1a1a1a' : '#e4e4e7',
-            borderColor: rootColor,
+            color: palette.child,
+            borderColor: palette.root,
             borderWidth: 2,
           },
           label: {
             show: true,
-            color: isDark ? '#e4e4e7' : '#1a1a1a',
+            color: isDark ? '#f5f5f5' : '#1a1a1a',
             fontSize: 11,
           },
           category: 1,
@@ -106,7 +116,7 @@ export default function MindmapsPage({
         links.push({
           source: rootNodeId,
           target: nodeId,
-          lineStyle: { color: rootColor, width: 1.5, curveness: 0.15, opacity: 0.6 },
+          lineStyle: { color: palette.root, width: 1.5, curveness: 0.15, opacity: 0.6 },
         });
       });
     });

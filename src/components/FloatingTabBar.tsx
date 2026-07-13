@@ -162,7 +162,7 @@ export default function FloatingTabBar({
                 onClick={() => handleTabClick(tab.id)}
                 aria-current={isActive ? 'page' : undefined}
                 className={cn(
-                  'flex items-center rounded-full px-3 py-2 font-mono text-xs uppercase tracking-wider transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                  'flex items-center rounded-full px-3 py-2 text-xs uppercase tracking-wider transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
                   isActive
                     ? 'bg-primary text-primary-foreground shadow-sm'
                     : 'text-foreground hover:bg-foreground/10',
