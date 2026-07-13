@@ -170,65 +170,10 @@ export default function MindmapsPage({
   );
 
   return (
-    <div className="flex h-full">
-      {/* Left vertical toolbar */}
-      <div className="flex w-14 flex-col items-center gap-3 border-r border-border bg-card/50 py-4 backdrop-blur-sm">
-        {/* Storage mode indicator */}
-        <div className="flex flex-col items-center gap-1">
-          <Database className="size-3.5 text-primary" />
-          <span
-            className={cn(
-              'size-1.5 rounded-full',
-              sqliteReady ? 'bg-primary' : 'bg-muted-foreground animate-pulse',
-            )}
-          />
-        </div>
-
-        {/* Divider */}
-        <div className="h-px w-8 bg-border" />
-
-        {/* Stats (vertical) */}
-        <div className="flex flex-col items-center gap-2 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
-          <span title={`${bundles.length} bundles`}>{bundles.length} b</span>
-          <span title={`${totalPages} pages`}>{totalPages} p</span>
-          <span title={`${allTags.size} tags`}>{allTags.size} t</span>
-          {sqliteInfo && (
-            <span className="hidden sm:inline" title={sqliteInfo.dbSizeFormatted}>
-              {sqliteInfo.dbSizeFormatted}
-            </span>
-          )}
-        </div>
-
-        {/* Spacer */}
-        <div className="flex-1" />
-
-        {/* Import / Export buttons */}
-        <div className="flex flex-col items-center gap-1.5">
-          <Button
-            onClick={onImportDB}
-            variant="ghost"
-            size="icon"
-            className="size-8"
-            title="Import SQLite"
-          >
-            <Upload className="size-3.5" />
-          </Button>
-          <div className="h-px w-6 bg-border" />
-          <Button
-            onClick={onExportDB}
-            variant="ghost"
-            size="icon"
-            className="size-8"
-            title="Export SQLite"
-          >
-            <HardDrive className="size-3.5" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Mindmap or empty state */}
+    <div className="relative h-full overflow-hidden">
+      {/* Mindmap or empty state — full canvas */}
       {bundles.length === 0 ? (
-        <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
+        <div className="flex h-full flex-col items-center justify-center px-6 text-center">
           <div className="mb-6 flex size-20 items-center justify-center border-2 border-border bg-card">
             <Network className="size-10 text-muted-foreground" />
           </div>
@@ -259,15 +204,82 @@ export default function MindmapsPage({
           </div>
         </div>
       ) : (
-        <div className="relative flex-1 overflow-hidden">
-          <div className="pointer-events-none absolute left-4 top-4 z-10 text-[10px] uppercase tracking-widest text-muted-foreground">
-            Drag to move - Scroll to zoom - Click a node to open
-          </div>
+        <div className="absolute inset-0">
           <ReactECharts
             option={option}
             onEvents={onEvents}
             style={{ height: '100%', width: '100%' }}
           />
+        </div>
+      )}
+
+      {/* Floating status + toolbar panel — bottom-left corner */}
+      <div className="pointer-events-auto absolute bottom-4 left-4 z-20 flex items-center gap-3 rounded-2xl border border-foreground/10 bg-background/50 px-3 py-2 shadow-lg backdrop-blur-2xl backdrop-saturate-150">
+        {/* DB status dot */}
+        <div className="flex items-center gap-2">
+          <span
+            className={cn(
+              'size-2 rounded-full',
+              sqliteReady ? 'bg-primary' : 'bg-muted-foreground animate-pulse',
+            )}
+          />
+          <Database className="size-4 text-primary" />
+        </div>
+
+        {/* Divider */}
+        <div className="h-5 w-px bg-border" />
+
+        {/* Stats */}
+        <div className="flex items-center gap-3 text-[10px] uppercase tracking-wider text-muted-foreground">
+          <span title={`${bundles.length} bundles`}>{bundles.length} bundles</span>
+          <span title={`${totalPages} pages`}>{totalPages} pages</span>
+          <span title={`${allTags.size} tags`} className="hidden sm:inline">{allTags.size} tags</span>
+          {sqliteInfo && (
+            <span className="hidden md:inline" title={sqliteInfo.dbSizeFormatted}>
+              {sqliteInfo.dbSizeFormatted}
+            </span>
+          )}
+        </div>
+
+        {/* Divider */}
+        <div className="h-5 w-px bg-border" />
+
+        {/* Action buttons */}
+        <div className="flex items-center gap-1">
+          <Button
+            onClick={onImportDB}
+            variant="ghost"
+            size="icon"
+            className="size-7"
+            title="Import SQLite"
+          >
+            <Upload className="size-3.5" />
+          </Button>
+          <Button
+            onClick={onExportDB}
+            variant="ghost"
+            size="icon"
+            className="size-7"
+            title="Export SQLite"
+          >
+            <HardDrive className="size-3.5" />
+          </Button>
+          <Button
+            onClick={onCreateBundle}
+            variant="ghost"
+            size="icon"
+            className="size-7"
+            title="Create bundle"
+          >
+            <Plus className="size-3.5" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Hint text — top-center, non-interactive */}
+      {bundles.length > 0 && (
+        <div className="pointer-events-none absolute left-1/2 top-4 z-10 -translate-x-1/2 text-[10px] uppercase tracking-widest text-muted-foreground">
+          Drag to move · Scroll to zoom · Click a node to open
         </div>
       )}
     </div>

@@ -637,7 +637,7 @@ export default function HomePage() {
       <main className="flex-1 min-h-0 overflow-hidden">
         <div
           className="h-full overflow-y-auto transition-[padding] duration-300 ease-in-out"
-          style={{ paddingTop: tabBarMinimized ? 0 : '4.5rem' }}
+          style={{ paddingTop: activeTab === 'mindmaps' || tabBarMinimized ? 0 : '4.5rem' }}
         >
           {renderTabContent()}
         </div>
