@@ -213,8 +213,8 @@ export default function MindmapsPage({
         </div>
       )}
 
-      {/* Floating status + toolbar panel — bottom-left corner */}
-      <div className="pointer-events-auto absolute bottom-4 left-4 z-20 flex items-center gap-3 rounded-2xl border border-foreground/10 bg-background/50 px-3 py-2 shadow-lg backdrop-blur-2xl backdrop-saturate-150">
+      {/* Floating status + toolbar panel — bottom-left corner, transparent */}
+      <div className="pointer-events-auto absolute bottom-4 left-4 z-20 flex items-center gap-3 rounded-2xl border border-foreground/10 px-3 py-2 shadow-lg backdrop-blur-2xl backdrop-saturate-150">
         {/* DB status dot */}
         <div className="flex items-center gap-2">
           <span
@@ -276,9 +276,9 @@ export default function MindmapsPage({
         </div>
       </div>
 
-      {/* Hint text — top-center, non-interactive */}
+      {/* Hint text — top-left, non-interactive */}
       {bundles.length > 0 && (
-        <div className="pointer-events-none absolute left-1/2 top-4 z-10 -translate-x-1/2 text-[10px] uppercase tracking-widest text-muted-foreground">
+        <div className="pointer-events-none absolute left-4 top-4 z-10 text-[10px] uppercase tracking-widest text-muted-foreground">
           Drag to move · Scroll to zoom · Click a node to open
         </div>
       )}

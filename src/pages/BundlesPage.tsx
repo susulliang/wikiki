@@ -148,21 +148,25 @@ export default function BundlesPage({
                         <Trash2 className="size-3.5" />
                       </button>
 
-                      {/* Mindmap button */}
-                      {showMindmap && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onOpenMindmap(bundle.id);
-                          }}
-                          aria-label={`Open mindmap for ${bundle.name}`}
-                          title="Open mindmap"
-                          className="absolute right-12 top-3 flex size-7 items-center justify-center border border-border bg-background text-muted-foreground opacity-0 transition-all hover:border-primary hover:text-primary group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                        >
-                          <Network className="size-3.5" />
-                        </button>
-                      )}
+                      {/* Mindmap button — always visible, colorful when available */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (showMindmap) onOpenMindmap(bundle.id);
+                        }}
+                        disabled={!showMindmap}
+                        aria-label={`Open mindmap for ${bundle.name}`}
+                        title={showMindmap ? 'Open mindmap' : 'No mindmap'}
+                        className={cn(
+                          'absolute right-12 top-3 flex size-7 items-center justify-center border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                          showMindmap
+                            ? 'border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary'
+                            : 'border-border bg-background text-muted-foreground/30 cursor-default',
+                        )}
+                      >
+                        <Network className="size-3.5" />
+                      </button>
 
                       <h3 className="mb-3 pr-20 font-serif text-xl font-bold leading-tight text-foreground">
                         {bundle.name}
