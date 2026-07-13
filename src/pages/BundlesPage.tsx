@@ -1,4 +1,4 @@
-import { Plus, Trash2, FileText, Package } from 'lucide-react';
+import { Plus, Trash2, FileText, Package, Network } from 'lucide-react';
 import type { IBundle } from '@/data/bundles';
 import { getTagColor } from '@/data/bundles';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -8,9 +8,47 @@ import { Button } from '@/components/ui/button';
 interface BundlesPageProps {
   bundles: IBundle[];
   selectedBundleId: string | null;
-  onSelectBundle: (id: string) => void;
+  onSelectBundle: (id: string, pageIndex?: number) => void;
   onCreateBundle: () => void;
   onDeleteBundle: (id: string) => void;
+  onOpenMindmap: (id: string) => void;
+}
+
+/** Detect mindmap content (matches BundleDetail logic). */
+function hasMindmapContent(content: string): boolean {
+  return content.includes('<div') && (
+    content.includes('mindmap') ||
+    content.includes('data-mindmap') ||
+    content.includes('Mermaid')
+  );
+}
+
+function bundleHasMindmap(bundle: IBundle): boolean {
+  return bundle.pages.some(
+    (p) => p.title.toLowerCase() === 'mindmap' || hasMindmapContent(p.content),
+  );
+}
+
+interface CollectionGroup {
+  name: string;
+  bundles: IBundle[];
+}
+
+function groupByCollection(bundles: IBundle[]): CollectionGroup[] {
+  const map = new Map<string, IBundle[]>();
+  for (const b of bundles) {
+    const key = b.collection?.trim() || 'Default';
+    if (!map.has(key)) map.set(key, []);
+    map.get(key)!.push(b);
+  }
+  // Sort: Default last, otherwise alphabetical
+  const groups = Array.from(map.entries()).map(([name, items]) => ({ name, bundles: items }));
+  groups.sort((a, b) => {
+    if (a.name === 'Default') return 1;
+    if (b.name === 'Default') return -1;
+    return a.name.localeCompare(b.name);
+  });
+  return groups;
 }
 
 export default function BundlesPage({
@@ -19,6 +57,7 @@ export default function BundlesPage({
   onSelectBundle,
   onCreateBundle,
   onDeleteBundle,
+  onOpenMindmap,
 }: BundlesPageProps) {
   const { t } = useLanguage();
 
@@ -42,6 +81,8 @@ export default function BundlesPage({
     );
   }
 
+  const groups = groupByCollection(bundles);
+
   return (
     <div className="h-full overflow-y-auto">
       <div className="mx-auto max-w-5xl px-6 py-10 md:px-10">
@@ -50,8 +91,8 @@ export default function BundlesPage({
             <h1 className="font-serif text-4xl font-bold uppercase tracking-tight text-foreground">
               {t('tab.bundles')}
             </h1>
-            <p className="mt-2 font-mono text-xs uppercase tracking-wider text-muted-foreground">
-              {bundles.length} {t('common.bundles')}
+            <p className="mt-2 text-xs uppercase tracking-wider text-muted-foreground">
+              {bundles.length} {t('common.bundles')} · {groups.length} collections
             </p>
           </div>
           <Button onClick={onCreateBundle} className="gap-2 uppercase tracking-wider">
@@ -60,88 +101,129 @@ export default function BundlesPage({
           </Button>
         </header>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {bundles.map((bundle) => {
-            const isSelected = bundle.id === selectedBundleId;
-            return (
-              <div
-                key={bundle.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => onSelectBundle(bundle.id)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    onSelectBundle(bundle.id);
-                  }
-                }}
-                className={cn(
-                  'group relative flex cursor-pointer flex-col bg-card p-5 transition-all hover:-translate-y-1 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                  isSelected ? 'border-2 border-primary' : 'border-2 border-border hover:border-primary/50',
-                )}
-              >
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDeleteBundle(bundle.id);
-                  }}
-                  aria-label={`Delete ${bundle.name}`}
-                  className="absolute right-3 top-3 flex size-7 items-center justify-center border border-border bg-background text-muted-foreground opacity-0 transition-all hover:border-destructive hover:text-destructive group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive"
-                >
-                  <Trash2 className="size-3.5" />
-                </button>
-
-                <h3 className="mb-3 pr-9 font-serif text-xl font-bold leading-tight text-foreground">
-                  {bundle.name}
-                </h3>
-
-                {bundle.tags.length > 0 && (
-                  <div className="mb-4 flex flex-wrap gap-1.5">
-                    {bundle.tags.map((tag) => {
-                      const color = getTagColor(tag);
-                      return (
-                        <span
-                          key={tag}
-                          className={cn(
-                            'rounded-full border px-2 py-0.5 text-xs font-medium',
-                            color.bg,
-                            color.text,
-                            'border-transparent',
-                          )}
-                        >
-                          {tag}
-                        </span>
-                      );
-                    })}
-                  </div>
-                )}
-
-                <div className="mt-auto space-y-1.5">
-                  <div className="flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-muted-foreground">
-                    <FileText className="size-3" />
-                    {bundle.pages.length} {bundle.pages.length === 1 ? 'page' : 'pages'}
-                  </div>
-                  <ul className="space-y-1">
-                    {bundle.pages.slice(0, 4).map((page) => (
-                      <li
-                        key={page.id}
-                        className="flex items-center gap-1.5 truncate text-sm text-foreground"
-                      >
-                        <span className="size-1 shrink-0 rounded-full bg-primary/60" />
-                        <span className="truncate">{page.name || page.title}</span>
-                      </li>
-                    ))}
-                    {bundle.pages.length > 4 && (
-                      <li className="font-mono text-xs text-muted-foreground">
-                        +{bundle.pages.length - 4} more
-                      </li>
-                    )}
-                  </ul>
-                </div>
+        <div className="space-y-8">
+          {groups.map((group) => (
+            <section key={group.name}>
+              {/* Collection header */}
+              <div className="mb-3 flex items-center gap-2">
+                <h2 className="font-serif text-lg font-bold text-foreground">{group.name}</h2>
+                <span className="text-xs uppercase tracking-wider text-muted-foreground">
+                  {group.bundles.length} {group.bundles.length === 1 ? 'bundle' : 'bundles'}
+                </span>
+                <div className="ml-2 h-px flex-1 bg-border" />
               </div>
-            );
-          })}
+
+              {/* Bundles grid within this collection */}
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {group.bundles.map((bundle) => {
+                  const isSelected = bundle.id === selectedBundleId;
+                  const showMindmap = bundleHasMindmap(bundle);
+                  return (
+                    <div
+                      key={bundle.id}
+                      className={cn(
+                        'group relative flex cursor-pointer flex-col bg-card p-5 transition-all hover:-translate-y-1 hover:shadow-md',
+                        isSelected ? 'border-2 border-primary' : 'border-2 border-border hover:border-primary/50',
+                      )}
+                      onClick={() => onSelectBundle(bundle.id)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          onSelectBundle(bundle.id);
+                        }
+                      }}
+                    >
+                      {/* Delete button */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteBundle(bundle.id);
+                        }}
+                        aria-label={`Delete ${bundle.name}`}
+                        className="absolute right-3 top-3 flex size-7 items-center justify-center border border-border bg-background text-muted-foreground opacity-0 transition-all hover:border-destructive hover:text-destructive group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive"
+                      >
+                        <Trash2 className="size-3.5" />
+                      </button>
+
+                      {/* Mindmap button */}
+                      {showMindmap && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenMindmap(bundle.id);
+                          }}
+                          aria-label={`Open mindmap for ${bundle.name}`}
+                          title="Open mindmap"
+                          className="absolute right-12 top-3 flex size-7 items-center justify-center border border-border bg-background text-muted-foreground opacity-0 transition-all hover:border-primary hover:text-primary group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                        >
+                          <Network className="size-3.5" />
+                        </button>
+                      )}
+
+                      <h3 className="mb-3 pr-20 font-serif text-xl font-bold leading-tight text-foreground">
+                        {bundle.name}
+                      </h3>
+
+                      {bundle.tags.length > 0 && (
+                        <div className="mb-4 flex flex-wrap gap-1.5">
+                          {bundle.tags.map((tag) => {
+                            const color = getTagColor(tag);
+                            return (
+                              <span
+                                key={tag}
+                                className={cn(
+                                  'rounded-full border px-2 py-0.5 text-xs font-medium',
+                                  color.bg,
+                                  color.text,
+                                  'border-transparent',
+                                )}
+                              >
+                                {tag}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      <div className="mt-auto space-y-1.5">
+                        <div className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground">
+                          <FileText className="size-3" />
+                          {bundle.pages.length} {bundle.pages.length === 1 ? 'page' : 'pages'}
+                        </div>
+                        <ul className="space-y-0.5">
+                          {bundle.pages.slice(0, 5).map((page, idx) => (
+                            <li key={page.id}>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onSelectBundle(bundle.id, idx);
+                                }}
+                                className="flex w-full items-center gap-1.5 truncate text-left text-sm text-foreground transition-colors hover:text-primary"
+                                title={page.name || page.title}
+                              >
+                                <span className="size-1 shrink-0 rounded-full bg-primary/60" />
+                                <span className="truncate">{page.name || page.title}</span>
+                              </button>
+                            </li>
+                          ))}
+                          {bundle.pages.length > 5 && (
+                            <li className="text-xs text-muted-foreground">
+                              +{bundle.pages.length - 5} more
+                            </li>
+                          )}
+                        </ul>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
         </div>
       </div>
     </div>

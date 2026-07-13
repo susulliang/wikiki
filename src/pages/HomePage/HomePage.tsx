@@ -533,12 +533,25 @@ export default function HomePage() {
           <BundlesPage
             bundles={bundles}
             selectedBundleId={selectedBundleId}
-            onSelectBundle={(id) => {
+            onSelectBundle={(id, pageIndex) => {
               handleSelectBundle(id);
+              if (pageIndex !== undefined) {
+                setSelectedPageIndex(pageIndex);
+                try {
+                  localStorage.setItem(PAGE_INDEX_KEY, String(pageIndex));
+                } catch {
+                  // ignore
+                }
+              }
               handleTabChange('wikis');
             }}
             onCreateBundle={handleCreateBundle}
             onDeleteBundle={handleDeleteBundle}
+            onOpenMindmap={(id) => {
+              handleSelectBundle(id);
+              setOpenMindmapMode(Date.now());
+              handleTabChange('wikis');
+            }}
           />
         );
 
