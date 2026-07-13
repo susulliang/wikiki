@@ -26,7 +26,7 @@ import {
   saveD1Creds,
   clearD1Creds,
 } from '@/lib/d1-provider';
-import { getSQLiteStorage, jsonBundlesToSQLite, bundlesFromDbBytes } from '@/lib/sqlite-storage';
+import { getSQLiteStorage, jsonBundlesToSQLite, bundlesFromDbBytes, mergeBundles } from '@/lib/sqlite-storage';
 import type { IBundle } from '@/data/bundles';
 
 interface BlobSyncPanelProps {
@@ -213,15 +213,27 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
       try {
         const storage = getSQLiteStorage();
         const all = await storage.getAllBundles();
-        const subset = all.filter((b) => (b.collection && b.collection.trim() ? b.collection.trim() : 'Default') === name);
-        if (subset.length === 0) {
+        const localSubset = all.filter((b) => (b.collection && b.collection.trim() ? b.collection.trim() : 'Default') === name);
+        if (localSubset.length === 0) {
           toast.error('No bundles in this collection');
           return;
         }
-        setStatus({ op: 'upload', step: t('blob.statusBuildingDb').replace('{n}', String(subset.length)), pct: 25 });
-        const bytes = await jsonBundlesToSQLite(subset);
-        setStatus({ op: 'upload', step: t('blob.statusUploading').replace('{size}', formatBytes(bytes.byteLength)), pct: 50 });
-        await getActiveProvider().uploadCollectionDB(name, bytes, subset.length);
+
+        // Download existing remote collection and merge (keep richer copies)
+        let mergedBundles = localSubset;
+        try {
+          setStatus({ op: 'upload', step: 'Downloading remote for merge...', pct: 20 });
+          const remoteBytes = await getActiveProvider().downloadCollectionDB(name);
+          const remoteBundles = await bundlesFromDbBytes(remoteBytes);
+          mergedBundles = mergeBundles(localSubset, remoteBundles);
+        } catch {
+          // No existing remote collection — upload local as-is
+        }
+
+        setStatus({ op: 'upload', step: t('blob.statusBuildingDb').replace('{n}', String(mergedBundles.length)), pct: 40 });
+        const bytes = await jsonBundlesToSQLite(mergedBundles);
+        setStatus({ op: 'upload', step: t('blob.statusUploading').replace('{size}', formatBytes(bytes.byteLength)), pct: 60 });
+        await getActiveProvider().uploadCollectionDB(name, bytes, mergedBundles.length);
         setStatus({ op: 'upload', step: t('blob.statusRefreshing'), pct: 85 });
         await refreshRemote();
         setStatus({ op: 'upload', step: t('blob.statusUploadDone'), pct: 100 });

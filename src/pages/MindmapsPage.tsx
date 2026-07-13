@@ -160,15 +160,12 @@ export default function MindmapsPage({
   );
 
   return (
-    <div className="flex h-full flex-col">
-      {/* Minimal info bar */}
-      <div className="flex items-center gap-3 border-b border-border bg-card/50 px-4 py-2 backdrop-blur-sm">
+    <div className="flex h-full">
+      {/* Left vertical toolbar */}
+      <div className="flex w-14 flex-col items-center gap-3 border-r border-border bg-card/50 py-4 backdrop-blur-sm">
         {/* Storage mode indicator */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-col items-center gap-1">
           <Database className="size-3.5 text-primary" />
-          <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-            SQLite
-          </span>
           <span
             className={cn(
               'size-1.5 rounded-full',
@@ -177,13 +174,18 @@ export default function MindmapsPage({
           />
         </div>
 
-        {/* Stats */}
-        <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-          <span>{bundles.length} bundles</span>
-          <span>{totalPages} pages</span>
-          <span>{allTags.size} tags</span>
+        {/* Divider */}
+        <div className="h-px w-8 bg-border" />
+
+        {/* Stats (vertical) */}
+        <div className="flex flex-col items-center gap-2 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
+          <span title={`${bundles.length} bundles`}>{bundles.length} b</span>
+          <span title={`${totalPages} pages`}>{totalPages} p</span>
+          <span title={`${allTags.size} tags`}>{allTags.size} t</span>
           {sqliteInfo && (
-            <span className="hidden sm:inline">{sqliteInfo.dbSizeFormatted}</span>
+            <span className="hidden sm:inline" title={sqliteInfo.dbSizeFormatted}>
+              {sqliteInfo.dbSizeFormatted}
+            </span>
           )}
         </div>
 
@@ -191,27 +193,25 @@ export default function MindmapsPage({
         <div className="flex-1" />
 
         {/* Import / Export buttons */}
-        <div className="flex items-center gap-1">
+        <div className="flex flex-col items-center gap-1.5">
           <Button
             onClick={onImportDB}
             variant="ghost"
-            size="sm"
-            className="h-7 gap-1.5 px-2 font-mono text-[10px] uppercase tracking-wider"
+            size="icon"
+            className="size-8"
             title="Import SQLite"
           >
-            <Upload className="size-3" />
-            <span className="hidden sm:inline">DB</span>
+            <Upload className="size-3.5" />
           </Button>
-          <div className="mx-1 h-4 w-px bg-border" />
+          <div className="h-px w-6 bg-border" />
           <Button
             onClick={onExportDB}
             variant="ghost"
-            size="sm"
-            className="h-7 gap-1.5 px-2 font-mono text-[10px] uppercase tracking-wider"
+            size="icon"
+            className="size-8"
             title="Export SQLite"
           >
-            <HardDrive className="size-3" />
-            <span className="hidden sm:inline">DB</span>
+            <HardDrive className="size-3.5" />
           </Button>
         </div>
       </div>

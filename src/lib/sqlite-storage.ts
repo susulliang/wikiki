@@ -539,12 +539,7 @@ export class SQLiteStorage {
 
   /** Estimate the "richness" of a bundle — more pages + more content = higher score. */
   private bundleRichnessScore(bundle: IBundle): number {
-    let score = bundle.pages.length * 100;
-    for (const page of bundle.pages) {
-      score += page.content.length;
-    }
-    score += bundle.tags.length * 10;
-    return score;
+    return computeRichnessScore(bundle);
   }
 
   async importBundles(bundles: IBundle[]): Promise<{ added: number; updated: number; skipped: number }> {
@@ -759,5 +754,40 @@ export async function bundlesFromDbBytes(data: Uint8Array): Promise<IBundle[]> {
   const bundles = await tempStorage.getAllBundles();
   db.close();
   return bundles;
+}
+
+/**
+ * Standalone richness score — more pages + more content = higher score.
+ * Used by both importBundles (local merge) and mergeBundles (upload merge).
+ */
+export function computeRichnessScore(bundle: IBundle): number {
+  let score = bundle.pages.length * 100;
+  for (const page of bundle.pages) {
+    score += page.content.length;
+  }
+  score += bundle.tags.length * 10;
+  return score;
+}
+
+/**
+ * Merge two arrays of bundles by name, keeping the richer copy (more pages / content).
+ * Bundles only present on one side are included as-is.
+ * SQLite has no native "merge databases" command, so we use this richness-based merge.
+ */
+export function mergeBundles(local: IBundle[], remote: IBundle[]): IBundle[] {
+  const result: IBundle[] = [...remote];
+  for (const localBundle of local) {
+    const remoteIdx = result.findIndex((r) => r.name === localBundle.name);
+    if (remoteIdx >= 0) {
+      const localScore = computeRichnessScore(localBundle);
+      const remoteScore = computeRichnessScore(result[remoteIdx]);
+      if (localScore > remoteScore) {
+        result[remoteIdx] = localBundle;
+      }
+    } else {
+      result.push(localBundle);
+    }
+  }
+  return result;
 }
 
