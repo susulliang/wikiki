@@ -214,7 +214,7 @@ export default function MindmapsPage({
       )}
 
       {/* Floating status + toolbar panel — bottom-left corner, transparent */}
-      <div className="pointer-events-auto absolute bottom-4 left-4 z-20 flex items-center gap-3 rounded-2xl border border-foreground/10 px-3 py-2 shadow-lg backdrop-blur-2xl backdrop-saturate-150">
+      <div className="pointer-events-auto absolute bottom-4 left-4 z-20 flex items-center gap-3 rounded-2xl border border-foreground/10 px-3 py-2 shadow-lg backdrop-blur-sm">
         {/* DB status dot */}
         <div className="flex items-center gap-2">
           <span
