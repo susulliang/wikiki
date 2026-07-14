@@ -301,7 +301,7 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
   const local = localCollections(bundles);
 
   return (
-    <div className="fixed right-4 top-20 z-50 w-[380px] max-h-[80vh] flex flex-col overflow-hidden rounded-3xl border border-foreground/10 bg-background/60 shadow-2xl backdrop-blur-2xl backdrop-saturate-150">
+    <div className="fixed right-4 top-20 z-50 w-[380px] max-h-[80vh] flex flex-col overflow-hidden rounded-3xl border border-foreground/10 bg-background/75 shadow-2xl backdrop-blur-sm">
       {/* Header */}
       <div className="flex items-center gap-2 border-b border-border/60 px-4 py-3">
         <Cloud className="size-4 text-primary" />
