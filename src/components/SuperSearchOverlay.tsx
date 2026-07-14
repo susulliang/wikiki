@@ -118,7 +118,7 @@ function ExpandedResultPanel({
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
-      className="absolute inset-0 z-30 flex h-full w-full flex-col rounded-2xl border border-border/80 bg-background/95 backdrop-blur-xl"
+      className="absolute inset-0 z-30 flex h-full w-full flex-col rounded-2xl border border-border/80 bg-background/95"
     >
       <div className="flex items-center gap-3 border-b p-4">
         <Button
@@ -237,7 +237,7 @@ export default function SuperSearchOverlay({
               handleClose();
             }
           }}
-          className="fixed inset-0 z-[90] bg-background/70 backdrop-blur-md"
+          className="fixed inset-0 z-[90] bg-background/80 backdrop-blur-[2px]"
         >
           <div className="relative h-full w-full overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,hsl(var(--primary)/0.12),transparent_42%)]" />
@@ -246,7 +246,7 @@ export default function SuperSearchOverlay({
               variant="ghost"
               size="icon"
               onClick={handleClose}
-              className="absolute right-6 top-6 z-20 h-10 w-10 rounded-full border bg-card/80 shadow-sm backdrop-blur"
+              className="absolute right-6 top-6 z-20 h-10 w-10 rounded-full border bg-card/90 shadow-sm"
               title="Close super search"
             >
               <X className="size-4" />
@@ -351,7 +351,7 @@ export default function SuperSearchOverlay({
             >
               <motion.div 
                 layout
-                className="overflow-hidden rounded-[28px] border border-border/80 bg-card/95 shadow-2xl backdrop-blur-xl transition-all duration-300 flex flex-col items-center"
+                className="overflow-hidden rounded-[28px] border border-border/80 bg-card/95 shadow-2xl backdrop-blur-sm transition-all duration-300 flex flex-col items-center"
                 style={{ 
                   width: query.trim() ? '360px' : '100%',
                   padding: query.trim() ? '12px' : '20px',
