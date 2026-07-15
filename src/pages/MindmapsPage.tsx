@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { Network, Database, Upload, HardDrive, Plus } from 'lucide-react';
 import type { IBundle } from '@/data/bundles';
@@ -169,8 +169,26 @@ export default function MindmapsPage({
     [nodeIdToBundleId, onSelectBundle],
   );
 
+  // ECharts measures its container height at mount. When switching tabs the
+  // surrounding padding transitions (300ms), so the initial measurement can
+  // be stale — leaving the chart short and the floating DB panel overlapping
+  // nodes. Force a resize after layout settles to get the true height.
+  const chartRef = useRef<ReactECharts | null>(null);
+  useEffect(() => {
+    const inst = chartRef.current?.getEchartsInstance?.();
+    if (!inst) return;
+    const raf = requestAnimationFrame(() => inst.resize());
+    const t1 = setTimeout(() => inst.resize(), 320);
+    const t2 = setTimeout(() => inst.resize(), 800);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [bundles.length]);
+
   return (
-    <div className="relative h-full overflow-hidden">
+    <div className="flex h-full flex-col overflow-hidden">
       {/* Mindmap or empty state — full canvas */}
       {bundles.length === 0 ? (
         <div className="flex h-full flex-col items-center justify-center px-6 text-center">
@@ -204,76 +222,75 @@ export default function MindmapsPage({
           </div>
         </div>
       ) : (
-        <div className="absolute inset-0">
+        <div className="relative min-h-0 flex-1">
           <ReactECharts
+            ref={chartRef}
             option={option}
             onEvents={onEvents}
             style={{ height: '100%', width: '100%' }}
           />
-        </div>
-      )}
 
-      {/* Floating status + toolbar — bottom-left, no container bg */}
-      <div className="pointer-events-auto absolute bottom-4 left-4 z-20 flex items-center gap-3">
-        {/* DB status dot */}
-        <div className="flex items-center gap-2">
-          <span
-            className={cn(
-              'size-2 rounded-full',
-              sqliteReady ? 'bg-primary' : 'bg-muted-foreground animate-pulse',
-            )}
-          />
-          <Database className="size-4 text-primary" />
-        </div>
+          {/* Floating status + toolbar — bottom-left, no container bg */}
+          <div className="pointer-events-auto absolute bottom-4 left-4 z-20 flex items-center gap-3">
+            {/* DB status dot */}
+            <div className="flex items-center gap-2">
+              <span
+                className={cn(
+                  'size-2 rounded-full',
+                  sqliteReady ? 'bg-primary' : 'bg-muted-foreground animate-pulse',
+                )}
+              />
+              <Database className="size-4 text-primary" />
+            </div>
 
-        {/* Stats */}
-        <div className="flex items-center gap-3 text-[10px] uppercase tracking-wider text-muted-foreground">
-          <span title={`${bundles.length} bundles`}>{bundles.length} bundles</span>
-          <span title={`${totalPages} pages`}>{totalPages} pages</span>
-          <span title={`${allTags.size} tags`} className="hidden sm:inline">{allTags.size} tags</span>
-          {sqliteInfo && (
-            <span className="hidden md:inline" title={sqliteInfo.dbSizeFormatted}>
-              {sqliteInfo.dbSizeFormatted}
-            </span>
-          )}
-        </div>
+            {/* Stats */}
+            <div className="flex items-center gap-3 text-[10px] uppercase tracking-wider text-muted-foreground">
+              <span title={`${bundles.length} bundles`}>{bundles.length} bundles</span>
+              <span title={`${totalPages} pages`}>{totalPages} pages</span>
+              <span title={`${allTags.size} tags`} className="hidden sm:inline">{allTags.size} tags</span>
+              {sqliteInfo && (
+                <span className="hidden md:inline" title={sqliteInfo.dbSizeFormatted}>
+                  {sqliteInfo.dbSizeFormatted}
+                </span>
+              )}
+            </div>
 
-        {/* Action buttons */}
-        <div className="flex items-center gap-1">
-          <Button
-            onClick={onImportDB}
-            variant="ghost"
-            size="icon"
-            className="size-7"
-            title="Import SQLite"
-          >
-            <Upload className="size-3.5" />
-          </Button>
-          <Button
-            onClick={onExportDB}
-            variant="ghost"
-            size="icon"
-            className="size-7"
-            title="Export SQLite"
-          >
-            <HardDrive className="size-3.5" />
-          </Button>
-          <Button
-            onClick={onCreateBundle}
-            variant="ghost"
-            size="icon"
-            className="size-7"
-            title="Create bundle"
-          >
-            <Plus className="size-3.5" />
-          </Button>
-        </div>
-      </div>
+            {/* Action buttons */}
+            <div className="flex items-center gap-1">
+              <Button
+                onClick={onImportDB}
+                variant="ghost"
+                size="icon"
+                className="size-7"
+                title="Import SQLite"
+              >
+                <Upload className="size-3.5" />
+              </Button>
+              <Button
+                onClick={onExportDB}
+                variant="ghost"
+                size="icon"
+                className="size-7"
+                title="Export SQLite"
+              >
+                <HardDrive className="size-3.5" />
+              </Button>
+              <Button
+                onClick={onCreateBundle}
+                variant="ghost"
+                size="icon"
+                className="size-7"
+                title="Create bundle"
+              >
+                <Plus className="size-3.5" />
+              </Button>
+            </div>
+          </div>
 
-      {/* Hint text — top-left, non-interactive */}
-      {bundles.length > 0 && (
-        <div className="pointer-events-none absolute left-4 top-4 z-10 text-[10px] uppercase tracking-widest text-muted-foreground">
-          Drag to move · Scroll to zoom · Click a node to open
+          {/* Hint text — top-left, non-interactive */}
+          <div className="pointer-events-none absolute left-4 top-4 z-10 text-[10px] uppercase tracking-widest text-muted-foreground">
+            Drag to move · Scroll to zoom · Click a node to open
+          </div>
         </div>
       )}
     </div>
