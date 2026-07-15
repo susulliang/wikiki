@@ -93,10 +93,16 @@ export default function FloatingTabBar({
     [onTabChange, scheduleCollapse],
   );
 
-  // Swipe-up gesture to minimize
+  // Swipe-up or swipe-right gesture to minimize. Capture the pointer so
+  // move events keep firing even if the finger leaves the small nav bar.
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     startX.current = e.clientX;
     startY.current = e.clientY;
+    try {
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    } catch {
+      // ignore — some browsers throw if the pointer is already released
+    }
   }, []);
 
   const handlePointerMove = useCallback(
@@ -105,7 +111,10 @@ export default function FloatingTabBar({
       const dx = e.clientX - startX.current;
       const dy = e.clientY - startY.current;
       // Upward swipe: negative dy, small horizontal drift
-      if (dy < -SWIPE_THRESHOLD && Math.abs(dx) < 60) {
+      const upward = dy < -SWIPE_THRESHOLD && Math.abs(dx) < 60;
+      // Rightward swipe: positive dx, small vertical drift
+      const rightward = dx > SWIPE_THRESHOLD && Math.abs(dy) < 60;
+      if (upward || rightward) {
         onMinimizedChange(true);
         startX.current = null;
         startY.current = null;
@@ -114,9 +123,14 @@ export default function FloatingTabBar({
     [onMinimizedChange],
   );
 
-  const handlePointerEnd = useCallback(() => {
+  const handlePointerEnd = useCallback((e: React.PointerEvent) => {
     startX.current = null;
     startY.current = null;
+    try {
+      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch {
+      // ignore
+    }
   }, []);
 
   return (
@@ -139,7 +153,7 @@ export default function FloatingTabBar({
         <motion.nav
           key="expanded"
           className="fixed left-1/2 top-4 z-50 flex -translate-x-1/2 items-center gap-1 rounded-full border border-foreground/10 bg-background/65 p-1.5 shadow-2xl backdrop-blur-sm"
-          style={{ touchAction: 'pan-x' }}
+          style={{ touchAction: 'none' }}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           onPointerDown={handlePointerDown}
