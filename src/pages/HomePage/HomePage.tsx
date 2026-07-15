@@ -22,6 +22,21 @@ const PAGE_INDEX_KEY = '__wikiki_selected_page_index';
 const ACTIVE_TAB_KEY = '__wikiki_active_tab';
 const TABBAR_MINIMIZED_KEY = '__wikiki_tabbar_minimized';
 
+/** Remove tokens from the search query that appear in the bundle name
+ *  (e.g. the product name / model number like "T50"), so only the meaningful
+ *  portion is used to filter mindmap nodes. Whole-word, case-insensitive. */
+function stripBundleNameFromQuery(query: string, bundleName: string): string {
+  const nameTokens = new Set(
+    bundleName.toLowerCase().split(/\s+/).filter(Boolean),
+  );
+  return query
+    .trim()
+    .split(/\s+/)
+    .filter((token) => token && !nameTokens.has(token.toLowerCase()))
+    .join(' ')
+    .trim();
+}
+
 export default function HomePage() {
   const { sqliteReady, reloadSQLiteBundles, exportSQLiteDB, importSQLiteDB, sqliteInfo, importBundles } = useStorageMode();
 
@@ -89,6 +104,7 @@ export default function HomePage() {
   const [debouncedSuperSearchQuery, setDebouncedSuperSearchQuery] = useState('');
   const [activeHighlightQuery, setActiveHighlightQuery] = useState('');
   const [openMindmapMode, setOpenMindmapMode] = useState(0);
+  const [mindmapInitialSearch, setMindmapInitialSearch] = useState('');
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -331,6 +347,38 @@ export default function HomePage() {
     [superSearchQuery],
   );
 
+  // Open a bundle's mindmap directly from a super-search hit, pre-filling the
+  // mindmap's search filter with the query minus the product name/model number
+  // (e.g. "t50 dirty water tank" → opens T50's mindmap → highlights "dirty water tank").
+  const handleOpenMindmapFromSearch = useCallback(
+    (result: ExtendedSearchResult) => {
+      const stripped = stripBundleNameFromQuery(superSearchQuery, result.bundleName);
+      setSelectedBundleId(result.bundleId);
+      setSelectedPageIndex(result.pageIndex ?? 0);
+      setActiveTab('wikis');
+
+      setActiveHighlightQuery(superSearchQuery);
+      setOpenMindmapMode(Date.now());
+      setMindmapInitialSearch(stripped);
+
+      try {
+        localStorage.setItem(SELECTED_KEY, result.bundleId);
+        localStorage.setItem(PAGE_INDEX_KEY, String(result.pageIndex ?? 0));
+        localStorage.setItem(ACTIVE_TAB_KEY, 'wikis');
+      } catch {
+        // ignore
+      }
+
+      setSuperSearchQuery('');
+
+      setTimeout(() => {
+        setActiveHighlightQuery('');
+        setOpenMindmapMode(0);
+      }, 5000);
+    },
+    [superSearchQuery],
+  );
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       // Ctrl/Cmd+K → super search
@@ -550,6 +598,7 @@ export default function HomePage() {
             onOpenMindmap={(id) => {
               handleSelectBundle(id);
               setOpenMindmapMode(Date.now());
+              setMindmapInitialSearch('');
               handleTabChange('wikis');
             }}
           />
@@ -569,6 +618,7 @@ export default function HomePage() {
             remoteLoading={remoteLoading}
             onQueryChange={setSuperSearchQuery}
             onSelect={handleSearchResultSelect}
+            onOpenMindmap={handleOpenMindmapFromSearch}
             onDownloadCollection={handleDownloadCollection}
           />
         );
@@ -595,6 +645,7 @@ export default function HomePage() {
             onReorderPages={handleReorderPages}
             highlightQuery={activeHighlightQuery}
             openMindmap={openMindmapMode}
+            mindmapInitialSearch={mindmapInitialSearch}
             onNoBundle={() => handleTabChange('bundles')}
           />
         );

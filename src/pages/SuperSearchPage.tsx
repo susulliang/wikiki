@@ -16,6 +16,7 @@ interface SuperSearchPageProps {
   remoteLoading?: boolean;
   onQueryChange: (query: string) => void;
   onSelect: (result: ExtendedSearchResult, paragraphIndex?: number) => void;
+  onOpenMindmap?: (result: ExtendedSearchResult) => void;
   onDownloadCollection?: (collection: string) => void;
 }
 
@@ -27,6 +28,7 @@ export default function SuperSearchPage({
   remoteLoading,
   onQueryChange,
   onSelect,
+  onOpenMindmap,
   onDownloadCollection,
 }: SuperSearchPageProps) {
   const { t } = useLanguage();
@@ -140,6 +142,7 @@ export default function SuperSearchPage({
                 result={result}
                 query={query}
                 onSelect={onSelect}
+                onOpenMindmap={onOpenMindmap}
               />
             ))}
           </div>
@@ -215,9 +218,10 @@ interface ResultCardProps {
   result: ExtendedSearchResult;
   query: string;
   onSelect: (result: ExtendedSearchResult, paragraphIndex?: number) => void;
+  onOpenMindmap?: (result: ExtendedSearchResult) => void;
 }
 
-function ResultCard({ result, query, onSelect }: ResultCardProps) {
+function ResultCard({ result, query, onSelect, onOpenMindmap }: ResultCardProps) {
   const [expanded, setExpanded] = useState(false);
   const paragraphs = result.matchingParagraphs;
   const hasMultiple = paragraphs.length > 1;
@@ -292,6 +296,22 @@ function ResultCard({ result, query, onSelect }: ResultCardProps) {
             </div>
           )}
         </>
+      )}
+
+      {/* Noticable mindmap entry — jumps straight into this bundle's mindmap
+          view with the search term (minus product name) pre-filtering nodes. */}
+      {result.isMindmap && onOpenMindmap && (
+        <button
+          type="button"
+          onClick={() => onOpenMindmap(result)}
+          className="group mt-3 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-primary/60 bg-primary/10 px-4 py-2.5 text-sm font-semibold uppercase tracking-wider text-primary transition-all hover:border-primary hover:bg-primary hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
+          <Network className="size-4 transition-transform group-hover:scale-110" />
+          Open Mindmap
+          <span className="hidden font-mono text-[10px] font-normal normal-case tracking-normal opacity-70 sm:inline">
+            · search term auto-filters nodes
+          </span>
+        </button>
       )}
 
       {result.bundleTags.length > 0 && (

@@ -16,6 +16,7 @@ interface WikisPageProps {
   onReorderPages: (bundleId: string, pages: IPage[]) => void | Promise<void>;
   highlightQuery?: string;
   openMindmap?: number;
+  mindmapInitialSearch?: string;
   onNoBundle: () => void;
 }
 
@@ -31,6 +32,7 @@ export default function WikisPage({
   onReorderPages,
   highlightQuery,
   openMindmap,
+  mindmapInitialSearch,
   onNoBundle,
 }: WikisPageProps) {
   const { t } = useLanguage();
@@ -68,6 +70,7 @@ export default function WikisPage({
       onReorderPages={onReorderPages}
       highlightQuery={highlightQuery}
       openMindmap={openMindmap}
+      mindmapInitialSearch={mindmapInitialSearch}
     />
   );
 }

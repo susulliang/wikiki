@@ -4,6 +4,10 @@ import { useTheme, THEME_OPTIONS } from '@/hooks/useTheme';
 
 interface MindmapViewProps {
   content: string;
+  /** When provided, seeds the bottom-left search filter (e.g. when opening
+   *  the mindmap from a super-search hit so matching nodes auto-highlight).
+   *  Changing this value updates the filter. */
+  initialSearchQuery?: string;
 }
 
 interface MindmapNode {
@@ -119,7 +123,7 @@ function highlightNode(node: MindmapNode, keyword: string, isDark: boolean): Min
   return highlighted;
 }
 
-export default function MindmapView({ content }: MindmapViewProps) {
+export default function MindmapView({ content, initialSearchQuery }: MindmapViewProps) {
   const { theme: currentTheme } = useTheme();
   const isDark = useMemo(() => THEME_OPTIONS.find(t => t.value === currentTheme)?.isDark ?? false, [currentTheme]);
 
@@ -128,6 +132,12 @@ export default function MindmapView({ content }: MindmapViewProps) {
   const [searchInput, setSearchInput] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [committedQuery, setCommittedQuery] = useState('');
+
+  // Seed the search filter from an external query (e.g. super-search hit).
+  // The existing debounce below picks this up and highlights matching nodes.
+  useEffect(() => {
+    setSearchInput(initialSearchQuery?.trim() ?? '');
+  }, [initialSearchQuery]);
 
   // Debounce the search input for live highlighting.
   useEffect(() => {

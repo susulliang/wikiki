@@ -35,6 +35,8 @@ interface BundleDetailProps {
   highlightQuery?: string;
   /** Mindmap trigger - non-zero value triggers mindmap view (timestamp for uniqueness) */
   openMindmap?: number;
+  /** Optional seed for the mindmap's search filter (e.g. from super-search). */
+  mindmapInitialSearch?: string;
 }
 
 export default function BundleDetail({
@@ -49,6 +51,7 @@ export default function BundleDetail({
   onReorderPages,
   highlightQuery = '',
   openMindmap = 0,
+  mindmapInitialSearch = '',
 }: BundleDetailProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [addPageDialogOpen, setAddPageDialogOpen] = useState(false);
@@ -270,7 +273,7 @@ export default function BundleDetail({
       {/* Mindmap Fullscreen Overlay */}
       {showMindmap && mindmapPage && (
         <div className="fixed inset-0 z-50">
-          <MindmapView content={mindmapPage.content} />
+          <MindmapView content={mindmapPage.content} initialSearchQuery={mindmapInitialSearch} />
           {/* Floating text elements on top of mindmap */}
           <div className="pointer-events-none absolute left-6 top-4 flex items-center gap-2">
             <Network className="size-5 text-primary" />
