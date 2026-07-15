@@ -198,7 +198,12 @@ export default function MindmapsPage({
   }, [bundles.length]);
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
+    // absolute inset-0 relative to <main> (which is `relative`). This escapes
+    // the parent div's paddingTop transition (4.5rem → 0 over 300ms) that
+    // otherwise left ECharts measuring a short height on remount, causing a
+    // bottom gap. The padded div is not positioned, so it doesn't clip this
+    // element — the canvas fills the entire main area, edge to edge.
+    <div className="absolute inset-0 flex flex-col overflow-hidden">
       {/* Mindmap or empty state — full canvas */}
       {bundles.length === 0 ? (
         <div className="flex h-full flex-col items-center justify-center px-6 text-center">

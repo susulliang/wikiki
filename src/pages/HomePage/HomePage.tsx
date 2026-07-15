@@ -685,7 +685,7 @@ export default function HomePage() {
         onMinimizedChange={handleMinimizedChange}
       />
 
-      <main className="flex-1 min-h-0 overflow-hidden">
+      <main className="relative flex-1 min-h-0 overflow-hidden">
         <div
           className="h-full transition-[padding] duration-300 ease-in-out"
           style={{
