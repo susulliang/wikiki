@@ -416,7 +416,7 @@ export default function MindmapView({ content, initialSearchQuery }: MindmapView
         onChange={(e) => setSearchInput(e.target.value)}
         onKeyDown={handleSearchKeyDown}
         placeholder="Search nodes... (Enter to filter, Esc to clear)"
-        className="pointer-events-auto absolute bottom-4 left-4 z-20 w-64 rounded-md border border-border bg-card/90 px-3 py-1.5 text-sm text-foreground shadow-sm backdrop-blur-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+        className="pointer-events-auto absolute bottom-4 left-4 z-20 w-64 rounded-full border border-border bg-card/90 px-4 py-1.5 text-sm text-foreground shadow-sm backdrop-blur-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
       />
     </div>
   );

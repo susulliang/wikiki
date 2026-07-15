@@ -81,7 +81,7 @@ export default function SuperSearchPage({
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
             placeholder={t('search.placeholder')}
-            className="w-full border-2 border-border bg-card py-4 pl-12 pr-4 font-serif text-lg text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="w-full rounded-full border-2 border-border bg-card py-4 pl-12 pr-4 font-serif text-lg text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
           {(loading || dbPrepping || remoteLoading || isSearching) && (
             <Loader2 className="absolute right-4 top-1/2 size-5 -translate-y-1/2 animate-spin text-muted-foreground" />
@@ -227,7 +227,7 @@ function ResultCard({ result, query, onSelect, onOpenMindmap }: ResultCardProps)
   const hasMultiple = paragraphs.length > 1;
 
   return (
-    <div className="border-2 border-border bg-card p-4 transition-all hover:border-primary/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+    <div className="rounded-3xl border-2 border-border bg-card p-4 transition-all hover:border-primary/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
       <div className="mb-2 flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
           <button
@@ -304,7 +304,7 @@ function ResultCard({ result, query, onSelect, onOpenMindmap }: ResultCardProps)
         <button
           type="button"
           onClick={() => onOpenMindmap(result)}
-          className="group mt-3 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-primary/60 bg-primary/10 px-4 py-2.5 text-sm font-semibold uppercase tracking-wider text-primary transition-all hover:border-primary hover:bg-primary hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          className="group mt-3 flex w-full items-center justify-center gap-2 rounded-full border-2 border-primary/60 bg-primary/10 px-4 py-2.5 text-sm font-semibold uppercase tracking-wider text-primary transition-all hover:border-primary hover:bg-primary hover:text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
           <Network className="size-4 transition-transform group-hover:scale-110" />
           Open Mindmap
@@ -389,7 +389,7 @@ function RemoteResultCard({ result, query, onDownload }: RemoteResultCardProps) 
   const paragraphs = result.matchingParagraphs;
 
   return (
-    <div className="border-2 border-dashed border-primary/30 bg-primary/5 p-4 transition-all hover:border-primary/50">
+    <div className="rounded-3xl border-2 border-dashed border-primary/30 bg-primary/5 p-4 transition-all hover:border-primary/50">
       <div className="mb-2 flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
           <Cloud className="size-4 shrink-0 text-primary/60" />
@@ -472,11 +472,11 @@ function RemoteResultCard({ result, query, onDownload }: RemoteResultCardProps) 
       {/* Download prompt */}
       {onDownload && result.collection && (
         <Button
-          size="sm"
-          className="mt-3 w-full gap-1.5 text-xs"
+          size="lg"
+          className="mt-3 w-full gap-2 rounded-full text-sm"
           onClick={() => onDownload(result.collection!)}
         >
-          <CloudDownload className="size-3.5" />
+          <CloudDownload className="size-4" />
           Download collection "{result.collection}"
         </Button>
       )}

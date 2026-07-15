@@ -67,7 +67,7 @@ export default function SearchResults({ results, query, onSelect }: SearchResult
                 : 0;
               onSelect(result.bundleId, bundlePageIdx ?? 0);
             }}
-            className="w-full rounded-lg border p-4 text-left transition-colors hover:bg-accent/50"
+            className="w-full rounded-3xl border p-4 text-left transition-colors hover:bg-accent/50"
           >
             <div className="mb-2 flex items-center justify-between gap-4">
               <div className="flex items-center gap-2 overflow-hidden">
