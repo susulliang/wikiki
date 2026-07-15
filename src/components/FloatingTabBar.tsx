@@ -93,45 +93,42 @@ export default function FloatingTabBar({
     [onTabChange, scheduleCollapse],
   );
 
-  // Swipe-up or swipe-right gesture to minimize. Capture the pointer so
-  // move events keep firing even if the finger leaves the small nav bar.
+  // Swipe-up or swipe-right gesture to minimize. We track the gesture via
+  // window-level listeners (NOT pointer capture) so that child buttons still
+  // receive their click events. Pointer capture on the <nav> would hijack
+  // all pointer events, preventing tab buttons from firing onClick.
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    // Only track touch/pen gestures, not mouse — mouse swipes are uncommon
+    // and tracking them can interfere with hover-click flows.
+    if (e.pointerType === 'mouse') return;
+
     startX.current = e.clientX;
     startY.current = e.clientY;
-    try {
-      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    } catch {
-      // ignore — some browsers throw if the pointer is already released
-    }
-  }, []);
 
-  const handlePointerMove = useCallback(
-    (e: React.PointerEvent) => {
+    const moveHandler = (ev: PointerEvent) => {
       if (startX.current === null || startY.current === null) return;
-      const dx = e.clientX - startX.current;
-      const dy = e.clientY - startY.current;
-      // Upward swipe: negative dy, small horizontal drift
+      const dx = ev.clientX - startX.current;
+      const dy = ev.clientY - startY.current;
       const upward = dy < -SWIPE_THRESHOLD && Math.abs(dx) < 60;
-      // Rightward swipe: positive dx, small vertical drift
       const rightward = dx > SWIPE_THRESHOLD && Math.abs(dy) < 60;
       if (upward || rightward) {
         onMinimizedChange(true);
-        startX.current = null;
-        startY.current = null;
+        cleanup();
       }
-    },
-    [onMinimizedChange],
-  );
+    };
 
-  const handlePointerEnd = useCallback((e: React.PointerEvent) => {
-    startX.current = null;
-    startY.current = null;
-    try {
-      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-    } catch {
-      // ignore
-    }
-  }, []);
+    const cleanup = () => {
+      startX.current = null;
+      startY.current = null;
+      window.removeEventListener('pointermove', moveHandler);
+      window.removeEventListener('pointerup', cleanup);
+      window.removeEventListener('pointercancel', cleanup);
+    };
+
+    window.addEventListener('pointermove', moveHandler);
+    window.addEventListener('pointerup', cleanup);
+    window.addEventListener('pointercancel', cleanup);
+  }, [onMinimizedChange]);
 
   return (
     <AnimatePresence>
@@ -141,7 +138,7 @@ export default function FloatingTabBar({
           type="button"
           onClick={() => onMinimizedChange(false)}
           aria-label="Expand tab bar"
-          className="fixed right-4 top-4 z-50 flex size-12 items-center justify-center rounded-full border border-foreground/15 bg-background/75 shadow-xl backdrop-blur-sm transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          className="fixed right-4 top-4 z-50 flex size-12 cursor-pointer items-center justify-center rounded-full border border-foreground/15 bg-background/75 shadow-xl backdrop-blur-sm transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           initial={{ opacity: 0, scale: 0.4 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.4 }}
@@ -152,14 +149,11 @@ export default function FloatingTabBar({
       ) : (
         <motion.nav
           key="expanded"
-          className="fixed left-1/2 top-4 z-50 flex -translate-x-1/2 items-center gap-1 rounded-full border border-foreground/10 bg-background/65 p-1.5 shadow-2xl backdrop-blur-sm"
+          className="fixed left-1/2 top-4 z-50 flex -translate-x-1/2 cursor-pointer items-center gap-1 rounded-full border border-foreground/10 bg-background/65 p-1.5 shadow-2xl backdrop-blur-sm"
           style={{ touchAction: 'none' }}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerEnd}
-          onPointerCancel={handlePointerEnd}
           initial={{ opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -16 }}
@@ -176,7 +170,7 @@ export default function FloatingTabBar({
                 onClick={() => handleTabClick(tab.id)}
                 aria-current={isActive ? 'page' : undefined}
                 className={cn(
-                  'flex items-center rounded-full px-3 py-2 text-xs uppercase tracking-wider transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                  'flex cursor-pointer items-center rounded-full px-3 py-2 text-xs uppercase tracking-wider transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
                   isActive
                     ? 'bg-primary text-primary-foreground shadow-sm'
                     : 'text-foreground hover:bg-foreground/10',

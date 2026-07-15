@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import { Search, Network, FileText, Loader2, CloudDownload, Cloud, ChevronDown, ChevronUp } from 'lucide-react';
 import type { ExtendedSearchResult, MatchingParagraph } from '@/lib/search';
 import { highlightSearchText } from '@/lib/search';
@@ -7,6 +7,35 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+
+/** Keeps a flag "visible" for `delayMs` after it goes false, with a `fading`
+ *  state so the UI can animate opacity → 0 during that grace period.
+ *  Prevents progress bars from flashing on/off when loading completes fast. */
+function useDelayedFlag(flag: boolean, delayMs = 700) {
+  const [visible, setVisible] = useState(flag);
+  const [fading, setFading] = useState(false);
+
+  useEffect(() => {
+    if (flag) {
+      setVisible(true);
+      setFading(false);
+    } else if (visible) {
+      setFading(true);
+      const t = setTimeout(() => {
+        setVisible(false);
+        setFading(false);
+      }, delayMs);
+      return () => clearTimeout(t);
+    }
+  }, [flag, delayMs, visible]);
+
+  const reset = useCallback(() => {
+    setVisible(false);
+    setFading(false);
+  }, []);
+
+  return { visible, fading, reset };
+}
 
 interface SuperSearchPageProps {
   query: string;
@@ -66,9 +95,11 @@ export default function SuperSearchPage({
   const localResults = results.filter((r) => r.source !== 'remote');
   const remoteResults = results.filter((r) => r.source === 'remote');
 
-  const showDbPrepBar = dbPrepping;
-  const showRemoteBar = remoteLoading && !dbPrepping;
-  const showSearchBar = isSearching && !dbPrepping && !remoteLoading;
+  // Use delayed flags so progress bars fade out gradually instead of
+  // flashing on/off when loading completes quickly.
+  const showDbPrepBar = useDelayedFlag(dbPrepping);
+  const showRemoteBar = useDelayedFlag(!!remoteLoading && !dbPrepping);
+  const showSearchBar = useDelayedFlag(isSearching && !dbPrepping && !remoteLoading);
 
   return (
     <div className="flex h-full flex-col">
@@ -88,29 +119,36 @@ export default function SuperSearchPage({
           )}
         </div>
 
-        {/* Progress bars — stacked, highest priority first */}
+        {/* Progress bars — stacked, highest priority first.
+            Each bar fades out over 700ms after its flag goes false. */}
         <div className="mt-3 space-y-2">
-          {showDbPrepBar && (
-            <ProgressBar
-              label="Preparing search index…"
-              pct={45}
-              variant="muted"
-            />
+          {showDbPrepBar.visible && (
+            <div className={cn('transition-opacity duration-500', showDbPrepBar.fading && 'opacity-0')}>
+              <ProgressBar
+                label="Preparing search index…"
+                pct={45}
+                variant="muted"
+              />
+            </div>
           )}
-          {showRemoteBar && (
-            <ProgressBar
-              label="Searching remote collections…"
-              variant="primary"
-              indeterminate
-            />
+          {showRemoteBar.visible && (
+            <div className={cn('transition-opacity duration-500', showRemoteBar.fading && 'opacity-0')}>
+              <ProgressBar
+                label="Searching remote collections…"
+                variant="primary"
+                indeterminate
+              />
+            </div>
           )}
-          {showSearchBar && (
-            <ProgressBar
-              label={`Searching for "${query.trim()}"…`}
-              pct={75}
-              variant="muted"
-              indeterminate
-            />
+          {showSearchBar.visible && (
+            <div className={cn('transition-opacity duration-500', showSearchBar.fading && 'opacity-0')}>
+              <ProgressBar
+                label={`Searching for "${query.trim()}"…`}
+                pct={75}
+                variant="muted"
+                indeterminate
+              />
+            </div>
           )}
         </div>
       </div>
