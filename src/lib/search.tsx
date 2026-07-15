@@ -3,11 +3,29 @@ import type { IBundle, SearchResult } from '@/data/bundles';
 
 const EXCERPT_RADIUS = 80;
 
+/** Detect mindmap content in a page's HTML (matches BundleDetail / BundlesPage logic). */
+function hasMindmapContent(content: string): boolean {
+  return content.includes('<div') && (
+    content.includes('mindmap') ||
+    content.includes('data-mindmap') ||
+    content.includes('Mermaid')
+  );
+}
+
+/** Whether a bundle has any mindmap page — by content markers or a page
+ *  titled "mindmap". Used so the super-search "Open Mindmap" button shows
+ *  whenever the bundle has a mindmap, regardless of which page matched. */
+function bundleHasMindmap(bundle: IBundle): boolean {
+  return bundle.pages.some(
+    (p) => p.title.toLowerCase() === 'mindmap' || hasMindmapContent(p.content),
+  );
+}
+
 /** Extended SearchResult with all matching paragraphs for expanded view */
 export interface ExtendedSearchResult extends SearchResult {
   /** All matching paragraphs/excerpts in this result */
   matchingParagraphs: MatchingParagraph[];
-  /** Whether this page is a mindmap */
+  /** Whether the bundle this result belongs to has a mindmap view */
   isMindmap?: boolean;
   /** Where this result came from: local DB or remote cloud collection */
   source?: 'local' | 'remote';
@@ -230,6 +248,7 @@ export function searchBundles(bundles: IBundle[], query: string): ExtendedSearch
   for (const bundle of bundles) {
     const bundleNameText = normalizeForSearch(bundle.name);
     const tagsText = normalizeForSearch(bundle.tags.join(' '));
+    const bundleHasMindmapFlag = bundleHasMindmap(bundle);
 
     // Check bundle name match (all tokens must match as whole words)
     const bundleNameMatches = tokens.every(token => isWholeWordMatch(bundleNameText, token));
@@ -245,6 +264,7 @@ export function searchBundles(bundles: IBundle[], query: string): ExtendedSearch
         snippet: bundle.name,
         matchType: 'name',
         score: 0,
+        isMindmap: bundleHasMindmapFlag,
         matchingParagraphs: [{
           excerpt: bundle.name,
           matchStart: 0,
@@ -275,6 +295,7 @@ export function searchBundles(bundles: IBundle[], query: string): ExtendedSearch
           snippet: `Tag match: ${matchingTags.join(', ')}`,
           matchType: 'tag',
           score: 0,
+          isMindmap: bundleHasMindmapFlag,
           matchingParagraphs: matchingTags.map(tag => ({
             excerpt: `Tag: ${tag}`,
             matchStart: 0,
@@ -330,12 +351,8 @@ export function searchBundles(bundles: IBundle[], query: string): ExtendedSearch
         matchType: 'content',
         score: 0,
         matchingParagraphs,
-        // Detect if this page has mindmap content
-        isMindmap: page.content.includes('<div') && (
-          page.content.includes('mindmap') || 
-          page.content.includes('data-mindmap') ||
-          page.content.includes('Mermaid')
-        ),
+        // Show the Open Mindmap button whenever the bundle has a mindmap page
+        isMindmap: bundleHasMindmapFlag,
       };
       results.push({
         ...baseResult,

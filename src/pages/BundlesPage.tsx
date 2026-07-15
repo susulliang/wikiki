@@ -85,7 +85,7 @@ export default function BundlesPage({
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="mx-auto max-w-5xl px-6 py-10 md:px-10">
+      <div className="mx-auto max-w-7xl px-6 py-10 md:px-10">
         <header className="mb-8 flex items-center justify-between border-b-2 border-border pb-6">
           <div>
             <h1 className="font-serif text-4xl font-bold uppercase tracking-tight text-foreground">
@@ -114,7 +114,7 @@ export default function BundlesPage({
               </div>
 
               {/* Bundles grid within this collection */}
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                 {group.bundles.map((bundle) => {
                   const isSelected = bundle.id === selectedBundleId;
                   const showMindmap = bundleHasMindmap(bundle);
@@ -122,7 +122,7 @@ export default function BundlesPage({
                     <div
                       key={bundle.id}
                       className={cn(
-                        'group relative flex cursor-pointer flex-col bg-card p-5 transition-all hover:-translate-y-1 hover:shadow-md',
+                        'group relative flex cursor-pointer flex-col bg-card p-4 transition-all hover:-translate-y-1 hover:shadow-md',
                         isSelected ? 'border-2 border-primary' : 'border-2 border-border hover:border-primary/50',
                       )}
                       onClick={() => onSelectBundle(bundle.id)}
@@ -143,9 +143,9 @@ export default function BundlesPage({
                           onDeleteBundle(bundle.id);
                         }}
                         aria-label={`Delete ${bundle.name}`}
-                        className="absolute right-3 top-3 flex size-7 items-center justify-center border border-border bg-background text-muted-foreground opacity-0 transition-all hover:border-destructive hover:text-destructive group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive"
+                        className="absolute right-2 top-2 flex size-6 items-center justify-center border border-border bg-background text-muted-foreground opacity-0 transition-all hover:border-destructive hover:text-destructive group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive"
                       >
-                        <Trash2 className="size-3.5" />
+                        <Trash2 className="size-3" />
                       </button>
 
                       {/* Mindmap button — always visible, colorful when available */}
@@ -159,28 +159,28 @@ export default function BundlesPage({
                         aria-label={`Open mindmap for ${bundle.name}`}
                         title={showMindmap ? 'Open mindmap' : 'No mindmap'}
                         className={cn(
-                          'absolute right-12 top-3 flex size-7 items-center justify-center border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                          'absolute right-9 top-2 flex size-6 items-center justify-center border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
                           showMindmap
                             ? 'border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary'
                             : 'border-border bg-background text-muted-foreground/30 cursor-default',
                         )}
                       >
-                        <Network className="size-3.5" />
+                        <Network className="size-3" />
                       </button>
 
-                      <h3 className="mb-3 pr-20 font-serif text-xl font-bold leading-tight text-foreground">
+                      <h3 className="mb-2 pr-16 font-serif text-base font-bold leading-tight text-foreground">
                         {bundle.name}
                       </h3>
 
                       {bundle.tags.length > 0 && (
-                        <div className="mb-4 flex flex-wrap gap-1.5">
+                        <div className="mb-3 flex flex-wrap gap-1">
                           {bundle.tags.map((tag) => {
                             const color = getTagColor(tag);
                             return (
                               <span
                                 key={tag}
                                 className={cn(
-                                  'rounded-full border px-2 py-0.5 text-xs font-medium',
+                                  'rounded-full border px-1.5 py-0 text-[11px] font-medium',
                                   color.bg,
                                   color.text,
                                   'border-transparent',
@@ -193,12 +193,12 @@ export default function BundlesPage({
                         </div>
                       )}
 
-                      <div className="mt-auto space-y-1.5">
-                        <div className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground">
+                      <div className="mt-auto space-y-1">
+                        <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-muted-foreground">
                           <FileText className="size-3" />
                           {bundle.pages.length} {bundle.pages.length === 1 ? 'page' : 'pages'}
                         </div>
-                        <ul className="space-y-0.5">
+                        <ul className="space-y-0">
                           {bundle.pages.slice(0, 5).map((page, idx) => (
                             <li key={page.id}>
                               <button
@@ -207,7 +207,7 @@ export default function BundlesPage({
                                   e.stopPropagation();
                                   onSelectBundle(bundle.id, idx);
                                 }}
-                                className="flex w-full items-center gap-1.5 truncate text-left text-sm text-foreground transition-colors hover:text-primary"
+                                className="flex w-full items-center gap-1.5 truncate text-left text-xs text-foreground transition-colors hover:text-primary"
                                 title={page.name || page.title}
                               >
                                 <span className="size-1 shrink-0 rounded-full bg-primary/60" />
@@ -216,7 +216,7 @@ export default function BundlesPage({
                             </li>
                           ))}
                           {bundle.pages.length > 5 && (
-                            <li className="text-xs text-muted-foreground">
+                            <li className="text-[11px] text-muted-foreground">
                               +{bundle.pages.length - 5} more
                             </li>
                           )}
