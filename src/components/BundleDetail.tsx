@@ -269,8 +269,8 @@ export default function BundleDetail({
 
       {/* Mindmap Fullscreen Overlay */}
       {showMindmap && mindmapPage && (
-        <div className="fixed inset-0 z-50 bg-background flex flex-col">
-          <div className="flex items-center justify-between border-b px-6 py-3 shrink-0">
+        <div className="fixed inset-0 z-50 flex flex-col">
+          <div className="flex items-center justify-between px-6 py-3 shrink-0">
             <div className="flex items-center gap-2">
               <Network className="size-5 text-primary" />
               <h2 className="text-lg font-bold text-foreground">{bundle.name} - Mindmap</h2>
