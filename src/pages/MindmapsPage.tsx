@@ -171,19 +171,29 @@ export default function MindmapsPage({
 
   // ECharts measures its container height at mount. When switching tabs the
   // surrounding padding transitions (300ms), so the initial measurement can
-  // be stale — leaving the chart short and the floating DB panel overlapping
-  // nodes. Force a resize after layout settles to get the true height.
+  // be stale — leaving the chart short. Track the container with a
+  // ResizeObserver so the chart always matches its real size, plus a few
+  // timed resizes to catch the CSS transition settling.
   const chartRef = useRef<ReactECharts | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     const inst = chartRef.current?.getEchartsInstance?.();
     if (!inst) return;
-    const raf = requestAnimationFrame(() => inst.resize());
-    const t1 = setTimeout(() => inst.resize(), 320);
-    const t2 = setTimeout(() => inst.resize(), 800);
+    const doResize = () => inst.resize();
+    const raf = requestAnimationFrame(doResize);
+    const t1 = setTimeout(doResize, 320);
+    const t2 = setTimeout(doResize, 800);
+    // Observe the wrapper so any later layout change keeps the chart sized.
+    let ro: ResizeObserver | null = null;
+    if (containerRef.current && 'ResizeObserver' in window) {
+      ro = new ResizeObserver(doResize);
+      ro.observe(containerRef.current);
+    }
     return () => {
       cancelAnimationFrame(raf);
       clearTimeout(t1);
       clearTimeout(t2);
+      ro?.disconnect();
     };
   }, [bundles.length]);
 
@@ -222,7 +232,7 @@ export default function MindmapsPage({
           </div>
         </div>
       ) : (
-        <div className="relative min-h-0 flex-1">
+        <div ref={containerRef} className="relative min-h-0 flex-1">
           <ReactECharts
             ref={chartRef}
             option={option}
@@ -230,8 +240,11 @@ export default function MindmapsPage({
             style={{ height: '100%', width: '100%' }}
           />
 
-          {/* Floating status + toolbar — bottom-left, no container bg */}
-          <div className="pointer-events-auto absolute bottom-4 left-4 z-20 flex items-center gap-3">
+          {/* Floating status + toolbar — bottom-left. Container is fully
+              transparent and pointer-events-none so it never blocks the
+              canvas (drag/pan passes through); only the real buttons opt
+              back into pointer events. Elements float by themselves. */}
+          <div className="pointer-events-none absolute bottom-4 left-4 z-20 flex items-center gap-3">
             {/* DB status dot */}
             <div className="flex items-center gap-2">
               <span
@@ -255,8 +268,8 @@ export default function MindmapsPage({
               )}
             </div>
 
-            {/* Action buttons */}
-            <div className="flex items-center gap-1">
+            {/* Action buttons — only these capture pointer events */}
+            <div className="pointer-events-auto flex items-center gap-1">
               <Button
                 onClick={onImportDB}
                 variant="ghost"
