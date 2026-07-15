@@ -269,19 +269,21 @@ export default function BundleDetail({
 
       {/* Mindmap Fullscreen Overlay */}
       {showMindmap && mindmapPage && (
-        <div className="fixed inset-0 z-50 flex flex-col">
-          <div className="flex items-center justify-between px-6 py-3 shrink-0">
-            <div className="flex items-center gap-2">
-              <Network className="size-5 text-primary" />
-              <h2 className="text-lg font-bold text-foreground">{bundle.name} - Mindmap</h2>
-            </div>
-            <Button variant="ghost" size="icon" onClick={() => setShowMindmap(false)}>
-              <Minimize2 className="size-5" />
-            </Button>
+        <div className="fixed inset-0 z-50">
+          <MindmapView content={mindmapPage.content} />
+          {/* Floating text elements on top of mindmap */}
+          <div className="pointer-events-none absolute left-6 top-4 flex items-center gap-2">
+            <Network className="size-5 text-primary" />
+            <h2 className="text-lg font-bold text-foreground">{bundle.name} - Mindmap</h2>
           </div>
-          <div className="flex-1 overflow-hidden">
-            <MindmapView content={mindmapPage.content} />
-          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowMindmap(false)}
+            className="pointer-events-auto absolute right-4 top-3"
+          >
+            <Minimize2 className="size-5" />
+          </Button>
         </div>
       )}
 
