@@ -1,4 +1,4 @@
-import { Plus, Trash2, FileText, Package, Network } from 'lucide-react';
+import { Plus, FileText, Package, Network } from 'lucide-react';
 import type { IBundle } from '@/data/bundles';
 import { getTagColor } from '@/data/bundles';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -56,7 +56,6 @@ export default function BundlesPage({
   selectedBundleId,
   onSelectBundle,
   onCreateBundle,
-  onDeleteBundle,
   onOpenMindmap,
 }: BundlesPageProps) {
   const { t } = useLanguage();
@@ -64,7 +63,7 @@ export default function BundlesPage({
   if (bundles.length === 0) {
     return (
       <div className="flex h-full flex-col items-center justify-center px-6 text-center">
-        <div className="mb-6 flex size-20 items-center justify-center border-2 border-border bg-card">
+        <div className="mb-6 flex size-20 items-center justify-center rounded-3xl border-2 border-border bg-card">
           <Package className="size-10 text-muted-foreground" />
         </div>
         <h2 className="font-serif text-2xl font-bold uppercase tracking-tight text-foreground">
@@ -73,7 +72,7 @@ export default function BundlesPage({
         <p className="mb-6 mt-2 max-w-sm text-sm text-muted-foreground">
           {t('empty.noBundlesDesc')}
         </p>
-        <Button onClick={onCreateBundle} className="gap-2 uppercase tracking-wider">
+        <Button onClick={onCreateBundle} className="gap-2 rounded-full uppercase tracking-wider">
           <Plus className="size-4" />
           {t('action.createBundle')}
         </Button>
@@ -95,7 +94,7 @@ export default function BundlesPage({
               {bundles.length} {t('common.bundles')} · {groups.length} collections
             </p>
           </div>
-          <Button onClick={onCreateBundle} className="gap-2 uppercase tracking-wider">
+          <Button onClick={onCreateBundle} className="gap-2 rounded-full uppercase tracking-wider">
             <Plus className="size-4" />
             {t('action.createBundle')}
           </Button>
@@ -122,7 +121,7 @@ export default function BundlesPage({
                     <div
                       key={bundle.id}
                       className={cn(
-                        'group relative flex cursor-pointer flex-col bg-card p-4 transition-all hover:-translate-y-1 hover:shadow-md',
+                        'group relative flex cursor-pointer flex-col rounded-3xl bg-card p-4 transition-all hover:-translate-y-1 hover:shadow-md',
                         isSelected ? 'border-2 border-primary' : 'border-2 border-border hover:border-primary/50',
                       )}
                       onClick={() => onSelectBundle(bundle.id)}
@@ -135,20 +134,7 @@ export default function BundlesPage({
                         }
                       }}
                     >
-                      {/* Delete button */}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDeleteBundle(bundle.id);
-                        }}
-                        aria-label={`Delete ${bundle.name}`}
-                        className="absolute right-2 top-2 flex size-6 items-center justify-center border border-border bg-background text-muted-foreground opacity-0 transition-all hover:border-destructive hover:text-destructive group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive"
-                      >
-                        <Trash2 className="size-3" />
-                      </button>
-
-                      {/* Mindmap button — always visible, colorful when available */}
+                      {/* Mindmap button — the only action button on the card */}
                       <button
                         type="button"
                         onClick={(e) => {
@@ -159,7 +145,7 @@ export default function BundlesPage({
                         aria-label={`Open mindmap for ${bundle.name}`}
                         title={showMindmap ? 'Open mindmap' : 'No mindmap'}
                         className={cn(
-                          'absolute right-9 top-2 flex size-6 items-center justify-center border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                          'absolute right-2 top-2 flex size-6 items-center justify-center rounded-full border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
                           showMindmap
                             ? 'border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary'
                             : 'border-border bg-background text-muted-foreground/30 cursor-default',
@@ -168,7 +154,7 @@ export default function BundlesPage({
                         <Network className="size-3" />
                       </button>
 
-                      <h3 className="mb-2 pr-16 font-serif text-base font-bold leading-tight text-foreground">
+                      <h3 className="mb-2 pr-10 font-serif text-base font-bold leading-tight text-foreground">
                         {bundle.name}
                       </h3>
 

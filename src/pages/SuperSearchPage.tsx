@@ -11,7 +11,7 @@ import { Progress } from '@/components/ui/progress';
 /** Keeps a flag "visible" for `delayMs` after it goes false, with a `fading`
  *  state so the UI can animate opacity → 0 during that grace period.
  *  Prevents progress bars from flashing on/off when loading completes fast. */
-function useDelayedFlag(flag: boolean, delayMs = 700) {
+function useDelayedFlag(flag: boolean, delayMs = 1800) {
   const [visible, setVisible] = useState(flag);
   const [fading, setFading] = useState(false);
 
@@ -120,10 +120,11 @@ export default function SuperSearchPage({
         </div>
 
         {/* Progress bars — stacked, highest priority first.
-            Each bar fades out over 700ms after its flag goes false. */}
+            Each bar stays visible 1.8s after its flag goes false, then
+            fades opacity → 0 over 1s so the user can see what loaded. */}
         <div className="mt-3 space-y-2">
           {showDbPrepBar.visible && (
-            <div className={cn('transition-opacity duration-500', showDbPrepBar.fading && 'opacity-0')}>
+            <div className={cn('transition-opacity duration-1000', showDbPrepBar.fading && 'opacity-0')}>
               <ProgressBar
                 label="Preparing search index…"
                 pct={45}
@@ -132,7 +133,7 @@ export default function SuperSearchPage({
             </div>
           )}
           {showRemoteBar.visible && (
-            <div className={cn('transition-opacity duration-500', showRemoteBar.fading && 'opacity-0')}>
+            <div className={cn('transition-opacity duration-1000', showRemoteBar.fading && 'opacity-0')}>
               <ProgressBar
                 label="Searching remote collections…"
                 variant="primary"
@@ -141,7 +142,7 @@ export default function SuperSearchPage({
             </div>
           )}
           {showSearchBar.visible && (
-            <div className={cn('transition-opacity duration-500', showSearchBar.fading && 'opacity-0')}>
+            <div className={cn('transition-opacity duration-1000', showSearchBar.fading && 'opacity-0')}>
               <ProgressBar
                 label={`Searching for "${query.trim()}"…`}
                 pct={75}
@@ -244,7 +245,7 @@ function ProgressBar({
       </div>
       <Progress
         value={indeterminate ? 50 : pct}
-        className={cn('h-1', indeterminate && 'animate-pulse')}
+        className={cn('h-1.5', indeterminate && 'animate-indeterminate-slow')}
       />
     </div>
   );

@@ -107,3 +107,18 @@
     scrollbar-width: none;
   }
 }
+
+/* Slow, deliberate indeterminate progress pulse.
+   Used by the SuperSearch progress bars so loading state reads clearly
+   instead of strobing. 3s cycle, soft ease-in-out. */
+@keyframes wikiki-indeterminate {
+  0%, 100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.animate-indeterminate-slow {
+  animation: wikiki-indeterminate 3s ease-in-out infinite;
+}
