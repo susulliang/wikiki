@@ -1,5 +1,5 @@
 import ReactECharts from 'echarts-for-react';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTheme, THEME_OPTIONS } from '@/hooks/useTheme';
 
 interface MindmapViewProps {
@@ -60,9 +60,91 @@ function tint(hex: string, factor: number, isDark: boolean): string {
   return `#${nr.toString(16).padStart(2, '0')}${ng.toString(16).padStart(2, '0')}${nb.toString(16).padStart(2, '0')}`;
 }
 
+/** Prune a subtree: keep only branches that contain the keyword.
+ *  Returns null if neither the node nor any descendant matches.
+ *  Maintains the full path from root to every matching node. */
+function pruneSubtree(node: MindmapNode, keyword: string): MindmapNode | null {
+  if (!keyword) return node;
+  const lower = keyword.toLowerCase();
+  const selfMatch = node.name.toLowerCase().includes(lower);
+
+  if (!node.children || node.children.length === 0) {
+    return selfMatch ? node : null;
+  }
+
+  const prunedChildren = node.children
+    .map((child) => pruneSubtree(child, keyword))
+    .filter((c): c is MindmapNode => c !== null);
+
+  if (selfMatch || prunedChildren.length > 0) {
+    return { ...node, children: prunedChildren };
+  }
+  return null;
+}
+
+/** Always keep the root; prune its children to matching branches only. */
+function pruneTree(root: MindmapNode, keyword: string): MindmapNode {
+  if (!keyword) return root;
+  const prunedChildren = (root.children || [])
+    .map((child) => pruneSubtree(child, keyword))
+    .filter((c): c is MindmapNode => c !== null);
+  return { ...root, children: prunedChildren };
+}
+
+/** Highlight matching nodes by overriding label border + glow. */
+function highlightNode(node: MindmapNode, keyword: string, isDark: boolean): MindmapNode {
+  if (!keyword) return node;
+  const matches = node.name.toLowerCase().includes(keyword.toLowerCase());
+  const highlighted: MindmapNode = { ...node };
+  if (matches) {
+    const accentBorder = isDark ? '#ffd86b' : '#d97706';
+    const glow = isDark ? 'rgba(255,216,107,0.65)' : 'rgba(217,119,6,0.55)';
+    highlighted.label = {
+      ...node.label,
+      borderColor: accentBorder,
+      borderWidth: 2,
+      shadowBlur: 18,
+      shadowColor: glow,
+    };
+  }
+  if (node.children) {
+    highlighted.children = node.children.map((c) => highlightNode(c, keyword, isDark));
+  }
+  return highlighted;
+}
+
 export default function MindmapView({ content }: MindmapViewProps) {
   const { theme: currentTheme } = useTheme();
   const isDark = useMemo(() => THEME_OPTIONS.find(t => t.value === currentTheme)?.isDark ?? false, [currentTheme]);
+
+  // Search state: input value (immediate), debounced query (for highlight),
+  // and committed query (for branch pruning — set on ENTER).
+  const [searchInput, setSearchInput] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [committedQuery, setCommittedQuery] = useState('');
+
+  // Debounce the search input for live highlighting.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const q = searchInput.trim();
+      setDebouncedQuery(q);
+      // Clear pruning when the user empties the search.
+      if (!q) setCommittedQuery('');
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      const q = searchInput.trim();
+      setCommittedQuery(q);
+      setDebouncedQuery(q); // immediate highlight on ENTER
+    } else if (e.key === 'Escape') {
+      setSearchInput('');
+      setDebouncedQuery('');
+      setCommittedQuery('');
+    }
+  };
 
   const treeData = useMemo(() => {
     // 1. Strip HTML tags to get plain text
@@ -233,6 +315,20 @@ export default function MindmapView({ content }: MindmapViewProps) {
     return processNode(treeData, 0, null);
   }, [treeData, isDark]);
 
+  // Apply branch pruning (committedQuery — set on ENTER) and highlighting
+  // (debouncedQuery — live as the user types).
+  const displayData = useMemo(() => {
+    if (!styledData) return null;
+    let data = styledData;
+    if (committedQuery) {
+      data = pruneTree(data, committedQuery);
+    }
+    if (debouncedQuery) {
+      data = highlightNode(data, debouncedQuery, isDark);
+    }
+    return data;
+  }, [styledData, committedQuery, debouncedQuery, isDark]);
+
   const option = {
     backgroundColor: 'transparent',
     tooltip: {
@@ -250,7 +346,7 @@ export default function MindmapView({ content }: MindmapViewProps) {
     series: [
       {
         type: 'tree',
-        data: [styledData],
+        data: [displayData],
         layout: 'radial',
         symbol: 'circle',
         symbolSize: 1, // Hide the default circles — labels act as nodes
@@ -297,6 +393,14 @@ export default function MindmapView({ content }: MindmapViewProps) {
       <ReactECharts
         option={option}
         style={{ height: '100%', width: '100%' }}
+      />
+      <input
+        type="text"
+        value={searchInput}
+        onChange={(e) => setSearchInput(e.target.value)}
+        onKeyDown={handleSearchKeyDown}
+        placeholder="Search nodes... (Enter to filter, Esc to clear)"
+        className="pointer-events-auto absolute bottom-4 left-4 z-20 w-64 rounded-md border border-border bg-card/90 px-3 py-1.5 text-sm text-foreground shadow-sm backdrop-blur-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
       />
     </div>
   );
