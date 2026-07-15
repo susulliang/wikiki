@@ -213,8 +213,8 @@ export default function MindmapsPage({
         </div>
       )}
 
-      {/* Floating status + toolbar panel — bottom-left corner, transparent */}
-      <div className="pointer-events-auto absolute bottom-4 left-4 z-20 flex items-center gap-3 rounded-2xl border border-foreground/10 px-3 py-2 shadow-lg backdrop-blur-sm">
+      {/* Floating status + toolbar — bottom-left, no container bg */}
+      <div className="pointer-events-auto absolute bottom-4 left-4 z-20 flex items-center gap-3">
         {/* DB status dot */}
         <div className="flex items-center gap-2">
           <span
@@ -225,9 +225,6 @@ export default function MindmapsPage({
           />
           <Database className="size-4 text-primary" />
         </div>
-
-        {/* Divider */}
-        <div className="h-5 w-px bg-border" />
 
         {/* Stats */}
         <div className="flex items-center gap-3 text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -240,9 +237,6 @@ export default function MindmapsPage({
             </span>
           )}
         </div>
-
-        {/* Divider */}
-        <div className="h-5 w-px bg-border" />
 
         {/* Action buttons */}
         <div className="flex items-center gap-1">
