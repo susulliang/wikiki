@@ -62,21 +62,27 @@ function tint(hex: string, factor: number, isDark: boolean): string {
 
 /** Prune a subtree: keep only branches that contain the keyword.
  *  Returns null if neither the node nor any descendant matches.
- *  Maintains the full path from root to every matching node. */
+ *  Once a node matches, its entire subtree is preserved (no pruning of
+ *  its daughters) — only non-matching sibling branches are cut. */
 function pruneSubtree(node: MindmapNode, keyword: string): MindmapNode | null {
   if (!keyword) return node;
   const lower = keyword.toLowerCase();
   const selfMatch = node.name.toLowerCase().includes(lower);
 
+  // Matching node: keep it together with ALL its descendants intact.
+  if (selfMatch) return node;
+
+  // Non-matching node: only survive if some descendant matches,
+  // and prune away children that contain no matches at all.
   if (!node.children || node.children.length === 0) {
-    return selfMatch ? node : null;
+    return null;
   }
 
   const prunedChildren = node.children
     .map((child) => pruneSubtree(child, keyword))
     .filter((c): c is MindmapNode => c !== null);
 
-  if (selfMatch || prunedChildren.length > 0) {
+  if (prunedChildren.length > 0) {
     return { ...node, children: prunedChildren };
   }
   return null;
