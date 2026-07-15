@@ -291,7 +291,7 @@ export default function MindmapView({ content }: MindmapViewProps) {
 
   return (
     <div className="w-full h-full bg-background relative">
-      <div className="absolute top-4 left-4 z-10 text-[10px] text-muted-foreground uppercase tracking-widest pointer-events-none">
+      <div className="absolute top-4 right-4 z-10 text-[10px] text-muted-foreground uppercase tracking-widest pointer-events-none">
         Drag to move • Scroll to zoom
       </div>
       <ReactECharts
