@@ -39,3 +39,19 @@
   --tw-prose-invert-th-borders: var(--border);
   --tw-prose-invert-td-borders: var(--border);
 }
+
+/* Force monospace font on all code blocks within prose content.
+   Wiki code blocks (pre, code, kbd, samp) must always render in the
+   mono font, regardless of inherited styles, pasted formatting, or
+   the global [contenteditable] sans-serif reset in index.css. */
+.prose pre,
+.prose pre *,
+.prose code,
+.prose code *,
+.prose kbd,
+.prose kbd *,
+.prose samp,
+.prose samp * {
+  font-family: var(--font-mono), ui-monospace, 'SF Mono', 'Cascadia Code',
+    'Roboto Mono', Menlo, Monaco, Consolas, 'Liberation Mono', monospace !important;
+}
