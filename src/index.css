@@ -216,6 +216,10 @@
   pointer-events: none;
   display: none;
   overflow: hidden;
+  /* Slight blur softens wave edges so foreground text stays readable
+     even where bands overlap. Kept small (3px) to preserve the wave
+     silhouette rather than turning into a flat wash. */
+  filter: blur(3px);
   /* Soft radial vignette so the waves fade toward the edges. */
   -webkit-mask-image: radial-gradient(ellipse at center, black 50%, transparent 95%);
           mask-image: radial-gradient(ellipse at center, black 50%, transparent 95%);
@@ -227,10 +231,15 @@
 
 .mist-wave-band {
   position: absolute;
-  left: -25%;
-  width: 150%;
-  height: 28vh;
-  color: var(--accent);
+  /* Band is sized much larger than the viewport (300% wide × 100vh tall)
+     so that after the 45° rotation all four rectangular corners land
+     well off-screen — no hard cutoff edges visible inside the viewport. */
+  left: -100%;
+  width: 300%;
+  height: 100vh;
+  /* Darken the accent by ~15% (mix in black) so the waves read as a
+     deeper mint against the greyish bg rather than a bright accent. */
+  color: color-mix(in oklab, var(--accent) 85%, black);
   opacity: 0;
   /* Each band rotated 45掳 so the waves run diagonally across the screen. */
   transform: rotate(-45deg);

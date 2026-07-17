@@ -7,13 +7,20 @@
  * low opacities so the whole field reads as a calm minty mist over
  * the greyish bg.
  *
+ * Bands are sized much larger than the viewport (300% wide × 100vh tall)
+ * so that after the 45° rotation, all four rectangular corners land
+ * well off-screen — no hard cutoff edges are visible. The parent
+ * .mist-wave-bg has overflow: hidden + a slight blur to keep text
+ * readable.
+ *
  * Fixed, pointer-events-none, only visible when :root.mist-wave is on.
  */
 
 interface BandConfig {
   /** Vertical amplitude of the wave in viewBox units. */
   amp: number;
-  /** Vertical center position of the wave (0-1 fraction of viewport). */
+  /** Top offset of the band as a fraction of viewport height.
+   *  Wave sits at band vertical center, so top=-0.4 puts the wave at 10vh. */
   top: number;
   /** Animation duration in seconds for the horizontal drift. */
   driftDur: number;
@@ -23,17 +30,21 @@ interface BandConfig {
   delay: number;
   /** Peak opacity for the band (0-1). */
   opacity: number;
-  /** SVG path stroke/fill scale. Larger = thicker wave. */
+  /** Per-band path scale (consumed via --mist-scale CSS var). */
   scale: number;
 }
 
+// Spread waves from ~10vh to ~90vh so they cover the full viewport
+// vertically. Negative top values push the band (and thus its top fill
+// area) off-screen, which combined with the 300% width eliminates the
+// corner cutoffs after 45° rotation.
 const BANDS: BandConfig[] = [
-  { amp: 28, top: 0.10, driftDur: 38, breathDur: 16, delay: 0, opacity: 0.16, scale: 1.0 },
-  { amp: 38, top: 0.22, driftDur: 44, breathDur: 19, delay: -4, opacity: 0.12, scale: 1.1 },
-  { amp: 22, top: 0.34, driftDur: 32, breathDur: 14, delay: -8, opacity: 0.18, scale: 0.9 },
-  { amp: 44, top: 0.50, driftDur: 52, breathDur: 23, delay: -12, opacity: 0.10, scale: 1.2 },
-  { amp: 32, top: 0.66, driftDur: 40, breathDur: 18, delay: -6, opacity: 0.14, scale: 1.0 },
-  { amp: 26, top: 0.82, driftDur: 36, breathDur: 17, delay: -10, opacity: 0.12, scale: 1.0 },
+  { amp: 34, top: -0.40, driftDur: 38, breathDur: 16, delay: 0,    opacity: 0.20, scale: 1.0 },
+  { amp: 46, top: -0.24, driftDur: 44, breathDur: 19, delay: -4,   opacity: 0.16, scale: 1.1 },
+  { amp: 28, top: -0.08, driftDur: 32, breathDur: 14, delay: -8,   opacity: 0.24, scale: 0.9 },
+  { amp: 52, top:  0.08, driftDur: 52, breathDur: 23, delay: -12,  opacity: 0.14, scale: 1.2 },
+  { amp: 38, top:  0.24, driftDur: 40, breathDur: 18, delay: -6,   opacity: 0.18, scale: 1.0 },
+  { amp: 32, top:  0.40, driftDur: 36, breathDur: 17, delay: -10,  opacity: 0.16, scale: 1.0 },
 ];
 
 export default function MistWaveBg() {
@@ -73,7 +84,10 @@ function WaveBand({ amp, top, driftDur, breathDur, delay, opacity, scale }: Band
           d={path}
           fill="currentColor"
           style={{
-            transform: `scale(${scale})`,
+            // Expose scale as a CSS var so the mist-wave-drift keyframe
+            // (which owns `transform`) can pick it up. Setting transform
+            // inline would be overridden by the animation.
+            ['--mist-scale' as string]: `${scale}`,
             animationDuration: `${driftDur}s`,
             animationDelay: `${delay}s`,
           }}
