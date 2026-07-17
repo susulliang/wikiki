@@ -1,5 +1,5 @@
 import ReactECharts from 'echarts-for-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTheme, THEME_OPTIONS } from '@/hooks/useTheme';
 
 interface MindmapViewProps {
@@ -126,6 +126,13 @@ function highlightNode(node: MindmapNode, keyword: string, isDark: boolean): Min
 export default function MindmapView({ content, initialSearchQuery }: MindmapViewProps) {
   const { theme: currentTheme } = useTheme();
   const isDark = useMemo(() => THEME_OPTIONS.find(t => t.value === currentTheme)?.isDark ?? false, [currentTheme]);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-focus the search box whenever this view mounts (page opened).
+  useEffect(() => {
+    const id = setTimeout(() => searchInputRef.current?.focus(), 100);
+    return () => clearTimeout(id);
+  }, []);
 
   // Search state: input value (immediate), debounced query (for highlight),
   // and committed query (for branch pruning — set on ENTER).
@@ -411,6 +418,7 @@ export default function MindmapView({ content, initialSearchQuery }: MindmapView
         style={{ height: '100%', width: '100%' }}
       />
       <input
+        ref={searchInputRef}
         type="text"
         value={searchInput}
         onChange={(e) => setSearchInput(e.target.value)}
