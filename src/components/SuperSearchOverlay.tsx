@@ -4,6 +4,7 @@ import { Search, Sparkles, CornerDownLeft, X, ArrowLeft, Network, FileText } fro
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Progress } from '@/components/ui/progress';
 import type { ExtendedSearchResult, MatchingParagraph } from '@/lib/search';
 import { getTagColor } from '@/data/bundles';
 import { highlightSearchText } from '@/lib/search';
@@ -426,9 +427,19 @@ export default function SuperSearchOverlay({
                 </AnimatePresence>
 
                 {query.trim() && loading && (
-                  <div className="mt-5 rounded-2xl border border-dashed border-border/80 bg-background/60 px-4 py-5 text-center text-sm text-muted-foreground">
-                    Building the search graph...
-                  </div>
+                  <motion.div
+                    key="searching"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 6 }}
+                    transition={{ duration: 0.2 }}
+                    className="mt-4 w-full"
+                  >
+                    <div className="mb-1.5 flex items-center justify-between text-[11px] text-muted-foreground px-1">
+                      <span>Searching for <span className="font-medium text-foreground">&#8220;{query}&#8221;</span>…</span>
+                    </div>
+                    <Progress value={50} className="h-1 w-full animate-indeterminate-slow" />
+                  </motion.div>
                 )}
 
                 {query.trim() && !loading && visibleResults.length === 0 && (
