@@ -72,6 +72,7 @@ export type TranslationKey =
   | 'theme.charcoalDark'
   | 'theme.midnightBlue'
   | 'theme.mosaic'
+  | 'theme.mistWave'
   | 'search.placeholder'
   | 'search.noResults'
   | 'search.results'
@@ -173,6 +174,7 @@ const en: TranslationDict = {
   'theme.charcoalDark': 'Charcoal Dark',
   'theme.midnightBlue': 'Midnight Blue',
   'theme.mosaic': 'Mosaic',
+  'theme.mistWave': 'Mist Wave',
   'search.placeholder': 'Search across all bundles...',
   'search.noResults': 'No results found',
   'search.results': 'results',
@@ -273,6 +275,7 @@ const zh: TranslationDict = {
   'theme.charcoalDark': '炭灰暗',
   'theme.midnightBlue': '午夜蓝',
   'theme.mosaic': '马赛克',
+  'theme.mistWave': '薄雾波纹',
   'search.placeholder': '搜索所有知识包...',
   'search.noResults': '未找到结果',
   'search.results': '条结果',
@@ -373,6 +376,7 @@ const jp: TranslationDict = {
   'theme.charcoalDark': 'チャコールダーク',
   'theme.midnightBlue': 'ミッドナイトブルー',
   'theme.mosaic': 'モザイク',
+  'theme.mistWave': 'ミストウェーブ',
   'search.placeholder': 'すべてのバンドルを検索...',
   'search.noResults': '結果が見つかりません',
   'search.results': '件の結果',
@@ -473,6 +477,7 @@ const de: TranslationDict = {
   'theme.charcoalDark': 'Kohle Dunkel',
   'theme.midnightBlue': 'Mitternachtsblau',
   'theme.mosaic': 'Mosaik',
+  'theme.mistWave': 'Nebelwelle',
   'search.placeholder': 'Alle Bundles durchsuchen...',
   'search.noResults': 'Keine Ergebnisse gefunden',
   'search.results': 'Ergebnisse',
@@ -573,6 +578,7 @@ const it: TranslationDict = {
   'theme.charcoalDark': 'Carbone scuro',
   'theme.midnightBlue': 'Blu mezzanotte',
   'theme.mosaic': 'Mosaico',
+  'theme.mistWave': 'Onda di nebbia',
   'search.placeholder': 'Cerca in tutti i bundle...',
   'search.noResults': 'Nessun risultato trovato',
   'search.results': 'risultati',
@@ -673,6 +679,7 @@ const es: TranslationDict = {
   'theme.charcoalDark': 'Carbón oscuro',
   'theme.midnightBlue': 'Azul medianoche',
   'theme.mosaic': 'Mosaico',
+  'theme.mistWave': 'Ola de niebla',
   'search.placeholder': 'Buscar en todos los bundles...',
   'search.noResults': 'No se encontraron resultados',
   'search.results': 'resultados',

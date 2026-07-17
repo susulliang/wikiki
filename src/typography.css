@@ -55,3 +55,21 @@
   font-family: var(--font-mono), ui-monospace, 'SF Mono', 'Cascadia Code',
     'Roboto Mono', Menlo, Monaco, Consolas, 'Liberation Mono', monospace !important;
 }
+
+/* Windows-specific code font policy: force Courier New for Latin/English
+   glyphs and Heiti (黑体) for Chinese glyphs. Heiti gives crisp Han
+   rendering at small sizes that the generic monospace fallback doesn't
+   reliably provide on Windows. The UA sniff is via a body class set
+   at runtime (see HomePage boot) so the rule stays CSS-only and
+   cache-friendly. */
+body.os-windows .prose pre,
+body.os-windows .prose pre *,
+body.os-windows .prose code,
+body.os-windows .prose code *,
+body.os-windows .prose kbd,
+body.os-windows .prose kbd *,
+body.os-windows .prose samp,
+body.os-windows .prose samp * {
+  font-family: 'Courier New', Courier, 'Microsoft YaHei', 'Heiti SC',
+    'SimHei', '黑体', monospace !important;
+}

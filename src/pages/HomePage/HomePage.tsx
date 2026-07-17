@@ -5,6 +5,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useRemoteSearch } from '@/hooks/useRemoteSearch';
 import FloatingTabBar, { type TabId } from '@/components/FloatingTabBar';
 import MosaicTilesBg from '@/components/MosaicTilesBg';
+import MistWaveBg from '@/components/MistWaveBg';
 import BundleDialog from '@/components/BundleDialog';
 import BundlesPage from '@/pages/BundlesPage';
 import WikisPage from '@/pages/WikisPage';
@@ -43,6 +44,17 @@ export default function HomePage() {
 
   useEffect(() => {
     document.title = 'Wikiki';
+    // Tag <body> with the OS class so CSS can apply platform-specific
+    // font policies (e.g. Courier + Heiti for code blocks on Windows).
+    // Done in an effect so it survives HMR and route changes; runs once.
+    const ua = navigator.userAgent || '';
+    const isWindows = /Windows/i.test(ua);
+    const isMac = /Macintosh|Mac OS X/i.test(ua) && !/iPhone|iPad|iPod/i.test(ua);
+    const isLinux = /Linux/i.test(ua) && !/Android/i.test(ua);
+    const body = document.body;
+    body.classList.toggle('os-windows', isWindows);
+    body.classList.toggle('os-mac', isMac);
+    body.classList.toggle('os-linux', isLinux);
   }, []);
 
   const [activeTab, setActiveTab] = useState<TabId>(() => {
@@ -406,6 +418,19 @@ export default function HomePage() {
           // ignore
         }
       }
+      // Ctrl/Cmd+M → toggle tab bar minimization (persists across reloads)
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'm') {
+        event.preventDefault();
+        setTabBarMinimized((prev) => {
+          const next = !prev;
+          try {
+            localStorage.setItem(TABBAR_MINIMIZED_KEY, String(next));
+          } catch {
+            // ignore
+          }
+          return next;
+        });
+      }
       // Shift+B → toggle EdgeOne blob sync panel (only on mindmaps tab)
       if (event.shiftKey && !event.metaKey && !event.ctrlKey && !event.altKey && event.key.toLowerCase() === 'b') {
         const current = localStorage.getItem(ACTIVE_TAB_KEY);
@@ -694,6 +719,7 @@ export default function HomePage() {
   return (
     <div className="flex h-screen flex-col bg-background overflow-hidden">
       <MosaicTilesBg />
+      <MistWaveBg />
       <FloatingTabBar
         activeTab={activeTab}
         onTabChange={handleTabChange}

@@ -26,6 +26,7 @@ const TABS: Array<{ id: TabId; labelKey: TranslationKey; icon: LucideIcon }> = [
 const SWIPE_THRESHOLD = 50;
 const COLLAPSE_DELAY = 3000;
 const NARROW_BREAKPOINT = 640; // sm breakpoint
+const NARROW_AUTO_MINIMIZE_MS = 10000; // auto-minimize after 10s on narrow screens
 
 /** Wikiki vector mark — two pillars + center diamond forming a stylized W. */
 function WikikiMark({ className }: { className?: string }) {
@@ -48,6 +49,7 @@ export default function FloatingTabBar({
   const [showText, setShowText] = useState(false);
   const [isNarrow, setIsNarrow] = useState(false);
   const collapseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoMinimizeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startX = useRef<number | null>(null);
   const startY = useRef<number | null>(null);
 
@@ -59,6 +61,23 @@ export default function FloatingTabBar({
     return () => window.removeEventListener('resize', update);
   }, []);
 
+  // Auto-minimize on narrow devices after 10s of inactivity (no hover,
+  // no tab click). The timer resets on user interaction with the tab bar
+  // and only fires while expanded + narrow. On wide devices we never
+  // auto-minimize — explicit Ctrl/Cmd+M or swipe is required there.
+  useEffect(() => {
+    if (!isNarrow || isMinimized) return;
+    autoMinimizeTimer.current = setTimeout(() => {
+      onMinimizedChange(true);
+    }, NARROW_AUTO_MINIMIZE_MS);
+    return () => {
+      if (autoMinimizeTimer.current) {
+        clearTimeout(autoMinimizeTimer.current);
+        autoMinimizeTimer.current = null;
+      }
+    };
+  }, [isNarrow, isMinimized, onMinimizedChange]);
+
   // On narrow screens, never show text
   const canShowText = showText && !isNarrow;
 
@@ -67,12 +86,24 @@ export default function FloatingTabBar({
       clearTimeout(collapseTimer.current);
       collapseTimer.current = null;
     }
+    if (autoMinimizeTimer.current) {
+      clearTimeout(autoMinimizeTimer.current);
+      autoMinimizeTimer.current = null;
+    }
   }, []);
 
   const scheduleCollapse = useCallback(() => {
     cancelCollapse();
     collapseTimer.current = setTimeout(() => setShowText(false), COLLAPSE_DELAY);
-  }, [cancelCollapse]);
+    // User interacted — also push the narrow auto-minimize timer forward
+    // by NARROW_AUTO_MINIMIZE_MS so it doesn't fire mid-interaction. The
+    // effect will clean this up on the next isMinimized/isNarrow change.
+    if (isNarrow && !isMinimized) {
+      autoMinimizeTimer.current = setTimeout(() => {
+        onMinimizedChange(true);
+      }, NARROW_AUTO_MINIMIZE_MS);
+    }
+  }, [cancelCollapse, isNarrow, isMinimized, onMinimizedChange]);
 
   useEffect(() => () => cancelCollapse(), [cancelCollapse]);
 

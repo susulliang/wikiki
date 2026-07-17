@@ -2,7 +2,7 @@
 
 const THEME_KEY = '__wikiki_theme';
 
-export type ThemeName = 'graphite' | 'graphite-night' | 'warm-light' | 'clean-light' | 'soft-light' | 'sunset' | 'forest' | 'charcoal' | 'midnight' | 'mosaic';
+export type ThemeName = 'graphite' | 'graphite-night' | 'warm-light' | 'clean-light' | 'soft-light' | 'sunset' | 'forest' | 'charcoal' | 'midnight' | 'mosaic' | 'mist-wave';
 
 export const THEME_OPTIONS = [
   { value: 'graphite' as const, label: 'Graphite', isDark: false },
@@ -15,6 +15,7 @@ export const THEME_OPTIONS = [
   { value: 'charcoal' as const, label: 'Charcoal Dark', isDark: true },
   { value: 'midnight' as const, label: 'Midnight Blue', isDark: true },
   { value: 'mosaic' as const, label: 'Mosaic', isDark: true },
+  { value: 'mist-wave' as const, label: 'Mist Wave', isDark: true },
 ] as const;
 
 export function useTheme() {

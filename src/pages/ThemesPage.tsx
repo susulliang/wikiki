@@ -17,6 +17,7 @@ const THEME_PALETTE: Record<ThemeName, string> = {
   'charcoal': 'linear-gradient(135deg, #18181b 0%, #eab308 100%)',
   'midnight': 'linear-gradient(135deg, #090d16 0%, #14b8a6 100%)',
   'mosaic': 'linear-gradient(135deg, #2f2f2f 0%, #a31919 100%)',
+  'mist-wave': 'linear-gradient(135deg, #32363b 0%, #7aa896 100%)',
 };
 
 const THEME_LABEL_KEYS: Record<ThemeName, TranslationKey> = {
@@ -30,6 +31,7 @@ const THEME_LABEL_KEYS: Record<ThemeName, TranslationKey> = {
   'charcoal': 'theme.charcoalDark',
   'midnight': 'theme.midnightBlue',
   'mosaic': 'theme.mosaic',
+  'mist-wave': 'theme.mistWave',
 };
 
 interface ThemesPageProps {
