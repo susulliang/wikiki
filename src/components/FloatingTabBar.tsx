@@ -169,7 +169,7 @@ export default function FloatingTabBar({
           type="button"
           onClick={() => onMinimizedChange(false)}
           aria-label="Expand tab bar"
-          className="fixed right-4 top-4 z-50 flex size-12 cursor-pointer items-center justify-center rounded-full border border-foreground/15 bg-background/75 shadow-xl backdrop-blur-sm transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          className="fixed right-4 top-4 z-50 flex size-12 cursor-pointer items-center justify-center rounded-full border border-foreground/15 bg-background/50 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.45)] backdrop-blur-[2px] transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           initial={{ opacity: 0, scale: 0.4 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.4 }}
@@ -180,7 +180,7 @@ export default function FloatingTabBar({
       ) : (
         <motion.nav
           key="expanded"
-          className="fixed left-1/2 top-4 z-50 flex -translate-x-1/2 cursor-pointer items-center gap-1 rounded-full border border-foreground/10 bg-background/65 p-1.5 shadow-2xl backdrop-blur-sm"
+          className="fixed left-1/2 top-4 z-50 flex -translate-x-1/2 cursor-pointer items-center gap-1 rounded-full border border-foreground/10 bg-background/40 p-1.5 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] backdrop-blur-[2px]"
           style={{ touchAction: 'none' }}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}

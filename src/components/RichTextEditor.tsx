@@ -454,7 +454,7 @@ export default function RichTextEditor({
     <div className="flex flex-col flex-1 relative">
       {/* Floating Vertical Toolbar */}
       {showToolbar && (
-        <div className="fixed left-4 top-1/2 z-30 flex max-h-[85vh] -translate-y-1/2 flex-col items-center gap-0.5 overflow-y-auto no-scrollbar rounded-full border border-foreground/10 bg-background/65 p-1.5 shadow-2xl backdrop-blur-sm">
+        <div className="fixed left-4 top-1/2 z-30 flex max-h-[85vh] -translate-y-1/2 flex-col items-center gap-0.5 overflow-y-auto no-scrollbar rounded-full border border-foreground/10 bg-background/40 p-1.5 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] backdrop-blur-[2px]">
           {/* Headings */}
           <Button
             variant={activeHeading === 'p' ? 'secondary' : 'ghost'}
