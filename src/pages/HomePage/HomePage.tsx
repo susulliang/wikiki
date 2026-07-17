@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { useTheme } from '@/hooks/useTheme';
 import { useRemoteSearch } from '@/hooks/useRemoteSearch';
 import FloatingTabBar, { type TabId } from '@/components/FloatingTabBar';
+import MosaicTilesBg from '@/components/MosaicTilesBg';
 import BundleDialog from '@/components/BundleDialog';
 import BundlesPage from '@/pages/BundlesPage';
 import WikisPage from '@/pages/WikisPage';
@@ -288,8 +289,22 @@ export default function HomePage() {
 
   const handleSelectBundleFromMindmap = useCallback(
     (id: string) => {
+      // Clicking a daughter node in the DB mindmap (first tab) should go
+      // straight into that bundle's mindmap view (not the wiki editor),
+      // with the mindmap's search box auto-focused for immediate filtering.
+      // The search input is auto-focused on mount inside MindmapView, so
+      // we just need to trigger the open-mindmap flow with a fresh
+      // (empty) initial search query.
       handleSelectBundle(id);
       handleTabChange('wikis');
+      setOpenMindmapMode(Date.now());
+      setMindmapInitialSearch('');
+
+      // Clear the trigger after the bundle has had time to load + mount
+      // so it doesn't keep re-firing on subsequent prop changes.
+      setTimeout(() => {
+        setOpenMindmapMode(0);
+      }, 5000);
     },
     [handleSelectBundle, handleTabChange],
   );
@@ -678,6 +693,7 @@ export default function HomePage() {
 
   return (
     <div className="flex h-screen flex-col bg-background overflow-hidden">
+      <MosaicTilesBg />
       <FloatingTabBar
         activeTab={activeTab}
         onTabChange={handleTabChange}

@@ -122,3 +122,82 @@
 .animate-indeterminate-slow {
   animation: wikiki-indeterminate 3s ease-in-out infinite;
 }
+
+/* 鈹€鈹€ Mosaic theme: animated tile background 鈹€鈹€
+   Fixed full-viewport grid of subtle accent tiles, only visible when
+   :root.mosaic is active. Each tile breathes independently via a slow
+   opacity keyframe with per-tile staggered delay/duration (set inline
+   by MosaicTilesBg.tsx). Pointer-events-none so it never blocks UI.
+   Max 10 columns on wide screens, scaling down responsively. */
+.mosaic-tiles-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  display: none;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  grid-template-rows: repeat(8, minmax(0, 1fr));
+  gap: 1px;
+  /* Subtle vignette so the breathing fades toward the edges */
+  -webkit-mask-image: radial-gradient(ellipse at center, black 55%, transparent 100%);
+          mask-image: radial-gradient(ellipse at center, black 55%, transparent 100%);
+}
+
+:root.mosaic .mosaic-tiles-bg {
+  display: grid;
+}
+
+@media (max-width: 1280px) {
+  .mosaic-tiles-bg {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    grid-template-rows: repeat(10, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .mosaic-tiles-bg {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-rows: repeat(14, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .mosaic-tiles-bg {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: repeat(20, minmax(0, 1fr));
+  }
+}
+
+.mosaic-tile {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-color: var(--accent);
+  /* Start invisible; animation drives the breathing. */
+  opacity: 0;
+  animation-name: mosaic-tile-breath;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  /* delay + duration set inline per-tile */
+}
+
+@keyframes mosaic-tile-breath {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  50% {
+    /* Peak ~14% opacity 鈥?visible but never loud enough to distract. */
+    opacity: 0.14;
+    transform: scale(1);
+  }
+}
+
+/* Respect reduced-motion: kill the breathing, show a static low tint. */
+@media (prefers-reduced-motion: reduce) {
+  .mosaic-tile {
+    animation: none;
+    opacity: 0.06;
+    transform: none;
+  }
+}

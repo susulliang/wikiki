@@ -2,6 +2,10 @@ import ReactECharts from 'echarts-for-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTheme, THEME_OPTIONS } from '@/hooks/useTheme';
 
+/** Pixels moved per key press. Tuned to feel deliberate on a radial tree
+ *  layout without overshooting. */
+const PAN_STEP = 60;
+
 interface MindmapViewProps {
   content: string;
   /** When provided, seeds the bottom-left search filter (e.g. when opening
@@ -127,11 +131,59 @@ export default function MindmapView({ content, initialSearchQuery }: MindmapView
   const { theme: currentTheme } = useTheme();
   const isDark = useMemo(() => THEME_OPTIONS.find(t => t.value === currentTheme)?.isDark ?? false, [currentTheme]);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const chartRef = useRef<ReactECharts | null>(null);
 
   // Auto-focus the search box whenever this view mounts (page opened).
   useEffect(() => {
     const id = setTimeout(() => searchInputRef.current?.focus(), 100);
     return () => clearTimeout(id);
+  }, []);
+
+  // Keyboard panning: WASD + Arrow keys move the mindmap view.
+  // - Skips when the user is typing in an input/textarea/contenteditable so
+  //   the search filter and any dialogs still receive those keys.
+  // - Uses ECharts `treeRoam` action; sign convention is "camera moves in
+  //   the pressed direction" (W = up = camera up = content shifts down).
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target) {
+        const tag = target.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable) {
+          return;
+        }
+      }
+
+      let dx = 0;
+      let dy = 0;
+      const key = e.key.toLowerCase();
+      switch (key) {
+        case 'w':
+        case 'arrowup':
+          dy = PAN_STEP;
+          break;
+        case 's':
+        case 'arrowdown':
+          dy = -PAN_STEP;
+          break;
+        case 'a':
+        case 'arrowleft':
+          dx = PAN_STEP;
+          break;
+        case 'd':
+        case 'arrowright':
+          dx = -PAN_STEP;
+          break;
+        default:
+          return;
+      }
+      e.preventDefault();
+      const chart = chartRef.current?.getEchartsInstance?.();
+      chart?.dispatchAction({ type: 'treeRoam', dx, dy });
+    };
+
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
   }, []);
 
   // Search state: input value (immediate), debounced query (for highlight),
@@ -411,9 +463,10 @@ export default function MindmapView({ content, initialSearchQuery }: MindmapView
   return (
     <div className="w-full h-full bg-background relative">
       <div className="absolute bottom-4 right-4 z-10 text-[10px] text-muted-foreground uppercase tracking-widest pointer-events-none">
-        Drag to move • Scroll to zoom
+        Drag · Scroll · WASD/Arrows to move
       </div>
       <ReactECharts
+        ref={chartRef}
         option={option}
         style={{ height: '100%', width: '100%' }}
       />

@@ -639,57 +639,59 @@
   --spacing: 0.25rem;
 } 
 
-/* 鈹€鈹€ Mosaic: dark rose red accent, flat contrast 鈹€鈹€ */
+/* 鈹€鈹€ Mosaic: dark red accent on neutral graphite bg, flat contrast 鈹€鈹€ */
 :root.mosaic {
   --button-outline: rgba(255,255,255, .10);
   --badge-outline: rgba(255,255,255, .05);
   --opaque-button-border-intensity: 8;
   --elevate-1: rgba(255,255,255, .03);
   --elevate-2: rgba(255,255,255, .06);
-  --background: hsl(340 10% 12%);
-  --foreground: hsl(340 20% 90%);
-  --card: hsl(340 10% 15%);
-  --card-foreground: hsl(340 20% 90%);
-  --popover: hsl(340 10% 15%);
-  --popover-foreground: hsl(340 20% 90%);
-  --primary: hsl(340 70% 45%);
-  --primary-foreground: hsl(340 5% 95%);
-  --secondary: hsl(340 8% 20%);
-  --secondary-foreground: hsl(340 15% 80%);
-  --muted: hsl(340 8% 18%);
-  --muted-foreground: hsl(340 5% 60%);
-  --accent: hsl(340 70% 45%);
-  --accent-foreground: hsl(340 5% 95%);
+  /* Bg lightened to ~#2f2f2f (neutral graphite) so the mosaic tiles read clearly. */
+  --background: hsl(0 0% 18.4%);
+  --foreground: hsl(0 0% 90%);
+  --card: hsl(0 0% 21%);
+  --card-foreground: hsl(0 0% 90%);
+  --popover: hsl(0 0% 21%);
+  --popover-foreground: hsl(0 0% 90%);
+  /* Dark red accent (was dark pink hsl(340 70% 45%)). */
+  --primary: hsl(0 62% 42%);
+  --primary-foreground: hsl(0 0% 96%);
+  --secondary: hsl(0 3% 24%);
+  --secondary-foreground: hsl(0 0% 80%);
+  --muted: hsl(0 0% 22%);
+  --muted-foreground: hsl(0 0% 60%);
+  --accent: hsl(0 62% 42%);
+  --accent-foreground: hsl(0 0% 96%);
   --info: hsl(200 60% 55%);
-  --info-foreground: hsl(340 5% 95%);
+  --info-foreground: hsl(0 0% 96%);
   --destructive: hsl(5 70% 55%);
-  --destructive-foreground: hsl(340 5% 95%);
+  --destructive-foreground: hsl(0 0% 96%);
   --success: hsl(140 40% 45%);
-  --success-foreground: hsl(340 5% 95%);
+  --success-foreground: hsl(0 0% 96%);
   --warning: hsl(30 70% 55%);
-  --warning-foreground: hsl(340 5% 95%);
-  --border: hsl(340 5% 25%);
-  --input: hsl(340 5% 25%);
-  --ring: hsl(340 70% 45%);
-  --chart-1: hsl(340 70% 45%);
-  --chart-2: hsl(340 60% 40%);
-  --chart-3: hsl(340 50% 35%);
-  --chart-4: hsl(340 40% 30%);
-  --chart-5: hsl(340 30% 25%);
-  --sidebar: hsl(340 10% 10%);
-  --sidebar-foreground: hsl(340 20% 90%);
-  --sidebar-primary: hsl(340 70% 45%);
-  --sidebar-primary-foreground: hsl(340 5% 95%);
-  --sidebar-accent: hsl(340 8% 18%);
-  --sidebar-accent-foreground: hsl(340 20% 90%);
-  --sidebar-border: hsl(340 5% 20%);
-  --sidebar-ring: hsl(340 70% 45%);
+  --warning-foreground: hsl(0 0% 96%);
+  --border: hsl(0 0% 28%);
+  --input: hsl(0 0% 28%);
+  --ring: hsl(0 62% 42%);
+  --chart-1: hsl(0 62% 42%);
+  --chart-2: hsl(355 55% 38%);
+  --chart-3: hsl(10 50% 40%);
+  --chart-4: hsl(0 40% 32%);
+  --chart-5: hsl(345 35% 28%);
+  --sidebar: hsl(0 0% 15%);
+  --sidebar-foreground: hsl(0 0% 90%);
+  --sidebar-primary: hsl(0 62% 42%);
+  --sidebar-primary-foreground: hsl(0 0% 96%);
+  --sidebar-accent: hsl(0 0% 22%);
+  --sidebar-accent-foreground: hsl(0 0% 90%);
+  --sidebar-border: hsl(0 0% 22%);
+  --sidebar-ring: hsl(0 62% 42%);
 
-  --primary-border: hsl(from hsl(340 70% 45%) h s calc(l + 8));
-  --secondary-border: hsl(from hsl(340 8% 20%) h s calc(l + 8));
+  --primary-border: hsl(from hsl(0 62% 42%) h s calc(l + 8));
+  --secondary-border: hsl(from hsl(0 3% 24%) h s calc(l + 8));
   --destructive-border: hsl(from hsl(5 70% 55%) h s calc(l + 8));
-  --accent-border: hsl(from hsl(340 70% 45%) h s calc(l + 8));
-  --muted-border: hsl(from hsl(340 8% 18%) h s calc(l + 8));
+  --accent-border: hsl(from hsl(0 62% 42%) h s calc(l + 8));
+  --muted-border: hsl(from hsl(0 0% 22%) h s calc(l + 8));
 }
 
 @theme inline {
