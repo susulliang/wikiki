@@ -689,7 +689,7 @@ export default function HomePage() {
         <div
           className="h-full transition-[padding] duration-300 ease-in-out"
           style={{
-            paddingTop: activeTab === 'mindmaps' || tabBarMinimized ? 0 : '4.5rem',
+            paddingTop: activeTab === 'mindmaps' || activeTab === 'wikis' || activeTab === 'bundles' || activeTab === 'supersearch' || tabBarMinimized ? 0 : '4.5rem',
             overflow: activeTab === 'mindmaps' ? 'hidden' : 'auto',
           }}
         >
