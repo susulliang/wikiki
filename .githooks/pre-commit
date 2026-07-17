@@ -1,8 +1,8 @@
-#!/bin/sh
+﻿#!/bin/sh
 # pre-commit gate: runs the lint/precommit script defined in package.json.
 # Registered via core.hooksPath=.githooks (set by scripts/setup-git-hooks.mjs).
 [ "$SKIP_GIT_HOOKS" = "1" ] && exit 0
 if ! npm run precommit; then
-  echo "✗ pre-commit: 校验未通过，已阻断提交（绕过：git commit --no-verify 或 SKIP_GIT_HOOKS=1）" >&2
+  echo "鉁?pre-commit: 鏍￠獙鏈€氳繃锛屽凡闃绘柇鎻愪氦锛堢粫杩囷細git commit --no-verify 鎴?SKIP_GIT_HOOKS=1锛? >&2
   exit 1
 fi

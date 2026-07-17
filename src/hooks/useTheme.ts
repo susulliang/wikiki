@@ -1,1 +1,68 @@
-aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUNhbGxiYWNrLCB1c2VFZmZlY3QgfSBmcm9tICdyZWFjdCc7Cgpjb25zdCBUSEVNRV9LRVkgPSAnX193aWtpa2lfdGhlbWUnOwoKZXhwb3J0IHR5cGUgVGhlbWVOYW1lID0gJ2dyYXBoaXRlJyB8ICdncmFwaGl0ZS1uaWdodCcgfCAnd2FybS1saWdodCcgfCAnY2xlYW4tbGlnaHQnIHwgJ3NvZnQtbGlnaHQnIHwgJ3N1bnNldCcgfCAnZm9yZXN0JyB8ICdjaGFyY29hbCcgfCAnbWlkbmlnaHQnIHwgJ21vc2FpYyc7CgpleHBvcnQgY29uc3QgVEhFTUVfT1BUSU9OUyA9IFsKICB7IHZhbHVlOiAnZ3JhcGhpdGUnIGFzIGNvbnN0LCBsYWJlbDogJ0dyYXBoaXRlJywgaXNEYXJrOiBmYWxzZSB9LAogIHsgdmFsdWU6ICdncmFwaGl0ZS1uaWdodCcgYXMgY29uc3QsIGxhYmVsOiAnR3JhcGhpdGUgTmlnaHQnLCBpc0Rhcms6IHRydWUgfSwKICB7IHZhbHVlOiAnd2FybS1saWdodCcgYXMgY29uc3QsIGxhYmVsOiAnV2FybSBMaWdodCcsIGlzRGFyazogdHJ1ZSB9LAogIHsgdmFsdWU6ICdjbGVhbi1saWdodCcgYXMgY29uc3QsIGxhYmVsOiAnQ2xlYW4gTGlnaHQnLCBpc0Rhcms6IGZhbHNlIH0sCiAgeyB2YWx1ZTogJ3NvZnQtbGlnaHQnIGFzIGNvbnN0LCBsYWJlbDogJ1NvZnQgTGF2ZW5kZXInLCBpc0Rhcms6IGZhbHNlIH0sCiAgeyB2YWx1ZTogJ3N1bnNldCcgYXMgY29uc3QsIGxhYmVsOiAnU3Vuc2V0IEdsb3cnLCBpc0Rhcms6IHRydWUgfSwKICB7IHZhbHVlOiAnZm9yZXN0JyBhcyBjb25zdCwgbGFiZWw6ICdGb3Jlc3QgTW9zcycsIGlzRGFyazogZmFsc2UgfSwKICB7IHZhbHVlOiAnY2hhcmNvYWwnIGFzIGNvbnN0LCBsYWJlbDogJ0NoYXJjb2FsIERhcmsnLCBpc0Rhcms6IHRydWUgfSwKICB7IHZhbHVlOiAnbWlkbmlnaHQnIGFzIGNvbnN0LCBsYWJlbDogJ01pZG5pZ2h0IEJsdWUnLCBpc0Rhcms6IHRydWUgfSwKICB7IHZhbHVlOiAnbW9zYWljJyBhcyBjb25zdCwgbGFiZWw6ICdNb3NhaWMnLCBpc0Rhcms6IHRydWUgfSwKXSBhcyBjb25zdDsKCmV4cG9ydCBmdW5jdGlvbiB1c2VUaGVtZSgpIHsKICBjb25zdCBbdGhlbWUsIHNldFRoZW1lU3RhdGVdID0gdXNlU3RhdGU8VGhlbWVOYW1lPigoKSA9PiB7CiAgICB0cnkgewogICAgICBsZXQgc3RvcmVkID0gbG9jYWxTdG9yYWdlLmdldEl0ZW0oVEhFTUVfS0VZKSBhcyBUaGVtZU5hbWU7CiAgICAgIC8vIE1pZ3JhdGUgb2xkICdkYXJrJyB0aGVtZSBuYW1lIHRvICdjaGFyY29hbCcKICAgICAgaWYgKHN0b3JlZCA9PT0gKCdkYXJrJyBhcyBzdHJpbmcpKSBzdG9yZWQgPSAnY2hhcmNvYWwnIGFzIFRoZW1lTmFtZTsKICAgICAgaWYgKFRIRU1FX09QVElPTlMuc29tZSh0ID0+IHQudmFsdWUgPT09IHN0b3JlZCkpIHJldHVybiBzdG9yZWQ7CiAgICB9IGNhdGNoIHsKICAgICAgLy8gaWdub3JlCiAgICB9CiAgICByZXR1cm4gJ2dyYXBoaXRlJzsKICB9KTsKCiAgdXNlRWZmZWN0KCgpID0+IHsKICAgIGNvbnN0IHJvb3QgPSBkb2N1bWVudC5kb2N1bWVudEVsZW1lbnQ7CiAgICAKICAgIC8vIFJlbW92ZSBhbGwgdGhlbWUgY2xhc3NlcwogICAgVEhFTUVfT1BUSU9OUy5mb3JFYWNoKHQgPT4gewogICAgICByb290LmNsYXNzTGlzdC5yZW1vdmUodC52YWx1ZSk7CiAgICB9KTsKICAgIAogICAgLy8gQWRkIGN1cnJlbnQgdGhlbWUgY2xhc3MKICAgIHJvb3QuY2xhc3NMaXN0LmFkZCh0aGVtZSk7CiAgICAKICAgIC8vIFNldCBkYXJrIG1vZGUgY2xhc3MgZm9yIGRhcmsgdGhlbWVzCiAgICBjb25zdCBpc0RhcmsgPSBUSEVNRV9PUFRJT05TLmZpbmQodCA9PiB0LnZhbHVlID09PSB0aGVtZSk/LmlzRGFyayA/PyBmYWxzZTsKICAgIHJvb3QuY2xhc3NMaXN0LnRvZ2dsZSgnZGFyaycsIGlzRGFyayk7CiAgICAKICAgIHRyeSB7CiAgICAgIGxvY2FsU3RvcmFnZS5zZXRJdGVtKFRIRU1FX0tFWSwgdGhlbWUpOwogICAgfSBjYXRjaCB7CiAgICAgIC8vIGlnbm9yZQogICAgfQogIH0sIFt0aGVtZV0pOwoKICBjb25zdCBzZXRUaGVtZSA9IHVzZUNhbGxiYWNrKChuZXdUaGVtZTogVGhlbWVOYW1lKSA9PiB7CiAgICBzZXRUaGVtZVN0YXRlKG5ld1RoZW1lKTsKICB9LCBbXSk7CgogIGNvbnN0IHRvZ2dsZVRoZW1lID0gdXNlQ2FsbGJhY2soKCkgPT4gewogICAgc2V0VGhlbWVTdGF0ZSgocHJldikgPT4gewogICAgICBjb25zdCBjdXJyZW50SWR4ID0gVEhFTUVfT1BUSU9OUy5maW5kSW5kZXgodCA9PiB0LnZhbHVlID09PSBwcmV2KTsKICAgICAgY29uc3QgbmV4dElkeCA9IChjdXJyZW50SWR4ICsgMSkgJSBUSEVNRV9PUFRJT05TLmxlbmd0aDsKICAgICAgcmV0dXJuIFRIRU1FX09QVElPTlNbbmV4dElkeF0udmFsdWU7CiAgICB9KTsKICB9LCBbXSk7CgogIHJldHVybiB7IHRoZW1lLCBzZXRUaGVtZSwgdG9nZ2xlVGhlbWUgfTsKfQo=
+﻿import { useState, useCallback, useEffect } from 'react';
+
+const THEME_KEY = '__wikiki_theme';
+
+export type ThemeName = 'graphite' | 'graphite-night' | 'warm-light' | 'clean-light' | 'soft-light' | 'sunset' | 'forest' | 'charcoal' | 'midnight' | 'mosaic';
+
+export const THEME_OPTIONS = [
+  { value: 'graphite' as const, label: 'Graphite', isDark: false },
+  { value: 'graphite-night' as const, label: 'Graphite Night', isDark: true },
+  { value: 'warm-light' as const, label: 'Warm Light', isDark: true },
+  { value: 'clean-light' as const, label: 'Clean Light', isDark: false },
+  { value: 'soft-light' as const, label: 'Soft Lavender', isDark: false },
+  { value: 'sunset' as const, label: 'Sunset Glow', isDark: true },
+  { value: 'forest' as const, label: 'Forest Moss', isDark: false },
+  { value: 'charcoal' as const, label: 'Charcoal Dark', isDark: true },
+  { value: 'midnight' as const, label: 'Midnight Blue', isDark: true },
+  { value: 'mosaic' as const, label: 'Mosaic', isDark: true },
+] as const;
+
+export function useTheme() {
+  const [theme, setThemeState] = useState<ThemeName>(() => {
+    try {
+      let stored = localStorage.getItem(THEME_KEY) as ThemeName;
+      // Migrate old 'dark' theme name to 'charcoal'
+      if (stored === ('dark' as string)) stored = 'charcoal' as ThemeName;
+      if (THEME_OPTIONS.some(t => t.value === stored)) return stored;
+    } catch {
+      // ignore
+    }
+    return 'graphite';
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    
+    // Remove all theme classes
+    THEME_OPTIONS.forEach(t => {
+      root.classList.remove(t.value);
+    });
+    
+    // Add current theme class
+    root.classList.add(theme);
+    
+    // Set dark mode class for dark themes
+    const isDark = THEME_OPTIONS.find(t => t.value === theme)?.isDark ?? false;
+    root.classList.toggle('dark', isDark);
+    
+    try {
+      localStorage.setItem(THEME_KEY, theme);
+    } catch {
+      // ignore
+    }
+  }, [theme]);
+
+  const setTheme = useCallback((newTheme: ThemeName) => {
+    setThemeState(newTheme);
+  }, []);
+
+  const toggleTheme = useCallback(() => {
+    setThemeState((prev) => {
+      const currentIdx = THEME_OPTIONS.findIndex(t => t.value === prev);
+      const nextIdx = (currentIdx + 1) % THEME_OPTIONS.length;
+      return THEME_OPTIONS[nextIdx].value;
+    });
+  }, []);
+
+  return { theme, setTheme, toggleTheme };
+}
