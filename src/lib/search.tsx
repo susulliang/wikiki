@@ -119,7 +119,7 @@ function calculateSequenceScore(text: string, tokens: string[]): number {
 }
 
 /** Find all matching paragraphs in content */
-function findAllMatchingParagraphs(content: string, tokens: string[], query: string): MatchingParagraph[] {
+function findAllMatchingParagraphs(content: string, tokens: string[], _query: string): MatchingParagraph[] {
   const text = stripHtml(content);
   if (!text || tokens.length === 0) return [];
   
@@ -247,7 +247,6 @@ export function searchBundles(bundles: IBundle[], query: string): ExtendedSearch
 
   for (const bundle of bundles) {
     const bundleNameText = normalizeForSearch(bundle.name);
-    const tagsText = normalizeForSearch(bundle.tags.join(' '));
     const bundleHasMindmapFlag = bundleHasMindmap(bundle);
 
     // Check bundle name match (all tokens must match as whole words)

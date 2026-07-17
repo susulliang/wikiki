@@ -11,7 +11,6 @@ import {
   PanelTopClose,
   PanelTopOpen,
   Network,
-  Maximize2,
   Minimize2,
 } from 'lucide-react';
 import type { IBundle, IPage } from '@/data/bundles';

@@ -204,7 +204,7 @@ export default function BlobSyncPanel({ open, onOpenChange, bundles, onReloadBun
     } finally {
       setTesting(false);
     }
-  }, [persistCreds, providerId, t]);
+  }, [persistCreds, t]);
 
   const handleUpload = useCallback(
     async (name: string) => {

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { FileText, Tag, BookOpen } from 'lucide-react';
+import { FileText, BookOpen } from 'lucide-react';
 import type { SearchResult } from '@/data/bundles';
 import { getTagColor } from '@/data/bundles';
 

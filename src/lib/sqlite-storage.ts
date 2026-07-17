@@ -1,7 +1,6 @@
 import initSqlJs, { type Database, type SqlJsStatic } from 'sql.js';
 import wasmUrl from 'sql.js/dist/sql-wasm.wasm?url';
 import type { IBundle, IPage } from '@/data/bundles';
-import { normalizeBundle, denormalizeBundle } from '@/data/bundles';
 
 const DB_FILENAME = 'wikiki.db';
 const IMG_PLACEHOLDER_RE = /<img[^>]+src="data:image\/[^"]+"[^>]*>/gi;

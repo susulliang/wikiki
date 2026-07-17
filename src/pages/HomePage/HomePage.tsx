@@ -40,7 +40,7 @@ function stripBundleNameFromQuery(query: string, bundleName: string): string {
 }
 
 export default function HomePage() {
-  const { sqliteReady, reloadSQLiteBundles, exportSQLiteDB, importSQLiteDB, sqliteInfo, importBundles } = useStorageMode();
+  const { sqliteReady, reloadSQLiteBundles, exportSQLiteDB, importSQLiteDB, sqliteInfo } = useStorageMode();
 
   useEffect(() => {
     document.title = 'Wikiki';
@@ -348,7 +348,7 @@ export default function HomePage() {
   }, []);
 
   const handleSearchResultSelect = useCallback(
-    (result: ExtendedSearchResult, paragraphIndex?: number) => {
+    (result: ExtendedSearchResult, _paragraphIndex?: number) => {
       setSelectedBundleId(result.bundleId);
       setSelectedPageIndex(result.pageIndex ?? 0);
       setActiveTab('wikis');
