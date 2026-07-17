@@ -84,7 +84,7 @@ export default function BundlesPage({
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="mx-auto max-w-7xl px-6 py-10 md:px-10">
+      <div className="mx-auto max-w-7xl px-6 pt-[4.5rem] pb-10 md:px-10">
         <header className="mb-8 flex items-center justify-between border-b-2 border-border pb-6">
           <div>
             <h1 className="font-serif text-4xl font-bold uppercase tracking-tight text-foreground">
