@@ -103,7 +103,7 @@ export default function SuperSearchPage({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="mx-auto w-full max-w-2xl px-6 py-6">
+      <div className="mx-auto w-full max-w-2xl px-6 pt-[4.5rem] pb-6">
         <div className="relative">
           <Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
           <input
