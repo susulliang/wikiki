@@ -152,7 +152,7 @@ export default function BundleDetail({
   }, []);
 
   return (
-    <div className="flex-1 overflow-auto min-h-0 relative" id="bundle-detail-container">
+    <div className="wiki-detail-container flex-1 overflow-auto min-h-0 relative" id="bundle-detail-container">
       {/* Bundle Header - sticky, fully transparent so global bg shows */}
       <div
         className={`sticky top-0 z-30 py-2.5 flex flex-col gap-2 transition-[padding] duration-200 ${showToolbar ? 'pl-20 pr-6' : 'px-6'}`}

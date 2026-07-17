@@ -133,6 +133,20 @@ export default function MindmapView({ content, initialSearchQuery }: MindmapView
   const searchInputRef = useRef<HTMLInputElement>(null);
   const chartRef = useRef<ReactECharts | null>(null);
 
+  // Read the global custom font from the CSS variable. ECharts renders to
+  // canvas, so it can't use CSS variables directly — we resolve the value
+  // at render time and recompute when the theme changes (themes can swap
+  // --font-sans). This aligns mindmap text with the app's global font.
+  const fontFamily = useMemo(() => {
+    const val = getComputedStyle(document.documentElement)
+      .getPropertyValue('--font-sans')
+      .trim();
+    return val || 'sans-serif';
+    // `currentTheme` is intentional: it doesn't appear in the body, but the
+    // CSS variable `--font-sans` swaps with theme, so we re-read on change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentTheme]);
+
   // Auto-focus the search box whenever this view mounts (page opened).
   useEffect(() => {
     const id = setTimeout(() => searchInputRef.current?.focus(), 100);
@@ -360,6 +374,7 @@ export default function MindmapView({ content, initialSearchQuery }: MindmapView
           borderWidth: 1,
           padding,
           borderRadius,
+          fontFamily,
           fontSize,
           fontWeight,
           shadowBlur,
@@ -388,7 +403,7 @@ export default function MindmapView({ content, initialSearchQuery }: MindmapView
     };
 
     return processNode(treeData, 0, null);
-  }, [treeData, isDark]);
+  }, [treeData, isDark, fontFamily]);
 
   // Apply branch pruning (committedQuery — set on ENTER) and highlighting
   // (debouncedQuery — live as the user types).
@@ -414,6 +429,7 @@ export default function MindmapView({ content, initialSearchQuery }: MindmapView
       borderWidth: 1,
       textStyle: {
         color: isDark ? '#e0e0e0' : '#333333',
+        fontFamily,
         fontSize: 12,
       },
       padding: [8, 12],
@@ -436,11 +452,13 @@ export default function MindmapView({ content, initialSearchQuery }: MindmapView
           align: 'center',
           verticalAlign: 'middle',
           rotate: 0, // Keep text horizontal
+          fontFamily,
         },
         leaves: {
           label: {
             position: 'inside',
             rotate: 0,
+            fontFamily,
           }
         },
         emphasis: {

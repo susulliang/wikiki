@@ -98,6 +98,20 @@
   }
 }
 
+/* Wiki content view: push the sticky header below the floating tabbar so
+   it doesn't hide behind it. Only applies when the tabbar is visible
+   (body[data-tabbar-minimized="false"] or unset). Content can still
+   scroll under the tabbar because the scroll container extends to the
+   top of main; the padding only offsets the initial content position.
+   The transition matches the tabbar's expand/collapse timing. */
+.wiki-detail-container {
+  padding-top: 4.5rem;
+  transition: padding-top 300ms ease-in-out;
+}
+body[data-tabbar-minimized="true"] .wiki-detail-container {
+  padding-top: 0;
+}
+
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar {
     display: none;
@@ -216,10 +230,6 @@
   pointer-events: none;
   display: none;
   overflow: hidden;
-  /* Slight blur softens wave edges so foreground text stays readable
-     even where bands overlap. Kept small (3px) to preserve the wave
-     silhouette rather than turning into a flat wash. */
-  filter: blur(3px);
   /* Soft radial vignette so the waves fade toward the edges. */
   -webkit-mask-image: radial-gradient(ellipse at center, black 50%, transparent 95%);
           mask-image: radial-gradient(ellipse at center, black 50%, transparent 95%);
@@ -231,12 +241,13 @@
 
 .mist-wave-band {
   position: absolute;
-  /* Band is sized much larger than the viewport (300% wide × 100vh tall)
+  /* Band is sized much larger than the viewport (400% wide × 120vh tall)
      so that after the 45° rotation all four rectangular corners land
-     well off-screen — no hard cutoff edges visible inside the viewport. */
-  left: -100%;
-  width: 300%;
-  height: 100vh;
+     well off-screen — no hard cutoff edges visible inside the viewport,
+     even at the diagonal extremes. */
+  left: -150%;
+  width: 400%;
+  height: 120vh;
   /* Darken the accent by ~15% (mix in black) so the waves read as a
      deeper mint against the greyish bg rather than a bright accent. */
   color: color-mix(in oklab, var(--accent) 85%, black);
@@ -278,15 +289,15 @@
   }
 }
 
-/* Horizontal drift: translateX by -28.5% (one half-wave period of the
-   1400-wide path mapped onto the 150%-wide band) so the wave appears
-   to flow continuously without an obvious jump. */
+/* Horizontal drift: translateX by -25% (one half-wave period of the
+   1600-wide path) so the wave appears to flow continuously without
+   an obvious jump. */
 @keyframes mist-wave-drift {
   0% {
     transform: translateX(0) scale(var(--mist-scale, 1));
   }
   50% {
-    transform: translateX(-14%) scale(var(--mist-scale, 1));
+    transform: translateX(-25%) scale(var(--mist-scale, 1));
   }
   100% {
     transform: translateX(0) scale(var(--mist-scale, 1));

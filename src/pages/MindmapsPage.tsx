@@ -71,6 +71,19 @@ export default function MindmapsPage({
     [currentTheme],
   );
 
+  // Read the global custom font from the CSS variable. ECharts renders to
+  // canvas, so it can't use CSS variables directly — we resolve the value
+  // at render time and recompute when the theme changes.
+  const fontFamily = useMemo(() => {
+    const val = getComputedStyle(document.documentElement)
+      .getPropertyValue('--font-sans')
+      .trim();
+    return val || 'sans-serif';
+    // `currentTheme` is intentional: it doesn't appear in the body, but the
+    // CSS variable `--font-sans` swaps with theme, so we re-read on change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentTheme]);
+
   const totalPages = bundles.reduce((sum, p) => sum + p.pages.length, 0);
   const allTags = new Set<string>();
   bundles.forEach((p) => p.tags.forEach((t) => allTags.add(t)));
@@ -91,7 +104,7 @@ export default function MindmapsPage({
         name: group.root,
         symbolSize: 44,
         itemStyle: { color: palette.root, borderColor: palette.root },
-        label: { show: true, color: palette.text, fontWeight: 'bold', fontSize: 13 },
+        label: { show: true, color: palette.text, fontWeight: 'bold', fontSize: 13, fontFamily },
         category: 0,
       });
       group.items.forEach((item) => {
@@ -109,6 +122,7 @@ export default function MindmapsPage({
             show: true,
             color: isDark ? '#f5f5f5' : '#1a1a1a',
             fontSize: 11,
+            fontFamily,
           },
           category: 1,
         });
@@ -127,7 +141,7 @@ export default function MindmapsPage({
         trigger: 'item',
         backgroundColor: 'var(--popover)',
         borderColor: 'var(--border)',
-        textStyle: { color: 'var(--popover-foreground)' },
+        textStyle: { color: 'var(--popover-foreground)', fontFamily },
       },
       series: [
         {
@@ -143,11 +157,11 @@ export default function MindmapsPage({
             gravity: 0.08,
             layoutAnimation: true,
           },
-          label: { position: 'right' },
+          label: { position: 'right', fontFamily },
           emphasis: {
             focus: 'adjacency',
             lineStyle: { width: 3, opacity: 1 },
-            label: { fontSize: 13, fontWeight: 'bold' },
+            label: { fontSize: 13, fontWeight: 'bold', fontFamily },
           },
           categories: [
             { name: 'Groups' },
@@ -157,7 +171,7 @@ export default function MindmapsPage({
       ],
     };
     return { option, nodeIdToBundleId };
-  }, [bundles, isDark]);
+  }, [bundles, isDark, fontFamily]);
 
   const onEvents = useMemo(
     () => ({

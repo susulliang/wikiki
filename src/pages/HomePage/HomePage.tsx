@@ -96,6 +96,14 @@ export default function HomePage() {
     }
   }, []);
 
+  // Expose tabbar state on <body> so CSS can add top padding to the wiki
+  // content view (pushing the sticky header below the floating tabbar)
+  // without threading a prop through WikisPage → BundleDetail. When the
+  // tabbar is minimized, the padding is removed so there's no gap.
+  useEffect(() => {
+    document.body.dataset.tabbarMinimized = String(tabBarMinimized);
+  }, [tabBarMinimized]);
+
   const [selectedBundleId, setSelectedBundleId] = useState<string | null>(() => {
     try {
       return localStorage.getItem(SELECTED_KEY) || null;
