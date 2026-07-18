@@ -6,6 +6,9 @@ import { useRemoteSearch } from '@/hooks/useRemoteSearch';
 import FloatingTabBar, { type TabId } from '@/components/FloatingTabBar';
 import MosaicTilesBg from '@/components/MosaicTilesBg';
 import MistWaveBg from '@/components/MistWaveBg';
+import DarkGreenBg from '@/components/DarkGreenBg';
+import GreyYellowBg from '@/components/GreyYellowBg';
+import BrightHoneyBg from '@/components/BrightHoneyBg';
 import BundleDialog from '@/components/BundleDialog';
 import BundlesPage from '@/pages/BundlesPage';
 import WikisPage from '@/pages/WikisPage';
@@ -728,6 +731,9 @@ export default function HomePage() {
     <div className="flex h-screen flex-col bg-background overflow-hidden">
       <MosaicTilesBg />
       <MistWaveBg />
+      <DarkGreenBg />
+      <GreyYellowBg />
+      <BrightHoneyBg />
       <FloatingTabBar
         activeTab={activeTab}
         onTabChange={handleTabChange}

@@ -18,6 +18,9 @@ const THEME_PALETTE: Record<ThemeName, string> = {
   'midnight': 'linear-gradient(135deg, #090d16 0%, #14b8a6 100%)',
   'mosaic': 'linear-gradient(135deg, #2f2f2f 0%, #a31919 100%)',
   'mist-wave': 'linear-gradient(135deg, #32363b 0%, #7aa896 100%)',
+  'emerald-dusk': 'linear-gradient(135deg, #123c24 0%, #0f5b35 100%)',
+  'ochre-sands': 'linear-gradient(135deg, #252523 0%, #ca8a04 100%)',
+  'amber-nectar': 'linear-gradient(135deg, #fffbef 0%, #d97706 100%)',
 };
 
 const THEME_LABEL_KEYS: Record<ThemeName, TranslationKey> = {
@@ -32,6 +35,9 @@ const THEME_LABEL_KEYS: Record<ThemeName, TranslationKey> = {
   'midnight': 'theme.midnightBlue',
   'mosaic': 'theme.mosaic',
   'mist-wave': 'theme.mistWave',
+  'emerald-dusk': 'theme.emeraldDusk',
+  'ochre-sands': 'theme.ochreSands',
+  'amber-nectar': 'theme.amberNectar',
 };
 
 interface ThemesPageProps {

@@ -73,6 +73,9 @@ export type TranslationKey =
   | 'theme.midnightBlue'
   | 'theme.mosaic'
   | 'theme.mistWave'
+  | 'theme.emeraldDusk'
+  | 'theme.ochreSands'
+  | 'theme.amberNectar'
   | 'search.placeholder'
   | 'search.noResults'
   | 'search.results'
@@ -175,6 +178,9 @@ const en: TranslationDict = {
   'theme.midnightBlue': 'Midnight Blue',
   'theme.mosaic': 'Mosaic',
   'theme.mistWave': 'Mist Wave',
+  'theme.emeraldDusk': 'Emerald Dusk',
+  'theme.ochreSands': 'Ochre Sands',
+  'theme.amberNectar': 'Amber Nectar',
   'search.placeholder': 'Search across all bundles...',
   'search.noResults': 'No results found',
   'search.results': 'results',
@@ -276,6 +282,9 @@ const zh: TranslationDict = {
   'theme.midnightBlue': '午夜蓝',
   'theme.mosaic': '马赛克',
   'theme.mistWave': '薄雾波纹',
+  'theme.emeraldDusk': '暮色幽翠',
+  'theme.ochreSands': '赭石金沙',
+  'theme.amberNectar': '琥珀金蜜',
   'search.placeholder': '搜索所有知识包...',
   'search.noResults': '未找到结果',
   'search.results': '条结果',
@@ -377,6 +386,9 @@ const jp: TranslationDict = {
   'theme.midnightBlue': 'ミッドナイトブルー',
   'theme.mosaic': 'モザイク',
   'theme.mistWave': 'ミストウェーブ',
+  'theme.emeraldDusk': 'エメラルドダスク',
+  'theme.ochreSands': 'オーカーサンズ',
+  'theme.amberNectar': 'アンバーネクター',
   'search.placeholder': 'すべてのバンドルを検索...',
   'search.noResults': '結果が見つかりません',
   'search.results': '件の結果',
@@ -478,6 +490,9 @@ const de: TranslationDict = {
   'theme.midnightBlue': 'Mitternachtsblau',
   'theme.mosaic': 'Mosaik',
   'theme.mistWave': 'Nebelwelle',
+  'theme.emeraldDusk': 'Smaragd-Dämmerung',
+  'theme.ochreSands': 'Ocker-Sand',
+  'theme.amberNectar': 'Bernstein-Nektar',
   'search.placeholder': 'Alle Bundles durchsuchen...',
   'search.noResults': 'Keine Ergebnisse gefunden',
   'search.results': 'Ergebnisse',
@@ -579,6 +594,9 @@ const it: TranslationDict = {
   'theme.midnightBlue': 'Blu mezzanotte',
   'theme.mosaic': 'Mosaico',
   'theme.mistWave': 'Onda di nebbia',
+  'theme.emeraldDusk': 'Tramonto di smeraldo',
+  'theme.ochreSands': "Sabbie d'ocra",
+  'theme.amberNectar': "Nettare d'ambra",
   'search.placeholder': 'Cerca in tutti i bundle...',
   'search.noResults': 'Nessun risultato trovato',
   'search.results': 'risultati',
@@ -680,6 +698,9 @@ const es: TranslationDict = {
   'theme.midnightBlue': 'Azul medianoche',
   'theme.mosaic': 'Mosaico',
   'theme.mistWave': 'Ola de niebla',
+  'theme.emeraldDusk': 'Ocaso de esmeralda',
+  'theme.ochreSands': 'Arenas de ocre',
+  'theme.amberNectar': 'Néctar de ámbar',
   'search.placeholder': 'Buscar en todos los bundles...',
   'search.noResults': 'No se encontraron resultados',
   'search.results': 'resultados',
