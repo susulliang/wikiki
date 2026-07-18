@@ -266,7 +266,7 @@ function ResultCard({ result, query, onSelect, onOpenMindmap }: ResultCardProps)
   const hasMultiple = paragraphs.length > 1;
 
   return (
-    <div className="rounded-3xl border-2 border-border bg-card p-4 transition-all hover:border-primary/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+    <div className="rounded-3xl border-2 border-border bg-card/70 backdrop-blur-md p-4 transition-all hover:border-primary/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
       <div className="mb-2 flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
           <button
@@ -428,7 +428,7 @@ function RemoteResultCard({ result, query, onDownload }: RemoteResultCardProps) 
   const paragraphs = result.matchingParagraphs;
 
   return (
-    <div className="rounded-3xl border-2 border-dashed border-primary/30 bg-primary/5 p-4 transition-all hover:border-primary/50">
+    <div className="rounded-3xl border-2 border-dashed border-primary/30 bg-primary/5 backdrop-blur-md p-4 transition-all hover:border-primary/50">
       <div className="mb-2 flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
           <Cloud className="size-4 shrink-0 text-primary/60" />

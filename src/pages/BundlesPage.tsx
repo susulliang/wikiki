@@ -121,7 +121,7 @@ export default function BundlesPage({
                     <div
                       key={bundle.id}
                       className={cn(
-                        'group relative flex cursor-pointer flex-col rounded-3xl bg-card p-4 transition-all hover:-translate-y-1 hover:shadow-md',
+                        'group relative flex cursor-pointer flex-col rounded-3xl bg-card/70 backdrop-blur-md p-4 transition-all hover:-translate-y-1 hover:shadow-md',
                         isSelected ? 'border-2 border-primary' : 'border-2 border-border hover:border-primary/50',
                       )}
                       onClick={() => onSelectBundle(bundle.id)}
